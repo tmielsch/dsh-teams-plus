@@ -201,7 +201,10 @@ function link(weitere) {
 		return
 	}
 	// `link` haengt Verweise nach ~/.dsh/.tm/teams-plus; die Liste steht in scripts/dsh-links.json.
-	const lauf = spawnSync(process.execPath, [skript, '--apply', ...weitere], { stdio: 'inherit' })
+	// Mit `--relink` geht alles unveraendert weiter: dieser Modus kennt seine eigenen Schalter
+	// (--apply, --dry-run, --revert). Ohne das waere jeder Trockenlauf ein Echtlauf.
+	const argumente = weitere.includes('--relink') ? weitere : ['--apply', ...weitere]
+	const lauf = spawnSync(process.execPath, [skript, ...argumente], { stdio: 'inherit' })
 	if (lauf.status !== 0) process.exitCode = lauf.status === null ? 1 : lauf.status
 }
 
@@ -243,6 +246,9 @@ function hilfe() {
 	console.log('')
 	console.log('  --ausfuehrlich         bei status, apply, revert und doctor die Ausgabe der Werkzeuge mitzeigen')
 	console.log('  teams-plus link --dsh-home=<pfad>      Trockenlauf gegen ein anderes Zuhause')
+	console.log('  teams-plus link --relink               die ALTEN Verweise in ~/.dsh umhaengen (Trockenlauf)')
+	console.log('  teams-plus link --relink --apply       umhaengen (sichert vorher unter backup-links/)')
+	console.log('  teams-plus link --relink --revert <sicherung.json>   zurueckstellen')
 	console.log('  teams-plus agents install --target=<datei>   gegen eine andere Datei (Tests)')
 }
 
