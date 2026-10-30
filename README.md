@@ -45,6 +45,23 @@ teams-plus link        Datenordner unter ~/.dsh/.tm/teams-plus/ anlegen
 **Die A-Patches laufen nie von allein.** Sie schreiben in die DSH-Installation, deshalb sind sie ein
 ausdrücklicher Befehl und keine Nebenwirkung der Installation.
 
+`teams-plus agents install` setzt den Anweisungsblock in `~/.dsh/AGENTS.md` (`status` zeigt, ob er
+aktuell ist, `revert` nimmt ihn zurück). Der Block steht **vor** einem älteren `PROJECTOS`-Block,
+weil er Vorrang beansprucht; zwei Blöcke gleichen Namens kann es nicht geben.
+
+## Selbst bauen
+
+```bash
+npm install        # esbuild, typescript, zod
+npm run build      # schreibt lib/client.js (Browser) und lib/index.js (Host)
+npm test           # 63 Tests, ohne laufendes DSH
+npm pack           # der prepack-Haken baut vorher neu
+```
+
+Der Build erzeugt **zwei** Bündel: `lib/client.js` trägt den `window.__ModuleLoader__.load`-Kopf,
+ohne den der Browser das Paket nicht lädt, und `lib/index.js` ist der Host-Teil, der nur `node:*` und
+`@deepseek-ai/*` offen lässt — alles andere, auch zod, ist eingebündelt.
+
 ## Abhängigkeiten, die nicht hierher gehören
 
 | Abhängigkeit | Wozu | Pflicht? |
