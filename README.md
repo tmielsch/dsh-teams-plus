@@ -58,15 +58,23 @@ Ohne `--apply` ist es ein Trockenlauf; `--revert <sicherung>` legt eine Sicherun
 ## Einbau, in dieser Reihenfolge
 
 ```bash
-dsh plugin --profile web add <release-url>      # oder: npm install im Paketordner
-teams-plus link                                 # patches/ und rollen/ nach ~/.dsh/.tm/teams-plus
+dsh plugin --profile web add <release-url>      # MUSS zuerst; einbau verweigert sonst
 teams-plus link --relink                        # Trockenlauf: hängt alte Verweise in ~/.dsh um
 teams-plus link --relink --apply                # 17 Verweise umbiegen, 4 durch Kopien ersetzen, rollen umhängen
 teams-plus einbau                               # Trockenlauf: zeigt genau die angefassten Zeilen
 teams-plus einbau --apply                       # entfernt die vier Einträge, setzt teams-plus ein
+teams-plus agents install                       # den Anweisungsblock in ~/.dsh/AGENTS.md setzen
 # danach DSH neu starten — das trifft alle laufenden Sitzungen
-teams-plus apply                                # die A-Patches in die DSH-Installation
+node bin/teams-plus.mjs status && bash ~/.dsh/doctor.sh
 ```
+
+**`teams-plus apply` für die A-Patches gehört nicht in diesen Ablauf** — die sind auf dieser Maschine
+schon eingespielt. `apply` ist nur nach einem DSH-Update nötig, und `status` sagt, wann.
+
+**Der erste Schritt ist Pflicht, nicht Kür.** `einbau --apply` verweigert seit 0.3.0 mit Exit 1 und
+einer Meldung, wenn das Paket im Profil nicht installiert ist. Vorher hätte es den vier arbeitenden
+Patches den Eintrag genommen und an ihre Stelle einen unladbaren gesetzt — `await_goal_dependency`,
+`quiet`, `agent_id`, Modellfelder und Rollentitel wären in allen Sitzungen still weggefallen.
 
 **`link --relink` ist nur nötig, wenn die Verweise noch ins alte `dsh-projectOS` zeigen.** Es hängt
 sie auf `~/.dsh/.tm/teams-plus/` um und ersetzt die vier Verweise ohne Gegenstück im Paket
@@ -84,7 +92,7 @@ das ist der wichtigste Test in `test/einbau.test.mjs`. Vor jeder Änderung siche
 ```bash
 npm install        # esbuild, typescript, zod
 npm run build      # schreibt lib/client.js (Browser) und lib/index.js (Host)
-npm test           # 93 Tests, ohne laufendes DSH
+npm test           # 94 Tests, ohne laufendes DSH
 npm pack           # der prepack-Haken baut vorher neu
 ```
 
