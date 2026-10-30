@@ -1,8 +1,13 @@
 # @tmielsch/dsh-teams-plus — Bundle-Patch
 #
-# Laedt die fünf Plugin-Patches, die Agent Teams in DSH benutzbar machen. Jeder Eintrag ist ein
-# eigenes Modul mit `export const name` und `export const inject`; er laedt beim Start von DSH und
-# laesst die DSH-Dateien unberuehrt.
+# Der ERSTE Eintrag ist das Paket selbst: er laedt `lib/index.js`, also die Host-Haelfte mit dem
+# Dienst `teamsPlus` (Policy-Ablage, sechs Methoden, Prompt-Injektion) und — ueber den
+# Client-Eintrag des Pakets — die Ansicht. Ohne diesen Eintrag kennt DSH den Dienst nicht, und
+# alles andere an diesem Paket waere wirkungslos.
+#
+# Danach kommen die fünf Plugin-Patches, die Agent Teams in DSH benutzbar machen. Jeder Eintrag ist
+# ein eigenes Modul mit `export const name` und `export const inject`; er laedt beim Start von DSH
+# und laesst die DSH-Dateien unberuehrt.
 #
 # Die A-Patches (`allow-*`) stehen hier NICHT. Sie schreiben in die DSH-Installation, gehen bei
 # jedem DSH-Update verloren und laufen deshalb nur auf ausdruecklichen Befehl:
@@ -14,6 +19,8 @@
 #
 # Zuruecknehmen eines Plugin-Patches: seinen Eintrag hier entfernen und DSH neu starten.
 - insert:
+    - id: teams-plus
+      name: '@tmielsch/dsh-teams-plus'
     - id: delegate-send
       name: '@tmielsch/dsh-teams-plus/patches/delegate-send.mjs'
     - id: teammate-modell

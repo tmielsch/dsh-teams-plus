@@ -45,12 +45,27 @@ export function datenOrdner(home: string = homedir()): string {
 }
 
 /**
- * Der Ordner mit den mitgelieferten Startdateien (`<paket>/policies`). Aufgeloest ueber
- * `import.meta.url`, damit er sowohl aus `src/policy/` als auch aus einem gebauten `lib/policy/`
- * heraus auf denselben Ordner zeigt: zwei Ebenen hoch, dann `policies`.
+ * Der Ordner mit den mitgelieferten Startdateien (`<paket>/policies`).
+ *
+ * Aufgeloest wird ueber den PAKETWURZELORDNER, nicht ueber eine feste Zahl von `..`: dieses Modul
+ * liegt im Quellbaum unter `src/policy/`, im gebauten Paket aber eingeebnet in `lib/index.js`.
+ * Eine feste Tiefe waere fuer eine der beiden Lagen falsch — im Buendel zeigte sie einen Ordner
+ * neben das Paket. Deshalb wird von der Datei aus nach oben gegangen, bis ein Ordner mit
+ * `package.json` kommt; das ist die Paketwurzel, und `policies` liegt daneben.
+ *
+ * `von` ist der Pfad, von dem aus gesucht wird; im Betrieb `import.meta.url`. Der Parameter ist
+ * da, damit ein Test die Lage des gebauten Buendels nachstellen kann, ohne es zu laden.
  */
-export function startOrdner(): string {
-  return join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), POLICIES)
+export function startOrdner(von: string = fileURLToPath(import.meta.url)): string {
+  let ordner = dirname(von)
+  for (let stufe = 0; stufe < 6; stufe += 1) {
+    if (existsSync(join(ordner, 'package.json'))) return join(ordner, POLICIES)
+    const hoeher = dirname(ordner)
+    if (hoeher === ordner) break
+    ordner = hoeher
+  }
+  // Kein package.json gefunden (etwa eine lose Kopie): dann wie im Quellbaum drei Ebenen hoch.
+  return join(dirname(dirname(dirname(von))), POLICIES)
 }
 
 export interface StoreOptionen {
