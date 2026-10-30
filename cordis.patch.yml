@@ -1,0 +1,26 @@
+# @tmielsch/dsh-teams-plus — Bundle-Patch
+#
+# Laedt die fünf Plugin-Patches, die Agent Teams in DSH benutzbar machen. Jeder Eintrag ist ein
+# eigenes Modul mit `export const name` und `export const inject`; er laedt beim Start von DSH und
+# laesst die DSH-Dateien unberuehrt.
+#
+# Die A-Patches (`allow-*`) stehen hier NICHT. Sie schreiben in die DSH-Installation, gehen bei
+# jedem DSH-Update verloren und laufen deshalb nur auf ausdruecklichen Befehl:
+#
+#   teams-plus status     was ist eingespielt
+#   teams-plus apply      einspielen
+#   teams-plus revert     zuruecknehmen
+#   teams-plus doctor     nach einem DSH-Update nachholen
+#
+# Zuruecknehmen eines Plugin-Patches: seinen Eintrag hier entfernen und DSH neu starten.
+- insert:
+    - id: delegate-send
+      name: '@tmielsch/dsh-teams-plus/patches/delegate-send.mjs'
+    - id: teammate-modell
+      name: '@tmielsch/dsh-teams-plus/patches/teammate-model.mjs'
+    - id: goal-await
+      name: '@tmielsch/dsh-teams-plus/patches/goal-await.mjs'
+    - id: stille-nachrichten
+      name: '@tmielsch/dsh-teams-plus/patches/stille-nachrichten.mjs'
+    - id: rolle-titel
+      name: '@tmielsch/dsh-teams-plus/patches/rolle-titel.mjs'

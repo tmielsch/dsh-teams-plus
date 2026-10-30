@@ -1,0 +1,74 @@
+{
+  "name": "@tmielsch/dsh-teams-plus",
+  "version": "0.1.0",
+  "description": "Agent Teams Plus for DeepSeek Harness: the unlocks, the roles and a policy schema that make agent teams work.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./patches/*": "./patches/*",
+    "./rollen/*": "./rollen/*",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "teams-plus": "./bin/teams-plus.mjs"
+  },
+  "files": [
+    "patches",
+    "rollen",
+    "agents",
+    "bin",
+    "scripts",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "lib"
+  ],
+  "scripts": {
+    "build": "node scripts/build-client.mjs",
+    "check": "tsc -p tsconfig.json",
+    "test": "node --test test/*.test.mjs",
+    "status": "node bin/teams-plus.mjs status",
+    "link": "node bin/teams-plus.mjs link"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "agent-team",
+    "teams",
+    "policies"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.js"
+}
