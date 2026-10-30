@@ -58,6 +58,16 @@ npm test           # 63 Tests, ohne laufendes DSH
 npm pack           # der prepack-Haken baut vorher neu
 ```
 
+**Wenn `npm install` mit „root-owned files in the cache" abbricht:** Auf dieser Maschine liegen
+34263 root-eigene Dateien unter `~/.npm/_npx/` (ein früherer `sudo`-Lauf). Statt am System zu
+schrauben genügt ein eigenes Cache-Ziel:
+
+```bash
+npm install --cache /tmp/npm-cache
+```
+
+Dauerhaft beheben ließe es sich mit `sudo chown -R 501:20 ~/.npm`; nötig ist das nicht.
+
 Der Build erzeugt **zwei** Bündel: `lib/client.js` trägt den `window.__ModuleLoader__.load`-Kopf,
 ohne den der Browser das Paket nicht lädt, und `lib/index.js` ist der Host-Teil, der nur `node:*` und
 `@deepseek-ai/*` offen lässt — alles andere, auch zod, ist eingebündelt.
