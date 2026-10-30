@@ -1,0 +1,15 @@
+{
+  "comment": "Was link-dsh.mjs aus diesem Paket nach ~/.dsh haengt: die A-Patches (die Dateien, die in die DSH-Installation schreiben) und die Rollen. Ziel ist der Ordner ~/.dsh/.tm/teams-plus — nicht mehr das Repo selbst und nicht mehr ~/.dsh/patches. Die B-Patches stehen in cordis.patch.yml und werden ueber '@tmielsch/dsh-teams-plus/patches/<name>.mjs' geladen; sie brauchen keinen Verweis. Die Sicherungsordner patches/backup-* in ~/.dsh bleiben, wo sie sind.",
+  "links": [
+    {
+      "from": "patches",
+      "to": ".tm/teams-plus/patches",
+      "kind": "dir"
+    },
+    {
+      "from": "rollen",
+      "to": ".tm/teams-plus/rollen",
+      "kind": "dir"
+    }
+  ]
+}
