@@ -301,7 +301,32 @@ export function apply(ctx, config = {}) {
 
 	const definition = (defineTool) => defineTool({
 		name: WERKZEUG,
-		description: "Declare that your goal cannot progress until something outside this session arrives, and let the goal wait for it WITHOUT spending continuation rounds. Use it the moment you notice you are blocked on a dependency: a message you asked another session for, a background job you started, a file or measurement someone else must produce. The goal is disarmed immediately; as soon as a message arrives for this session (or the wait expires) it is re-armed automatically and the next goal round continues the work. Do NOT use it to end your turn early or to avoid work you could do now: everything you can do in this turn must be done first. Do NOT use it while a human is available and waiting for an answer — just answer. One wait at a time: a second call replaces the first.",
+		description: [
+			"Put your goal into idle so it spends NO continuation rounds until something outside this session arrives. Use it the moment you notice you are blocked on a dependency.",
+			"",
+			"WHEN THIS APPLIES — this is the important part, be generous with it:",
+			"- You asked another session (or the human) for something and must wait for the answer.",
+			"- You started a background job (a build, a test run, a subagent, a download) and your next step needs its result.",
+			"- You need a file, a measurement, or a decision that only the human or another session can produce.",
+			"- You told the human what to do and now wait for them to do it (run a command, restart, answer a question, decide between options).",
+			"In all of these cases you are BLOCKED — not finished, not idle by choice. Do not keep working in circles around the blocker and do not end the turn just to burn nothing.",
+			"",
+			"WHAT IT DOES — measured behaviour, not a promise:",
+			"1. Your goal is disarmed at once: phase stays 'active', but the round driver sees activation != 'armed' and pushes no further rounds.",
+			"2. It re-arms ITSELF. You do nothing, you remember nothing, you run no loop. The trigger is the next incoming message for this session — or the expiry of max_wait_seconds.",
+			"3. When re-armed, the next round continues the work. You will not be asked to explain what you were waiting for.",
+			"You never need to poll, sleep, or re-check. That is the whole point.",
+			"",
+			"WHAT COUNTS AS 'THE DEPENDENCY ARRIVED': an incoming message in this session's inbox (a goal round itself does NOT count) or the expiry of max_wait_seconds. Expiry is deliberate: a forgotten wait must never stall a goal forever.",
+			"",
+			"DO NOT use it:",
+			"- to end a turn early, or to avoid work you could do in this turn — do everything you can first;",
+			"- while a human is available and waiting for your answer — just answer;",
+			"- when there is no active goal: then it does nothing, and an incoming message wakes you anyway.",
+			"One wait at a time: a second call replaces the first.",
+			"",
+			"TELL THE HUMAN ONE SENTENCE about what you are waiting for, then end your turn."
+		].join("\n"),
 		parameters: {
 			waiting_for: {
 				type: "string",

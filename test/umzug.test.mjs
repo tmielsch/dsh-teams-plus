@@ -54,7 +54,6 @@ const SHA256_ORIGINAL = {
 	'member-model.mjs': '8f56ff4eaceb8773c3a537a4d729fa89ffad4f36dd59c7902c4feaf830be4584',
 	'delegate-send.mjs': '62af78119649e92e65fa97ff968e1fe04fe2e074cb4c7f9e8604b87325a69d17',
 	'teammate-model.mjs': 'a02a381d027a478e474116357b4c1ebde876a229809bd90641ea2630e139a09c',
-	'goal-await.mjs': '5b14367e60387d777f23628795efbb6a69c49f5db879e7071c7aa64192eaa5ef',
 	'stille-nachrichten.mjs': '31e83a7963ca6d9478414267a0f1a53de885121df1453386e879230677409ffd'
 }
 
@@ -79,6 +78,11 @@ const SHA256_ORIGINAL = {
  * Verweis sonst nichts geprueft haette. Auch diese Abweichung war beabsichtigt.
  */
 const SHA256_ABWEICHEND = {
+	// goal-await.mjs: die Werkzeugbeschreibung wurde am 2026-10-30 ausgeschrieben. Grund gemessen:
+	// die globale AGENTS.md ist 77 078 Bytes gross, das Budget 65 536, und der TEAMSPLUS-Block
+	// beginnt bei Byte 63 387 — von 13 691 Bytes kommen nur 2 149 an. Eine Anleitung dort waere
+	// zu 84 % unsichtbar. Die Beschreibung des Werkzeugs kommt dagegen bei jedem Aufruf an.
+	'goal-await.mjs': '674454d06e3a4acfc1770995f428b85a9bf8a4d5d6537cfa23285c95090426a8',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7'
 }
@@ -146,8 +150,8 @@ function zieldateien() {
 
 test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen Rollenaufloesung', () => {
 	const alle = { ...SHA256_ORIGINAL, ...SHA256_ABWEICHEND }
-	assert.equal(Object.keys(SHA256_ORIGINAL).length, 21, 'die Liste der unveraenderten Originale muss 21 Dateien haben')
-	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 2, 'es sind genau zwei Dateien mit Absicht geaendert')
+	assert.equal(Object.keys(SHA256_ORIGINAL).length, 20, 'die Liste der unveraenderten Originale muss 20 Dateien haben (19 + goal-await in ABWEICHEND)')
+	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 3, 'es sind genau drei Dateien mit Absicht geaendert (zwei Rollen + goal-await)')
 
 	const abweichend = []
 	for (const [name, soll] of Object.entries(alle)) {
