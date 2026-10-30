@@ -3,3 +3,4 @@ lib/
 .build/
 *.tgz
 .DS_Store
+.worktrees/
