@@ -13,7 +13,7 @@
  *
  * WAS DIESES MODUL TUT
  * `delegate_task` bekommt ein optionales Feld `rolle`. Wird es genannt, liest
- * das Werkzeug `~/.dsh/rollen/<rolle>.md` und stellt den Text BYTE-GLEICH vor
+ * das Werkzeug `<Rollenordner>/<rolle>.md` und stellt den Text BYTE-GLEICH vor
  * den Auftrag des Experten (`rollentext + zwei Zeilenumbrueche + auftrag`).
  * Der Rollentext steht damit am Anfang der ersten Nutzernachricht des
  * Facharbeiters; alle Facharbeiter derselben Rolle teilen so den Anfang
@@ -25,7 +25,11 @@
  *    Feldbeschreibung wird beim Start gebildet.)
  *  - Eine unbekannte Rolle wird mit der Liste der vorhandenen abgelehnt, nicht
  *    still ignoriert; ein Tippfehler startet so keinen Facharbeiter ohne Rolle.
- *  - Der Ordner ist `~/.dsh/rollen`, ueberschreibbar mit `DSH_ROLLEN_DIR`.
+ *  - Der Rollenordner wird in dieser Reihenfolge gesucht, der erste vorhandene
+ *    gewinnt: `DSH_ROLLEN_DIR` (Uebersteuerung, wie bisher), dann
+ *    `~/.dsh/.tm/teams-plus/rollen` (der Datenordner des Pakets; dorthin haengt
+ *    `teams-plus link` die Rollen), zuletzt `~/.dsh/rollen` als Rueckfall fuer
+ *    eine bestehende Installation, die den neuen Ordner noch nicht hat.
  *  - Dateien, deren Name mit `_` beginnt, sind keine Rollen.
  *
  * WAS UNVERAENDERT BLEIBT
@@ -62,11 +66,18 @@ export const HILFE = {
 // ${MARKER}: Rollen fuer Facharbeiter. Die Rollendatei steht byte-gleich vor dem
 // Auftrag, damit alle Facharbeiter derselben Rolle den Anfang ihres Prompts
 // (und damit den Zwischenspeicher) teilen. Siehe ~/.dsh/patches/subagent-rolle.mjs.
-import { readFileSync as __rolleLese, readdirSync as __rolleListe } from "node:fs";
+import { existsSync as __rolleDa, readFileSync as __rolleLese, readdirSync as __rolleListe } from "node:fs";
 import { homedir as __rolleHeim } from "node:os";
 import { join as __rolleJoin } from "node:path";
 function subagentRollenOrdner() {
-	return process.env.DSH_ROLLEN_DIR || __rolleJoin(__rolleHeim(), ".dsh", "rollen");
+	if (process.env.DSH_ROLLEN_DIR) return process.env.DSH_ROLLEN_DIR;
+	for (const kandidat of [
+		__rolleJoin(__rolleHeim(), ".dsh", ".tm", "teams-plus", "rollen"),
+		__rolleJoin(__rolleHeim(), ".dsh", "rollen")
+	]) {
+		if (__rolleDa(kandidat)) return kandidat;
+	}
+	return __rolleJoin(__rolleHeim(), ".dsh", "rollen");
 }
 function subagentRollenListe() {
 	try {

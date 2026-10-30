@@ -48,7 +48,7 @@
  * Protokoll:      ~/.dsh/logs/rolle-titel.log
  */
 
-import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -75,9 +75,24 @@ export function protokolliere(text) {
 	} catch { /* Das Protokoll ist Beigabe, nie Bedingung. */ }
 }
 
-/** Ordner der Rollendateien, wie ihn das Delegationswerkzeug selbst bestimmt. */
+/**
+ * Ordner der Rollendateien, wie ihn das Delegationswerkzeug selbst bestimmt.
+ * Der erste vorhandene gewinnt: `DSH_ROLLEN_DIR` (Uebersteuerung), sonst
+ * `~/.dsh/.tm/teams-plus/rollen` (der Datenordner des Pakets, dorthin haengt
+ * `teams-plus link` die Rollen), sonst `~/.dsh/rollen` als Rueckfall fuer eine
+ * bestehende Installation, die den neuen Ordner noch nicht hat. Dieselbe
+ * Reihenfolge wie `subagentRollenOrdner` in patches/subagent-rolle.mjs, damit
+ * beide Patches dieselben Dateien sehen.
+ */
 export function rollenOrdner() {
-	return process.env.DSH_ROLLEN_DIR || join(homedir(), ".dsh", "rollen");
+	if (process.env.DSH_ROLLEN_DIR) return process.env.DSH_ROLLEN_DIR;
+	for (const kandidat of [
+		join(homedir(), ".dsh", ".tm", "teams-plus", "rollen"),
+		join(homedir(), ".dsh", "rollen")
+	]) {
+		if (existsSync(kandidat)) return kandidat;
+	}
+	return join(homedir(), ".dsh", "rollen");
 }
 
 /** Namen der vorhandenen Rollen: *.md ohne fuehrenden Unterstrich. */

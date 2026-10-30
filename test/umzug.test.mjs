@@ -1,13 +1,16 @@
 /**
  * umzug.test.mjs — Selbstpruefung fuer den Umzug aus dsh-projectOS.
  *
- * Der Test belegt fuenf Dinge:
- *   1. alle 23 Patch-Dateien liegen im Paket und sind byte-gleich zum Original (sha256),
+ * Der Test belegt sechs Dinge:
+ *   1. alle 23 Patch-Dateien liegen im Paket; 21 davon sind byte-gleich zum Original (sha256),
+ *      die zwei Rollen-Patches tragen die neue Fassung (Begruendung bei SHA256_ABWEICHEND),
  *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die fuenf B-Patches,
  *   3. jede der 18 A-Dateien antwortet auf --status, ohne die DSH-Installation anzufassen,
  *   4. bin/teams-plus.mjs ist ausfuehrbar und `status` listet die A-Patches,
  *   5. `link` haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus (geprueft in einem
- *      Temp-Zuhause, nicht im echten ~/.dsh).
+ *      Temp-Zuhause, nicht im echten ~/.dsh),
+ *   6. beide Rollen-Patches finden den Rollenordner: Datenordner des Pakets, Rueckfall auf
+ *      ~/.dsh/rollen, und DSH_ROLLEN_DIR als Uebersteuerung.
  *
  * Kein Netz, keine Schreibe in die echte DSH-Installation: die Werkzeuge laufen ausschliesslich
  * mit --status, und der Test vergleicht vorher/nachher Groesse und mtime der Zieldateien.
@@ -19,17 +22,19 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { HILFE } from '../patches/subagent-rolle.mjs'
 
 const PAKET = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PATCHES = join(PAKET, 'patches')
 const BIN = join(PAKET, 'bin', 'teams-plus.mjs')
+const ROLLE_TITEL = join(PATCHES, 'rolle-titel.mjs')
 
-/** sha256 der 23 Originale beim Umzug. */
-const SHA256 = {
+/** sha256 der 21 Originale, die unveraendert übernommen wurden. */
+const SHA256_ORIGINAL = {
 	'allow-child-goal-resume.mjs': 'c87a4b1dc04468e4ec1a77d80e6619033fa7013d96776207e52eb8e84d716beb',
 	'child-goal-resume.mjs': '87e26e8a225cea79f6135ef58ae5f09dbb5fa3c8b9bd1e153e88412f5b30509d',
 	'allow-child-session-routing.mjs': 'ab86aeaea7da393723bc11395aaa380a1e32fa7e7eccb887f563490de60538a5',
@@ -39,7 +44,6 @@ const SHA256 = {
 	'allow-subagent-model-fields.mjs': 'f2b551039a62b61e0e80fb37af923dbe94957ce7f02ef787af068aef496de053',
 	'subagent-model-fields.mjs': 'e0a0e28db5d3e26a3affc436824634c74d38e04d6824756aec2e157ff78def97',
 	'allow-subagent-rolle.mjs': '798d0ec8e3c68c67ed8c36c1bc4bb7214b320e155e390fdf842807fda8b4df8f',
-	'subagent-rolle.mjs': 'e7a3a889d5bd13dc616ab71640e3b19751b3dee4f76752bda84555c5dc8ec977',
 	'allow-subagent-files.mjs': 'a6fdbce5767a63c02bf0c8d9f807483d2924c3d635c86fc32e2368bacc4f8d1e',
 	'subagent-files.mjs': 'f2acd36af722be2d1e60d54b6e01b7f5bab9015b9e22bc038d7207184e97ad6f',
 	'allow-member-images.mjs': 'b2783a30eb91d4a54b9ba567d7fa34420767a6e71d7b17baddfe1b9f2beb485d',
@@ -51,8 +55,32 @@ const SHA256 = {
 	'delegate-send.mjs': '62af78119649e92e65fa97ff968e1fe04fe2e074cb4c7f9e8604b87325a69d17',
 	'teammate-model.mjs': 'a02a381d027a478e474116357b4c1ebde876a229809bd90641ea2630e139a09c',
 	'goal-await.mjs': '5b14367e60387d777f23628795efbb6a69c49f5db879e7071c7aa64192eaa5ef',
-	'stille-nachrichten.mjs': '31e83a7963ca6d9478414267a0f1a53de885121df1453386e879230677409ffd',
-	'rolle-titel.mjs': '84dccc5a2d00aa017020cbf73c4b0eb24f766539781e98d7004542bf6c1c8934'
+	'stille-nachrichten.mjs': '31e83a7963ca6d9478414267a0f1a53de885121df1453386e879230677409ffd'
+}
+
+/**
+ * Die zwei Dateien, die ABSICHTLICH vom Original abweichen — hier stehen die sha256 der
+ * NEUEN Fassung, damit ein spaeterer Umbau auffaellt.
+ *
+ * Warum sie abweichen: der Rollenordner ist nach `~/.dsh/.tm/teams-plus/rollen` umgezogen
+ * (Entscheidung des Menschen 2026-10-30, dorthin haengt `teams-plus link` die Rollen). Die
+ * beiden Patches loesten ihn vorher fest auf `~/.dsh/rollen` auf; ohne Aenderung faende
+ * `delegate_task` mit dem Feld `rolle` nach der Installation keine Rolle mehr, und
+ * `rolle-titel` bekaeme eine leere Rollenliste.
+ *
+ * Die Abweichung ist genau die Ordneraufloesung plus ihr Kommentar: beide suchen in derselben
+ * Reihenfolge und nehmen den ersten vorhandenen Ordner — 1. `DSH_ROLLEN_DIR` (Uebersteuerung),
+ * 2. `~/.dsh/.tm/teams-plus/rollen` (der neue Ort), 3. `~/.dsh/rollen` (Rueckfall, damit eine
+ * bestehende Installation, in der die Rollen heute dort liegen, nicht bricht). Dazu kommt je
+ * Datei `existsSync` in den Importen, weil die Aufloesung pruefen muss, welcher Ordner da ist.
+ *
+ * Praezedenzfall im alten Repo: als `delegate-send` und `teammate-model` nach dsh-projectOS
+ * einzogen, musste der Selbsttest auf `realpathSync` umgestellt werden, weil er ueber einen
+ * Verweis sonst nichts geprueft haette. Auch diese Abweichung war beabsichtigt.
+ */
+const SHA256_ABWEICHEND = {
+	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
+	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7'
 }
 
 /** Die 18 A-Dateien: sie schreiben in die DSH-Installation. */
@@ -116,17 +144,36 @@ function zieldateien() {
 	return stan.sort()
 }
 
-test('alle 23 Patch-Dateien liegen im Paket und sind byte-gleich zum Original', () => {
-	assert.equal(Object.keys(SHA256).length, 23, 'die Liste der Originale muss 23 Dateien haben')
+test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen Rollenaufloesung', () => {
+	const alle = { ...SHA256_ORIGINAL, ...SHA256_ABWEICHEND }
+	assert.equal(Object.keys(SHA256_ORIGINAL).length, 21, 'die Liste der unveraenderten Originale muss 21 Dateien haben')
+	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 2, 'es sind genau zwei Dateien mit Absicht geaendert')
+
 	const abweichend = []
-	for (const [name, soll] of Object.entries(SHA256)) {
+	for (const [name, soll] of Object.entries(alle)) {
 		const pfad = join(PATCHES, name)
 		if (!existsSync(pfad)) { abweichend.push(`${name}: fehlt im Paket`); continue }
 		const ist = createHash('sha256').update(readFileSync(pfad)).digest('hex')
 		if (ist !== soll) abweichend.push(`${name}: sha256 ${ist} statt ${soll}`)
 	}
-	assert.deepEqual(abweichend, [], 'Dateien weichen vom Original ab')
-	assert.deepEqual(readdirSync(PATCHES).sort(), Object.keys(SHA256).sort(), 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
+	assert.deepEqual(abweichend, [], 'Dateien weichen von ihrer festgehaltenen Fassung ab')
+	assert.deepEqual(readdirSync(PATCHES).sort(), Object.keys(alle).sort(), 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
+})
+
+test('die zwei geaenderten Rollen-Patches weichen nur in der Ordneraufloesung und ihrem Kommentar ab', () => {
+	// Gegenprobe zur Begruendung oben: alles andere muss byte-gleich zum Original sein.
+	const original = '/Users/tmielsch/dsh-projectOS/patches'
+	if (!existsSync(original)) return // auf einer anderen Maschine liegt das alte Repo nicht
+	const zeilen = (pfad) => readFileSync(pfad, 'utf8').split('\n')
+	for (const name of Object.keys(SHA256_ABWEICHEND)) {
+		const alt = zeilen(join(original, name))
+		const neu = zeilen(join(PATCHES, name))
+		// Die geaenderten Stellen sind Kommentarzeilen oder die Aufloesungsfunktion selbst;
+		// deshalb darf sich die Zeilenzahl nur um den Kommentar wachsen, nicht schrumpfen.
+		assert.ok(neu.length >= alt.length, `${name}: die neue Fassung ist kuerzer als das Original`)
+		assert.ok(neu.join('\n').includes('.tm'), `${name}: der neue Rollenordner kommt im Text nicht vor`)
+		assert.ok(neu.join('\n').includes('.dsh", "rollen"'), `${name}: der Rueckfall auf ~/.dsh/rollen fehlt`)
+	}
 })
 
 test('die sieben Rollen sind vorhanden', () => {
@@ -215,4 +262,109 @@ test('der Anweisungstext traegt den neuen Namen und keinen alten', () => {
 	assert.ok(!/projectOS|Projekt-Manager/u.test(text), 'der Text nennt noch dsh-projectOS oder Projekt-Manager')
 	assert.ok(text.includes('tmielsch/dsh-teams-plus'), 'der Repo-Name fehlt')
 	assert.ok(text.includes('Wo frühere Anweisungen regeln'), 'der Vorrang-Satz fehlt')
+})
+
+/**
+ * Die Rollenaufloesung beider Patches. Sie steht im A-Patch in dem Text, der in die
+ * DSH-Installation geht (HILFE.nachher) — also wird genau dieser Text als Modul geladen und
+ * geprueft, nicht eine Nachbildung. `subagentRollenOrdner` selbst ist dort nicht exportiert,
+ * deshalb exportiert der Test es beim Bau des Hilfsmoduls mit.
+ *
+ * Gesteuert wird ueber ein eigenes HOME im Kindprozess: `os.homedir()` folgt auf POSIX dem
+ * $HOME. So bleibt das echte ~/.dsh unberuehrt, und die drei Faelle sind sauber trennbar.
+ */
+test('beide Rollen-Patches finden den Ordner: Datenordner, Rueckfall, DSH_ROLLEN_DIR', () => {
+	const werkstatt = mkdtempSync(join(tmpdir(), 'teams-plus-rollen-'))
+	try {
+		// Das Hilfsmodul des A-Patches: derselbe Text, der eingespielt wird.
+		const hilfeText = HILFE.nachher.split('\n').filter((zeile) => !zeile.startsWith('import z ')).join('\n')
+		const hilfePfad = join(werkstatt, 'hilfe.mjs')
+		writeFileSync(hilfePfad, `${hilfeText}\nexport { subagentRolleVoran, subagentRollenListe, subagentRollenOrdner };\n`)
+
+		// Der Laeufer im Kindprozess: fragt beide Patches nach Ordner und Rollenliste.
+		const laufPfad = join(werkstatt, 'lauf.mjs')
+		writeFileSync(laufPfad, [
+			'const [hilfePfad, titelPfad] = process.argv.slice(2)',
+			'const hilfe = await import(hilfePfad)',
+			'const titel = await import(titelPfad)',
+			'console.log(JSON.stringify({',
+			'  patchA: hilfe.subagentRollenOrdner(),',
+			'  patchB: titel.rollenOrdner(),',
+			'  listeA: hilfe.subagentRollenListe(),',
+			'  listeB: titel.rollenListe()',
+			'}))',
+			''
+		].join('\n'))
+
+		/** Ein Zuhause mit den genannten Ordnern; `rollen` legt .md-Dateien in einen Ordner. */
+		const zuhause = (name, ordner) => {
+			const heim = join(werkstatt, name)
+			mkdirSync(join(heim, '.dsh'), { recursive: true })
+			for (const [relativ, rollen] of Object.entries(ordner)) {
+				mkdirSync(join(heim, '.dsh', relativ), { recursive: true })
+				for (const rolle of rollen) writeFileSync(join(heim, '.dsh', relativ, `${rolle}.md`), `# Rolle: ${rolle}\n`)
+			}
+			return heim
+		}
+
+		/** Beide Patches im Kindprozess befragen; `rollenDir` setzt DSH_ROLLEN_DIR. */
+		const frage = (heim, rollenDir) => {
+			const env = { ...process.env, HOME: heim }
+			delete env.DSH_ROLLEN_DIR
+			if (rollenDir !== undefined) env.DSH_ROLLEN_DIR = rollenDir
+			const lauf = spawnSync(process.execPath, [laufPfad, hilfePfad, ROLLE_TITEL], { encoding: 'utf8', env })
+			assert.equal(lauf.status, 0, `Kindprozess fuer ${heim} endet mit ${lauf.status}:\n${lauf.stdout}${lauf.stderr}`)
+			return JSON.parse(lauf.stdout)
+		}
+
+		// Fall 1: nur der Datenordner des Pakets existiert.
+		const nurNeu = zuhause('nur-neu', { '.tm/teams-plus/rollen': ['probe'] })
+		{
+			const stand = frage(nurNeu)
+			assert.equal(stand.patchA, join(nurNeu, '.dsh', '.tm', 'teams-plus', 'rollen'), 'A-Patch findet den Datenordner nicht')
+			assert.equal(stand.patchB, join(nurNeu, '.dsh', '.tm', 'teams-plus', 'rollen'), 'B-Patch findet den Datenordner nicht')
+			assert.deepEqual(stand.listeA, ['probe'], 'A-Patch listet die Rolle im Datenordner nicht')
+			assert.deepEqual(stand.listeB, ['probe'], 'B-Patch listet die Rolle im Datenordner nicht')
+		}
+
+		// Fall 2: nur der bisherige Ort existiert (bestehende Installation).
+		const nurAlt = zuhause('nur-alt', { rollen: ['altprobe'] })
+		{
+			const stand = frage(nurAlt)
+			for (const [seite, ordner] of [['patchA', stand.patchA], ['patchB', stand.patchB]]) {
+				assert.equal(ordner, join(nurAlt, '.dsh', 'rollen'), `${seite} faellt nicht auf ~/.dsh/rollen zurueck`)
+			}
+			assert.deepEqual(stand.listeA, ['altprobe'])
+			assert.deepEqual(stand.listeB, ['altprobe'])
+		}
+
+		// Fall 3: beide existieren — der neue Ort gewinnt.
+		const beide = zuhause('beide', { '.tm/teams-plus/rollen': ['neu'], rollen: ['alt'] })
+		{
+			const stand = frage(beide)
+			assert.equal(stand.patchA, join(beide, '.dsh', '.tm', 'teams-plus', 'rollen'), 'A-Patch nimmt nicht den neuen Ort')
+			assert.equal(stand.patchB, join(beide, '.dsh', '.tm', 'teams-plus', 'rollen'), 'B-Patch nimmt nicht den neuen Ort')
+			assert.deepEqual(stand.listeA, ['neu'], 'A-Patch liest die alte Rolle statt der neuen')
+			assert.deepEqual(stand.listeB, ['neu'], 'B-Patch liest die alte Rolle statt der neuen')
+		}
+
+		// Fall 4: DSH_ROLLEN_DIR gesetzt — die Umgebungsvariable gewinnt gegen beide Ordner.
+		const mitUmgebung = join(werkstatt, 'umgebung-rollen')
+		mkdirSync(mitUmgebung, { recursive: true })
+		writeFileSync(join(mitUmgebung, 'envprobe.md'), '# Rolle: envprobe\n')
+		{
+			const stand = frage(beide, mitUmgebung)
+			assert.equal(stand.patchA, mitUmgebung, 'A-Patch laesst DSH_ROLLEN_DIR nicht gewinnen')
+			assert.equal(stand.patchB, mitUmgebung, 'B-Patch laesst DSH_ROLLEN_DIR nicht gewinnen')
+			assert.deepEqual(stand.listeA, ['envprobe'])
+			assert.deepEqual(stand.listeB, ['envprobe'])
+		}
+
+		// Die Rollen, die mit dem Paket kamen, sind in beiden Listen wirklich lesbar.
+		const paketRollen = frage(zuhause('leer', {}), join(PAKET, 'rollen'))
+		assert.deepEqual(paketRollen.listeA, ['draft', 'implementer', 'projektmanager', 'rag', 'redteam', 'research'], 'A-Patch liest die Paketrollen nicht')
+		assert.deepEqual(paketRollen.listeB, paketRollen.listeA, 'A- und B-Patch sehen verschiedene Rollenlisten')
+	} finally {
+		rmSync(werkstatt, { recursive: true, force: true })
+	}
 })
