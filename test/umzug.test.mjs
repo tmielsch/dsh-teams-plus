@@ -4,7 +4,7 @@
  * Der Test belegt sechs Dinge:
  *   1. alle 23 Patch-Dateien liegen im Paket; 21 davon sind byte-gleich zum Original (sha256),
  *      die zwei Rollen-Patches tragen die neue Fassung (Begruendung bei SHA256_ABWEICHEND),
- *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die fuenf B-Patches,
+ *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches,
  *   3. jede der 18 A-Dateien antwortet auf --status, ohne die DSH-Installation anzufassen,
  *   4. bin/teams-plus.mjs ist ausfuehrbar und `status` listet die A-Patches,
  *   5. `link` haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus (geprueft in einem
@@ -99,8 +99,10 @@ const A_DATEIEN = [
 	'allow-member-model.mjs', 'member-model.mjs'
 ]
 
-/** Die fuenf B-Patches: Cordis-Plugins aus cordis.patch.yml. */
-const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs']
+/** Die B-Patches: Cordis-Plugins aus cordis.patch.yml.
+ *  Fuenf sind umgezogen; `send-to-session.mjs` entsteht in diesem Paket und ist
+ *  deshalb ohne sha256-Anker gegen projectOS. */
+const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs']
 
 /** Die Werkzeuge mit eigener Bedienung (--status, --revert). */
 const WERKZEUGE = A_DATEIEN.filter((name) => name.startsWith('allow-'))
@@ -163,7 +165,9 @@ test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen 
 	assert.deepEqual(abweichend, [], 'Dateien weichen von ihrer festgehaltenen Fassung ab')
 	// patches/package.json ist die Paketgrenze fuer den Client-Modul-Regler (siehe test/bundle.test.mjs);
 	// sie ist kein Patch und steht deshalb nicht in den sha256-Listen.
-	const erwartet = [...Object.keys(alle), 'package.json'].sort()
+	// `send-to-session.mjs` ist ein EIGENES Werkzeug dieses Pakets, kein umgezogener Patch:
+	// es entsteht hier und hat deshalb keinen sha256-Anker gegen projectOS.
+	const erwartet = [...Object.keys(alle), 'package.json', 'send-to-session.mjs'].sort()
 	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
@@ -189,7 +193,7 @@ test('die sieben Rollen sind vorhanden', () => {
 	assert.equal(readdirSync(join(PAKET, 'rollen')).length, ROLLEN.length)
 })
 
-test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die fuenf B-Patches', () => {
+test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches', () => {
 	const paket = JSON.parse(readFileSync(join(PAKET, 'package.json'), 'utf8'))
 	assert.equal(paket.exports['./patches/*'], './patches/*', 'Wildcard-Export "./patches/*" fehlt')
 	assert.equal(paket.exports['./rollen/*'], './rollen/*', 'Wildcard-Export "./rollen/*" fehlt')
@@ -197,7 +201,7 @@ test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die fu
 
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const genannt = [...yml.matchAll(/@tmielsch\/dsh-teams-plus\/patches\/([\w.-]+\.mjs)/gu)].map((treffer) => treffer[1])
-	assert.deepEqual(genannt.sort(), [...B_PATCHES].sort(), 'cordis.patch.yml nennt andere Dateien als die fuenf B-Patches')
+	assert.deepEqual(genannt.sort(), [...B_PATCHES].sort(), 'cordis.patch.yml nennt andere Dateien als die sechs B-Patches')
 	for (const name of genannt) assert.ok(existsSync(join(PATCHES, name)), `patches/${name} fehlt`)
 })
 
@@ -252,7 +256,7 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(lstatSync(join(ziel, 'rollen')).isSymbolicLink(), 'rollen ist kein Verweis')
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
 		// 23 Patch-Dateien; dazu kommt patches/package.json als Paketgrenze fuer den Client-Modul-Regler.
-		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 23)
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 24)
 		assert.equal(readdirSync(join(ziel, 'rollen')).length, ROLLEN.length)
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))
 

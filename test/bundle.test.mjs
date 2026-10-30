@@ -12,7 +12,7 @@
  *   5. das gebaute Host-Buendel LAEUFT: `apply` meldet den Dienst `teamsPlus` an,
  *   6. lib/client.js beginnt mit dem `window.__ModuleLoader__.load`-Kopf, ohne den der Browser das
  *      Buendel nicht laedt,
- *   7. cordis.patch.yml nennt das Paket selbst (id `teams-plus`, zuerst) und danach die fuenf
+ *   7. cordis.patch.yml nennt das Paket selbst (id `teams-plus`, zuerst) und danach die sechs
  *      Patch-Module,
  *   8. beide Dateien aus `exports` existieren, `files` nimmt `lib` mit, und ein Haken erzwingt den
  *      Build vor dem Packen; `npm pack --dry-run` listet beide Dateien,
@@ -146,14 +146,14 @@ test('lib/client.js traegt den Lader-Kopf mit Paketnamen und factory', () => {
 	}
 })
 
-test('cordis.patch.yml nennt das Paket selbst zuerst und danach die fuenf Patch-Module', () => {
+test('cordis.patch.yml nennt das Paket selbst zuerst und danach die sechs Patch-Module', () => {
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const eintraege = [...yml.matchAll(/-\s*id:\s*([\w.-]+)/gu)].map((treffer) => treffer[1])
 	assert.equal(eintraege[0], 'teams-plus', `der Paket-Eintrag steht nicht zuerst: ${eintraege.join(', ')}`)
 	assert.ok(yml.includes("name: '@tmielsch/dsh-teams-plus'"), 'der Paketname fehlt im cordis-Eintrag')
 	const patches = eintraege.slice(1)
-	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel'])
-	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel']) {
+	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session'])
+	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session']) {
 		assert.ok(yml.includes(`@tmielsch/dsh-teams-plus/patches/${name}.mjs`), `patches/${name}.mjs fehlt in cordis.patch.yml`)
 	}
 })
