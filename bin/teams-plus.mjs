@@ -18,6 +18,7 @@
  *   teams-plus revert      alle A-Patches zuruecknehmen
  *   teams-plus doctor      fehlende Dateien und nicht eingespielte A-Patches melden
  *   teams-plus link        patches/ und rollen/ als Verweise nach ~/.dsh/.tm/teams-plus haengen
+ *   teams-plus agents ...  den Anweisungsblock in ~/.dsh/AGENTS.md setzen (status, install, revert)
  *
  * Zusatzargumente: `status`, `apply`, `revert` und `doctor` nehmen `--ausfuehrlich` (die
  * Ausgabe der einzelnen Werkzeuge mitzeigen). `link` gibt alles weiter, was es bekommt, zum
@@ -204,17 +205,45 @@ function link(weitere) {
 	if (lauf.status !== 0) process.exitCode = lauf.status === null ? 1 : lauf.status
 }
 
+function agents(weitere) {
+	const skript = join(PAKET, 'scripts', 'agents-block.mjs')
+	if (!existsSync(skript)) {
+		console.log(`FEHLER: ${skript} fehlt im Paket.`)
+		process.exitCode = 1
+		return
+	}
+	const [unterbefehl, ...rest] = weitere
+	const flag = unterbefehl === 'install' ? '--install'
+		: unterbefehl === 'revert' ? '--revert'
+		: unterbefehl === 'status' ? '--status'
+		: undefined
+	if (flag === undefined) {
+		console.log('Aufruf: teams-plus agents status | install | revert [--target=<datei>] [--dsh-home=<pfad>]')
+		console.log('')
+		console.log('  agents status   ist der Anweisungsblock in ~/.dsh/AGENTS.md, und ist er aktuell?')
+		console.log('  agents install  Block einsetzen oder aktualisieren (sichert vorher unter ~/.dsh/.tm/teams-plus/backup-agents/)')
+		console.log('  agents revert   Block wieder entfernen')
+		if (unterbefehl !== undefined) process.exitCode = 1
+		return
+	}
+	const lauf = spawnSync(process.execPath, [skript, flag, ...rest], { stdio: 'inherit' })
+	// `agents status` ist ein Bericht und endet immer mit 0; install und revert geben ihren Code weiter.
+	if (flag !== '--status' && lauf.status !== 0) process.exitCode = lauf.status === null ? 1 : lauf.status
+}
+
 function hilfe() {
-	console.log('teams-plus — A-Patches einspielen, nachsehen und verlinken')
+	console.log('teams-plus — A-Patches einspielen, Anweisungsblock setzen, nachsehen und verlinken')
 	console.log('')
 	console.log('  teams-plus status      was ist eingespielt (schreibt nichts)')
 	console.log('  teams-plus apply       alle A-Patches einspielen, danach `dsh web` neu starten')
 	console.log('  teams-plus revert      alle A-Patches zuruecknehmen, danach `dsh web` neu starten')
 	console.log('  teams-plus doctor      fehlende Dateien und nicht eingespielte A-Patches melden')
 	console.log('  teams-plus link        patches/ und rollen/ nach ~/.dsh/.tm/teams-plus verlinken')
+	console.log('  teams-plus agents ...  den Anweisungsblock in ~/.dsh/AGENTS.md: status, install, revert')
 	console.log('')
 	console.log('  --ausfuehrlich         bei status, apply, revert und doctor die Ausgabe der Werkzeuge mitzeigen')
-	console.log('  teams-plus link --dsh-home=<pfad>   Trockenlauf gegen ein anderes Zuhause')
+	console.log('  teams-plus link --dsh-home=<pfad>      Trockenlauf gegen ein anderes Zuhause')
+	console.log('  teams-plus agents install --target=<datei>   gegen eine andere Datei (Tests)')
 }
 
 function main() {
@@ -225,6 +254,7 @@ function main() {
 		case 'revert': applyOderRevert('revert'); break
 		case 'doctor': doctor(); break
 		case 'link': link(weitere); break
+		case 'agents': agents(weitere); break
 		case undefined:
 		case 'help':
 		case '--help':
