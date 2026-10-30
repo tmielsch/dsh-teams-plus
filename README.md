@@ -60,11 +60,19 @@ Ohne `--apply` ist es ein Trockenlauf; `--revert <sicherung>` legt eine Sicherun
 ```bash
 dsh plugin --profile web add <release-url>      # oder: npm install im Paketordner
 teams-plus link                                 # patches/ und rollen/ nach ~/.dsh/.tm/teams-plus
+teams-plus link --relink                        # Trockenlauf: hängt alte Verweise in ~/.dsh um
+teams-plus link --relink --apply                # 17 Verweise umbiegen, 4 durch Kopien ersetzen, rollen umhängen
 teams-plus einbau                               # Trockenlauf: zeigt genau die angefassten Zeilen
 teams-plus einbau --apply                       # entfernt die vier Einträge, setzt teams-plus ein
 # danach DSH neu starten — das trifft alle laufenden Sitzungen
 teams-plus apply                                # die A-Patches in die DSH-Installation
 ```
+
+**`link --relink` ist nur nötig, wenn die Verweise noch ins alte `dsh-projectOS` zeigen.** Es hängt
+sie auf `~/.dsh/.tm/teams-plus/` um und ersetzt die vier Verweise ohne Gegenstück im Paket
+(`goal-await-test`, `teammate-model-test` und zwei Notizen) durch byte-gleiche Kopien. Vor dem
+ersten Schreibzugriff sichert es nach `~/.dsh/.tm/teams-plus/backup-links/`; `--revert <sicherung>`
+stellt zurück.
 
 `einbau` arbeitet zeilenweise und fasst ausschließlich die fünf Einträge an. Alle anderen Zeilen der
 Profildatei — Kommentare, fremde Modelländerungen, Kontextfenster, Platzhalter — bleiben byte-gleich;
@@ -76,7 +84,7 @@ das ist der wichtigste Test in `test/einbau.test.mjs`. Vor jeder Änderung siche
 ```bash
 npm install        # esbuild, typescript, zod
 npm run build      # schreibt lib/client.js (Browser) und lib/index.js (Host)
-npm test           # 71 Tests, ohne laufendes DSH
+npm test           # 89 Tests, ohne laufendes DSH
 npm pack           # der prepack-Haken baut vorher neu
 ```
 
