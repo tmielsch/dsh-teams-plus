@@ -54,7 +54,7 @@ weil er Vorrang beansprucht; zwei Blöcke gleichen Namens kann es nicht geben.
 ```bash
 npm install        # esbuild, typescript, zod
 npm run build      # schreibt lib/client.js (Browser) und lib/index.js (Host)
-npm test           # 63 Tests, ohne laufendes DSH
+npm test           # 71 Tests, ohne laufendes DSH
 npm pack           # der prepack-Haken baut vorher neu
 ```
 
