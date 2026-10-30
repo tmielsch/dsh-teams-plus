@@ -157,7 +157,10 @@ test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen 
 		if (ist !== soll) abweichend.push(`${name}: sha256 ${ist} statt ${soll}`)
 	}
 	assert.deepEqual(abweichend, [], 'Dateien weichen von ihrer festgehaltenen Fassung ab')
-	assert.deepEqual(readdirSync(PATCHES).sort(), Object.keys(alle).sort(), 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
+	// patches/package.json ist die Paketgrenze fuer den Client-Modul-Regler (siehe test/bundle.test.mjs);
+	// sie ist kein Patch und steht deshalb nicht in den sha256-Listen.
+	const erwartet = [...Object.keys(alle), 'package.json'].sort()
+	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
 test('die zwei geaenderten Rollen-Patches weichen nur in der Ordneraufloesung und ihrem Kommentar ab', () => {
@@ -244,7 +247,8 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(lstatSync(join(ziel, 'patches')).isSymbolicLink(), 'patches ist kein Verweis')
 		assert.ok(lstatSync(join(ziel, 'rollen')).isSymbolicLink(), 'rollen ist kein Verweis')
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
-		assert.equal(readdirSync(join(ziel, 'patches')).length, 23)
+		// 23 Patch-Dateien; dazu kommt patches/package.json als Paketgrenze fuer den Client-Modul-Regler.
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 23)
 		assert.equal(readdirSync(join(ziel, 'rollen')).length, ROLLEN.length)
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))
 

@@ -193,3 +193,21 @@ test('die Startdatei wird auch aus dem gebauten Paket gefunden', async () => {
 	assert.equal(ausBuendel, join(PAKET, 'policies'), `aus dem Buendel zeigt der Startordner nach ${ausBuendel}`)
 	assert.ok(existsSync(join(ausBuendel, 'lokalmodus.md')))
 })
+
+test('patches/ und rollen/ haben eine eigene Paketgrenze ohne dsh-Client (Client-Modul-Regler)', () => {
+  // Gemessen am 2026-10-30 im Quelltext von dsh-client-modules/lib/index.js:743-763:
+  // Fuer einen pfadaehnlichen Eintrag (`./patches/x.mjs`) geht `locatePkgJson` von der Moduldatei
+  // nach oben, bis es eine `package.json` findet, und liest deren `dsh.client`. Ohne Grenze waere
+  // das die Paketwurzel — die hat `dsh.client` — und der Regler behandelte JEDE Patch-Datei als
+  // zweite Quelle des Plugins. projectOS hatte dafuer `patches/package.json`; teams-plus braucht
+  // es genauso.
+  const grenze = join(PAKET, 'patches', 'package.json')
+  assert.ok(existsSync(grenze), 'patches/package.json fehlt: der Client-Modul-Regler findet sonst die Paketwurzel')
+  const inhalt = JSON.parse(readFileSync(grenze, 'utf8'))
+  assert.equal(inhalt.private, true, 'die Paketgrenze muss private sein')
+  assert.equal(inhalt.dsh, undefined, 'die Paketgrenze darf kein dsh-Feld tragen, sonst gilt sie selbst als Plugin')
+  assert.equal(inhalt.name, '@tmielsch/dsh-teams-plus-patches')
+  // Sie muss auch im veroeffentlichten Paket liegen.
+  const paket = JSON.parse(readFileSync(join(PAKET, 'package.json'), 'utf8'))
+  assert.ok(paket.files.includes('patches'), 'patches/ fehlt in package.json files')
+})

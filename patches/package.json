@@ -1,0 +1,6 @@
+{
+  "name": "@tmielsch/dsh-teams-plus-patches",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Paketgrenze fuer die losen Patch-Dateien. Ohne diese Datei findet der Client-Modul-Regler fuer jede Patch-Datei die Paketwurzel darueber, sieht dort `dsh.client` und behandelt jeden Patch als zweite Quelle des Plugins — die Browser-Haelfte wuerde mehrfach geladen. Kein `dsh`-Feld hier, deshalb bleibt der Regler fuer diesen Ordner stumm."
+}
