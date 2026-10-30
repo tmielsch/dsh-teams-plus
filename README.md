@@ -49,6 +49,28 @@ ausdrücklicher Befehl und keine Nebenwirkung der Installation.
 aktuell ist, `revert` nimmt ihn zurück). Der Block steht **vor** einem älteren `PROJECTOS`-Block,
 weil er Vorrang beansprucht; zwei Blöcke gleichen Namens kann es nicht geben.
 
+`teams-plus einbau` trägt das Paket in das Profil ein. Es entfernt die vier alten Patch-Einträge
+(`delegate-send`, `teammate-modell`, `goal-await`, `stille-nachrichten`) und setzt dafür einen
+`teams-plus`-Eintrag an dieselbe Stelle. Ohne diesen Schritt lädt jeder der vier Patches **zweimal**,
+sobald das Paket installiert ist — doppelte Werkzeugregistrierung ist ein Absturzrisiko.
+Ohne `--apply` ist es ein Trockenlauf; `--revert <sicherung>` legt eine Sicherung zurück.
+
+## Einbau, in dieser Reihenfolge
+
+```bash
+dsh plugin --profile web add <release-url>      # oder: npm install im Paketordner
+teams-plus link                                 # patches/ und rollen/ nach ~/.dsh/.tm/teams-plus
+teams-plus einbau                               # Trockenlauf: zeigt genau die angefassten Zeilen
+teams-plus einbau --apply                       # entfernt die vier Einträge, setzt teams-plus ein
+# danach DSH neu starten — das trifft alle laufenden Sitzungen
+teams-plus apply                                # die A-Patches in die DSH-Installation
+```
+
+`einbau` arbeitet zeilenweise und fasst ausschließlich die fünf Einträge an. Alle anderen Zeilen der
+Profildatei — Kommentare, fremde Modelländerungen, Kontextfenster, Platzhalter — bleiben byte-gleich;
+das ist der wichtigste Test in `test/einbau.test.mjs`. Vor jeder Änderung sichert es die Datei nach
+`~/.dsh/.tm/teams-plus/backup-profile/` und gibt die Prüfsumme vorher und nachher aus.
+
 ## Selbst bauen
 
 ```bash

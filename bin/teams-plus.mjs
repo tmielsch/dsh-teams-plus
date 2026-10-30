@@ -19,6 +19,7 @@
  *   teams-plus doctor      fehlende Dateien und nicht eingespielte A-Patches melden
  *   teams-plus link        patches/ und rollen/ als Verweise nach ~/.dsh/.tm/teams-plus haengen
  *   teams-plus agents ...  den Anweisungsblock in ~/.dsh/AGENTS.md setzen (status, install, revert)
+ *   teams-plus einbau      die vier alten Patch-Eintraege im Profil durch den Paket-Eintrag ersetzen
  *
  * Zusatzargumente: `status`, `apply`, `revert` und `doctor` nehmen `--ausfuehrlich` (die
  * Ausgabe der einzelnen Werkzeuge mitzeigen). `link` gibt alles weiter, was es bekommt, zum
@@ -234,6 +235,19 @@ function agents(weitere) {
 	if (flag !== '--status' && lauf.status !== 0) process.exitCode = lauf.status === null ? 1 : lauf.status
 }
 
+function einbau(weitere) {
+	const skript = join(PAKET, 'scripts', 'einbau.mjs')
+	if (!existsSync(skript)) {
+		console.log(`FEHLER: ${skript} fehlt im Paket.`)
+		process.exitCode = 1
+		return
+	}
+	// `einbau` reicht alle Schalter weiter: ohne --apply ist es ein Trockenlauf, --apply fuehrt aus,
+	// --revert <sicherung> legt zurueck. Das Skript selbst entscheidet, was es tut.
+	const lauf = spawnSync(process.execPath, [skript, ...weitere], { stdio: 'inherit' })
+	if (lauf.status !== 0) process.exitCode = lauf.status === null ? 1 : lauf.status
+}
+
 function hilfe() {
 	console.log('teams-plus — A-Patches einspielen, Anweisungsblock setzen, nachsehen und verlinken')
 	console.log('')
@@ -243,6 +257,7 @@ function hilfe() {
 	console.log('  teams-plus doctor      fehlende Dateien und nicht eingespielte A-Patches melden')
 	console.log('  teams-plus link        patches/ und rollen/ nach ~/.dsh/.tm/teams-plus verlinken')
 	console.log('  teams-plus agents ...  den Anweisungsblock in ~/.dsh/AGENTS.md: status, install, revert')
+	console.log('  teams-plus einbau      die vier alten Patch-Eintraege im Profil durch den Paket-Eintrag ersetzen (Trockenlauf)')
 	console.log('')
 	console.log('  --ausfuehrlich         bei status, apply, revert und doctor die Ausgabe der Werkzeuge mitzeigen')
 	console.log('  teams-plus link --dsh-home=<pfad>      Trockenlauf gegen ein anderes Zuhause')
@@ -250,6 +265,7 @@ function hilfe() {
 	console.log('  teams-plus link --relink --apply       umhaengen (sichert vorher unter backup-links/)')
 	console.log('  teams-plus link --relink --revert <sicherung.json>   zurueckstellen')
 	console.log('  teams-plus agents install --target=<datei>   gegen eine andere Datei (Tests)')
+	console.log('  teams-plus einbau --apply / --revert <sicherung>   ausfuehren / zuruecklegen')
 }
 
 function main() {
@@ -261,6 +277,7 @@ function main() {
 		case 'doctor': doctor(); break
 		case 'link': link(weitere); break
 		case 'agents': agents(weitere); break
+		case 'einbau': einbau(weitere); break
 		case undefined:
 		case 'help':
 		case '--help':

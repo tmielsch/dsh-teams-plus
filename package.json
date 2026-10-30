@@ -1,7 +1,7 @@
 {
   "name": "@tmielsch/dsh-teams-plus",
   "version": "0.1.0",
-  "description": "Agent Teams Plus for DeepSeek Harness: the unlocks, the roles and a policy schema that make agent teams work.",
+  "description": "Agent Teams Plus for DeepSeek Harness: the unlocks, the roles, a policy schema and the profile installer that make agent teams work.",
   "type": "module",
   "exports": {
     ".": {
@@ -36,7 +36,8 @@
     "prepack": "node scripts/build-client.mjs",
     "prepublishOnly": "node scripts/build-client.mjs",
     "status": "node bin/teams-plus.mjs status",
-    "link": "node bin/teams-plus.mjs link"
+    "link": "node bin/teams-plus.mjs link",
+    "einbau": "node bin/teams-plus.mjs einbau"
   },
   "dsh": {
     "bundle": {

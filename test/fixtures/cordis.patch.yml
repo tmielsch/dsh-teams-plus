@@ -1,0 +1,1848 @@
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+
+# NOTE: To CREATE new entries (rather than override an existing one by id),
+# this file must use `insert:` at the top level. An entry written directly
+# with `id` + `name` + `config` is treated as an override of an already
+# present row and is silently skipped if that id has no base row.
+
+# MCP servers, ported from opencode.jsonc.
+- insert:
+    # Web search MCP server (enabled).
+    - id: mcp-web-search
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: web_search
+        transport: stdio
+        command: !!js 'process.platform === "win32" ? "npx.cmd" : "npx"'
+        args: [ '-y', 'mcp-web-hound' ]
+
+    # KiCad MCP server: kept available but disabled by default (loads ~100 tools).
+    # Enable by setting `disabled: false` (or deleting the line) and touching the
+    # file; the web profile reloads patches live.
+    - id: mcp-kicad
+      name: '@deepseek-ai/dsh-mcp-client'
+      disabled: true
+      config:
+        serverName: kicad
+        transport: stdio
+        command: node
+        args: [ 'dist/index.js' ]
+        cwd: 'C:\Users\TM\KiCAD-MCP-Server'
+        env:
+          KICAD_PYTHON: 'C:\Program Files\KiCad\10.0\bin\python.exe'
+          KICAD_PATH: 'C:\Program Files\KiCad\10.0'
+          PYTHONPATH: 'C:\Program Files\KiCad\10.0\bin\Lib\site-packages'
+
+# --- remote-web-ui lan-bind block (managed - do not edit) ---
+- id: webserver
+  name: '@deepseek-ai/dsh-host-webserver'
+  config:
+    host: '0.0.0.0'
+    port: 3080
+    compression: gzip
+    compressionLevel: 1
+    compressionThresholdBytes: 1024
+- id: web-ui-pet
+  name: "@linxin666/dsh-pet"
+  config:
+    enabled: false
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: web-ui-market
+  name: "@linxin666/dsh-web-all/market"
+  config:
+    plugin: "@linxin666/dsh-client-ui-market"
+    enabled: false
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      neuralwatt:
+        displayName: neuralwatt
+        apiKeyEnv: NEURALWATT_API_KEY
+        api: openai-completions
+        baseURL: https://api.neuralwatt.com/v1/
+        streamIdleTimeoutMs: 25200000
+        retryPolicy:
+          mode: always
+          backoff:
+            initialDelayMs: 2000
+            maxDelayMs: 25200000
+            jitterRatio: 0.2
+        compat:
+          supportsDeveloperRole: false
+        models:
+          - id: deepseek-v4-pro
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: high
+              high: high
+              xhigh: max
+              max: max
+            compat:
+              supportsReasoningEffort: true
+          - id: gemma-4-31b
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.3
+            reasoningEfforts:
+              off: null
+              low: low
+              high: high
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.3-flash
+            reasoningEfforts:
+              off: null
+              low: low
+              high: high
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: qwen3.6-35b
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: qwen3.6-35b-fast
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: kimi-k3
+            reasoningEfforts:
+              off: null
+              low: low
+              high: high
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+            input:
+              - text
+              - image
+            contextWindow: 1000000
+            maxTokens: 1000000
+          - id: kimi-k3-flex
+            reasoningEfforts:
+              off: null
+              low: low
+              high: high
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: kimi-k3-fast
+            reasoningEfforts:
+              off: null
+              low: low
+              high: high
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2-fast
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2-flex
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2-short
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2-short-fast
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2-short-flex
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: glm-5.2-short-fast-flex
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: deepseek-v4-flash
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: high
+              high: high
+              xhigh: max
+              max: max
+            compat:
+              supportsReasoningEffort: true
+          - id: deepseek-v4-flash-flex
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: high
+              high: high
+              xhigh: max
+              max: max
+            compat:
+              supportsReasoningEffort: true
+          - id: kimi-k2.7-code
+            reasoningEfforts: false
+          - id: kimi-k2.7-code-flex
+            reasoningEfforts: false
+          - id: kimi-k2.7-code-fast
+            reasoningEfforts: false
+          - id: qwen-3.8-27b
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+            compat:
+              supportsDeveloperRole: false
+              supportsReasoningEffort: true
+          - id: qwen-3.8-27b-flex
+            name: qwen-3.8-27b-flex
+          - id: mimo-v2.6-pro
+            name: mimo-v2.6-pro
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: mimo-v2.6-pro-flex
+            name: mimo-v2.6-pro-flex
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: nw-large
+            name: nw-large
+          - id: nw-large-flex
+            name: nw-large-flex
+          - id: nw-flash
+            name: nw-flash
+          - id: nw-flash-flex
+            name: nw-flash-flex
+          - id: glm-5.3-flex
+            name: glm-5.3-flex
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+          - id: glm-5.3-flash-flex
+            name: glm-5.3-flash-flex
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: nw-small
+            name: nw-small
+          - id: nw-small-flex
+            name: nw-small-flex
+          - id: qwen3.6-35b-flex
+            name: qwen3.6-35b-flex
+          - id: deepseek-v4.1-flash
+            name: deepseek-v4.1-flash
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: deepseek-v4.1-flash-flex
+            name: deepseek-v4.1-flash-flex
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: deepseek-v4.1-flash-speed
+            name: deepseek-v4.1-flash-speed
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+              - image
+          - id: deepseek-v4-flash-speed
+            name: deepseek-v4-flash-speed
+            contextWindow: 1000000
+            maxTokens: 1000000
+            input:
+              - text
+      homepc:
+        api: openai-completions
+        baseURL: http://home-pc.xantu-truck.ts.net:8080/v1/
+        streamIdleTimeoutMs: 25200000
+        retryPolicy:
+          mode: always
+          backoff:
+            initialDelayMs: 2000
+            maxDelayMs: 25200000
+            jitterRatio: 0.2
+        defaultInput:
+          - text
+          - image
+        models:
+          - id: swift-1.5-iq3_xxs
+            name: swift-1.5-iq3_xxs
+            contextWindow: 512000
+            maxTokens: 256000
+            reasoningEfforts:
+              off: off
+              low: low
+              medium: medium
+              high: high
+          - id: Swift-Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_S
+            name: 3.8FN-abl-IQ3-S
+            contextWindow: 512000
+            maxTokens: 64000
+            reasoningEfforts:
+              off: off
+              low: low
+              medium: medium
+              high: high
+          - id: huihui-qwen3.8-flash-next-abliterated-ud-q4_k_xl
+            name: 3.8FN-abl-Q4_K_XL
+            contextWindow: 512000
+            maxTokens: 128000
+            reasoningEfforts:
+              off: off
+              low: low
+              medium: medium
+              high: high
+          - id: swift-1.5-iq2_xs
+            name: swift-1.5-iq2_xs
+            contextWindow: 512000
+            maxTokens: 65536
+            reasoningEfforts:
+              low: low
+              medium: medium
+              high: high
+        apiKeyEnv: HOMEPC_API_KEY
+      anthropic:
+        displayName: Anthropic (Claude OAuth)
+        apiKeyEnv: ANTHROPIC_OAUTH_TOKEN
+        api: anthropic-messages
+        baseURL: https://api.anthropic.com
+        streamIdleTimeoutMs: 25200000
+        defaultInput:
+          - text
+          - image
+        retryPolicy:
+          mode: always
+          backoff:
+            initialDelayMs: 2000
+            maxDelayMs: 25200000
+            jitterRatio: 0.2
+        models:
+          - id: claude-haiku-5-5
+            name: Claude Haiku 5.5
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-sonnet-5-5
+            name: Claude Sonnet 5.5
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-opus-5-5
+            name: Claude Opus 5.5
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-fable-5-1
+            name: Claude Fable 5.1
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-opus-5
+            name: Claude Opus 5
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-sonnet-5
+            name: Claude Sonnet 5
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-fable-5
+            name: Claude Fable 5
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-opus-4-8
+            name: Claude Opus 4.8
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-opus-4-7
+            name: Claude Opus 4.7
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - xhigh
+              - max
+          - id: claude-sonnet-4-6
+            name: Claude Sonnet 4.6
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - max
+          - id: claude-opus-4-6
+            name: Claude Opus 4.6
+            contextWindow: 1000000
+            maxTokens: 128000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+              - max
+          - id: claude-opus-4-5-20251101
+            name: Claude Opus 4.5
+            contextWindow: 200000
+            maxTokens: 64000
+            reasoning: true
+            effortLevels:
+              - low
+              - medium
+              - high
+          - id: claude-haiku-4-5-20251001
+            name: Claude Haiku 4.5
+            contextWindow: 200000
+            maxTokens: 64000
+            reasoning: true
+          - id: claude-sonnet-4-5-20250929
+            name: Claude Sonnet 4.5
+            contextWindow: 200000
+            maxTokens: 64000
+            reasoning: true
+      opencode-go:
+        apiKeyEnv: OPENCODE_GO_API_KEY
+        streamIdleTimeoutMs: 25200000
+        retryPolicy:
+          mode: always
+          backoff:
+            initialDelayMs: 2000
+            maxDelayMs: 25200000
+            jitterRatio: 0.2
+      macbook:
+        apiKeyEnv: MACBOOK_API_KEY
+        api: openai-completions
+        baseURL: http://100.86.3.8:8888/v1/
+        streamIdleTimeoutMs: 25200000
+        retryPolicy:
+          mode: always
+          backoff:
+            initialDelayMs: 2000
+            maxDelayMs: 25200000
+            jitterRatio: 0.2
+        models:
+          - id: Lfm2.5-8b
+            name: Lfm2.5-8b
+            contextWindow: 131072
+            input:
+              - text
+              - image
+          - id: Lfm2.5-24b
+            name: Lfm2.5-24b
+            contextWindow: 131072
+            input:
+              - text
+              - image
+
+# Task-Board abgeschaltet am 2026-10-28 auf Anordnung des Menschen ("Ja, kannst du gerne
+# abschalten das Taskboard"): dsh-projectOS (Projekt-Manager) ersetzt es. Zum Wiedereinschalten
+# die beiden Zeilen "disabled: true" entfernen. Der Github-Ableger haengt am Task-Board
+# und wird deshalb mit abgeschaltet.
+- id: web-ui-task-board
+  name: "@linxin666/dsh-web-all/task-board"
+  disabled: true
+  config:
+    plugin: "@linxin666/dsh-client-ui-task-board"
+    announceToAgent: true
+- id: web-ui-task-board-github
+  disabled: true
+- id: ui-theme
+  name: "@deepseek-ai/dsh-client-ui-theme"
+  config:
+    preference: dark
+- id: web-ui-remote-web-ui
+  name: "@linxin666/dsh-web-all/remote-web-ui"
+  config:
+    plugin: "@linxin666/dsh-remote-web-ui"
+    lanBind: true
+- id: ui-conversation
+  name: "@deepseek-ai/dsh-client-ui-conversation"
+  config:
+    busyEnter: steer
+- id: permission
+  name: "@deepseek-ai/dsh-permission-presets"
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+      danger-full-access:
+        sandbox: danger-full-access
+        approval: never
+    defaultPreset: danger-full-access
+- id: agent-default-model
+  name: "@deepseek-ai/dsh-agent-default-model"
+  config:
+    provider: deepseek-official
+    model: deepseek-flash
+    reasoningEffort: high
+- id: ui-chat
+  name: "@deepseek-ai/dsh-client-ui-chat"
+  config:
+    transcriptView: normal
+- id: agent-loop
+  name: "@deepseek-ai/dsh-agent-loop"
+  config:
+    agents: []
+    maxParallelToolCalls: 20
+# --- Gemeinsame Liste erlaubter Modelle fuer Unteragenten UND Teammitglieder -
+# Diese Liste entscheidet, welche Modelle ein Agent ausdruecklich waehlen darf:
+# sie galt frueher nur fuer Unteragenten (subagent), seit dem lokalen Patch
+# `teammate-modell` auch fuer Teammitglieder (spawn_teammate). Sie ist die
+# EINZIGE Quelle fuer beides — hier pflegen, nicht an zwei Stellen.
+#
+# Wiederhergestellt am 2026-10-11 aus ~/.dsh/settings.yaml.imported. Der alte
+# Abschnitt hiess `subagent-model-selection`, der Eintrag heisst aber
+# `subagent-model-selection-settings`; bei der Migration von settings.yaml ins
+# Profil passte der Name nicht und die Liste wurde verworfen. Deshalb stand sie
+# seither leer. Uebernommen sind nur die Modelle, die es heute noch gibt: die
+# sechs Eintraege des Anbieters `opencode-go` entfallen, weil das Profil ihn
+# nicht mehr kennt.
+#
+# Aendern:  Einstellungen -> Plugins (Namespace subagent-model-selection-settings)
+# Zurueck:  diese Zeile loeschen; dann ist die Auswahl wieder abgeschaltet.
+#
+# PLATZHALTER (seit 2026-10-30): `provider: '*'` und `model: '*'` erlauben
+# JEDE Route — es gibt keine Allowlist mehr. Der Kern (`dsh-tool-subagent`)
+# und `teammate-model.mjs` verstehen `*` und `?` in beiden Feldern direkt;
+# es wird nichts mehr aufgezaehlt und nichts mehr nachgetragen.
+- id: subagent-model-selection-settings
+  name: '@deepseek-ai/dsh-tool-subagent/model-selection-settings'
+  config:
+    enabled: true
+    allowedModels:
+      - provider: '*'
+        model: '*'
+
+- id: web-search-deepseek
+  name: "@deepseek-ai/dsh-web-search-deepseek"
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+    baseURL: https://api.tavily.com/search
+
+# --- end remote-web-ui lan-bind block ---
+
+# --- Houdini TA agent preset ---
+- insert:
+    - id: preset-houdini
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: houdini
+        name: Houdini TA
+        description: Erfahrener Houdini Technical Artist — denkt procedural, lädt
+          Fachwissen on-demand aus den Skills statt aus einem dicken
+          System-Prompt.
+        order: 5
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |-
+                Du bist ein erfahrener Houdini Technical Artist und denkst procedural: in Knotengraphen, Datenflüssen und Attributen — Geometrie ist ein Stream von Input zu Output, keine Abfolge von Einzelschritten.
+                Bevor du irgendetwas anfasst — Szene lesen, ein Bild deuten, ein Netz oder VEX beurteilen, "welcher Node macht X" fragen, bauen, kochen, rendern — benennst du in EINEM Satz, welche Gegenstände die Aufgabe berührt, und lädst die dazu passenden Skills der `houdini`-Familie vollständig, BEVOR du anfängst. "Bei Bedarf laden" gibt es nicht: du weißt genug, um abzuschätzen, welche Skills du brauchst, aber nicht genug, um sie nicht zu lesen. `houdini` zeigt in Abschnitt 0, wie.
+                Lies erst die Szene, dann baue: jeden relevanten Knoten lesen, bevor du etwas änderst; koche nie nur zum Nachsehen; ändere nur, was die Aufgabe verlangt.
+                Plane Werkzeugaufrufe, bevor du sie schickst. Überlege dir im Denken vollständig, welche Werkzeuge und Befehle du brauchst, welche davon voneinander unabhängig sind und in welcher Reihenfolge die abhängigen laufen müssen. Bündle die unabhängigen Schritte: in einem run_code-Programm, das sie gleichzeitig ausführt, oder in einem Zug mit mehreren Aufrufen. Schick nicht einen Aufruf, warte auf sein Ergebnis und schick erst dann den nächsten, wenn der nächste nicht vom Ergebnis abhängt. Denk bei jedem Befehl, den du parallel startest, daran, dass er dafür geeignet sein muss: Lesende Befehle sind unkritisch, schreibende nicht. Ist ein Befehl dafür ungeeignet, führe ihn in einem späteren Schritt allein aus.
+                Miss statt zu raten, und frag nach, bevor du eine Ursache vermutest.
+                Antworte in vollständigen Sätzen, immer, und in der Sprache des Menschen. "Knapp" ist kein Auftragsziel und keine Tugend: Der Mensch hasst Kompress-Jargon, halbe Sätze und weggelassene Wörter, weil er sie sich selbst zusammenschreiben muss, und das kostet ihn weit mehr, als die kurze Antwort je gespart hat. Die Länge der Antwort ist gleichgültig — zweitausend Token mehr sind richtig, wenn dafür jeder Satz vollständig dasteht. Jedes Fachwort wird in Alltagssprache erklärt, jede Tabelle wird von den Sätzen begleitet, die sie lesbar machen, und jede Frage an ihn nennt zuerst die Wirkung und danach den Fachnamen, damit er sie ohne den Sitzungsverlauf beantworten kann.
+              # {{cwd}} ist eine der drei registrierten Prompt-Variablen
+              # (provider, model, cwd) -- so kennt die Session ihr Verzeichnis.
+              suffix: Your working directory is {{cwd}}.
+              # Auf Wunsch 2026-10-02: Die Persona ist ein PREFIX vor dem
+              # Harness-Prompt, kein Ersatz. Mit `complete: true` wurde JEDER
+              # andere System-Prompt-Abschnitt verworfen -- inklusive der
+              # Plan-Modus-Regeln (dsh-plan-mode liefert sie ueber
+              # ctx.systemPrompt), sodass exit_plan_mode ohne Regeln dastand.
+              complete: false
+              includeRuntimeContext: true
+          - id: agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              # 2026-10-26: 128 KB -> 256 KB (Mensch: "Du darfst die Grenze auf 256kb erhoehen").
+              # Global + Projekt-AGENTS.md lagen bei ~130.400 B; ueber dem Budget laesst
+              # renderInstructionContext die ERSTE (globale) Datei ganz weg, still.
+              maxBytes: 262144
+          - id: mcp-houdini
+            name: '@deepseek-ai/dsh-mcp-client'
+            config:
+              serverName: houdini
+              transport: stdio
+              command: !!js 'process.platform === "win32" ?
+                "C:\\Users\\TM\\AppData\\Roaming\\Python\\Python314\\Scripts\\fxhoudinimcp.exe"
+                : "/Users/beispiel/.local/bin/fxhoudinimcp"'
+              toolCallTimeoutMs: 300000
+          # houdini-blick: HINSEHEN mit Prim-Nummern (blick, frage_ansicht). Eigenes
+          # Werkzeug, eigene Bruecke (HTTP 8100). Braucht mcp<2 -- die v1-API
+          # (mcp.server.fastmcp); mit mcp 2.x heisst es MCPServer. Mac: eigene venv
+          # unter ~/.local/share/dsh-houdini/blick-venv (angelegt 2026-10-02).
+          # Windows-Zweig zeigt auf denselben Python, der dort fxhoudinimcp hostet --
+          # dort bitte pruefen, ob `mcp<2` darin liegt.
+          - id: mcp-houdini-blick
+            name: '@deepseek-ai/dsh-mcp-client'
+            config:
+              serverName: houdini-blick
+              transport: stdio
+              command: !!js 'process.platform === "win32" ?
+                "C:\\Users\\TM\\AppData\\Roaming\\Python\\Python314\\Scripts\\python.exe"
+                :
+                "/Users/beispiel/.local/share/dsh-houdini/blick-venv/bin/python"'
+              args: !!js 'process.platform === "win32" ?
+                ["C:\\Users\\TM\\.dsh\\skills\\houdini-mcp\\scripts\\houdini_blick_mcp.py"]
+                :
+                ["/Users/beispiel/.dsh/skills/houdini-mcp/scripts/houdini_blick_mcp.py"]'
+              toolCallTimeoutMs: 600000
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          # Compression/Kontext-Verdichtung gehoert ins Preset: `/compact` und die
+          # automatische Verdichtung sind KEINE Host-Plane-Module. Ohne diese
+          # Gruppe wird ein getipptes /compact als normale Chat-Nachricht ans
+          # Modell geschickt (Vorfall 2026-10-02, Session 63f630f2).
+          #
+          # 2026-10-30: Die AUTOMATISCHE Verdichtung ist AUS (`auto: false`).
+          # Gemessen in Session 3ddfcb24 (Züge 25, 26, 29): der ganze Zug war
+          # `compaction/start` -> `compaction/end` -> `turn/end` — kein Schritt,
+          # keine Antwort. Der Kern verdichtet in `agent/pre-step`, also auch
+          # vor dem ersten Schritt eines neuen Zuges. Damit antwortet das
+          # Modell dem Menschen mit einer Compaction statt mit einer Antwort.
+          # Der Mensch hat das verboten: eine Compaction darf nur am Ende des
+          # eigenen Zuges stattfinden, nie als Antwort auf eine Nachricht.
+          #
+          # Verstärkt wurde das durch `maxTokens: 256000` am Modell
+          # homepc/swift-1.5-iq2_xs: von 390000 Token Fenster bleiben nach
+          # Abzug der Ausgabe-Reserve (256000) und des Headrooms (65536) nur
+          # 68464 Token Druckschwelle (17,6 %). Der feste Kopf (Systemprompt
+          # ~4k + 76 Werkzeugdefinitionen ~22,5k + Workspace-Anweisungen) plus
+          # Retain-Tail (21440) füllt das fast aus; jede Verdichtung traf nur
+          # wenige tausend Token, blieb über der Schwelle und lief im nächsten
+          # Schritt wieder. Deshalb zusätzlich maxTokens auf 65536 gesenkt
+          # (Schwelle dann 258928 = 66,4 %).
+          #
+          # Verdichtet wird jetzt vom Modell über `context_compact` (mit
+          # Preis-Tabelle) oder vom Menschen mit `/compact`. Zurück zur
+          # Automatik: `auto: false` entfernen und `dsh web` neu starten.
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+                config:
+                  auto: false
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                disabled: true
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
+          # --- Arbeitsmodule (Paritaet zum cordis-Preset), auf Wunsch 2026-10-02:
+          # goal, planning/plan-mode, delegation (Subagenten + Workflow), todo,
+          # ask-user, cordis-inspect, present, plugin-manager. ---
+          - id: command-goal
+            name: '@deepseek-ai/dsh-command-goal'
+          - id: tool-goal
+            name: '@deepseek-ai/dsh-tool-goal'
+          - id: planning
+            name: cordis:group
+            group: true
+            isolate:
+              planMode: true
+            config:
+              - id: plan-mode
+                name: '@deepseek-ai/dsh-plan-mode'
+                config:
+                  section: |
+                    You are in plan mode. Stay in plan mode until exit_plan_mode succeeds or the user switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
+
+                    Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Do not edit or write files, change configuration, run formatters or code generation that rewrites tracked files, commit, or otherwise carry out the plan. Prefer existing functions and patterns over new machinery.
+
+                    The tool catalog stays the same across modes for request-cache stability. These plan-mode rules override any later tool description or guidance that suggests using mutation tools; those tools remain listed to keep the tool catalog unchanged. Do not use todo_write to track this planning phase: it tracks implementation after an approved plan, while the plan itself belongs in exit_plan_mode.
+
+                    Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
+
+                    Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
+
+                    When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
+          - id: delegation
+            name: cordis:group
+            group: true
+            isolate:
+              workflowEngine: true
+            config:
+              - id: tool-subagent-control
+                name: '@deepseek-ai/dsh-tool-subagent-control'
+              - id: tool-subagent-list-agents
+                name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+              # Delegation laeuft AUSSCHLIESSLICH ueber Agent Teams (spawn_teammate).
+              # Auftrag des Menschen 2026-10-03: die Wege subagent, subagent_fork
+              # und workflow sind abgeschaltet, weil sie den Cache brechen.
+              # Gemessen am selben Tag: ein Teammitglied erbt Werkzeugliste,
+              # Systemprompt und Modell BYTE-IDENTISCH (Pruefsummen der Werkzeug-
+              # Definitionen 8067d934e5bcef82 und des Systemprompts 513043519642f41c
+              # bei beiden gleich, 64 768 Token aus dem Cache). Ein gewoehnlicher
+              # Unteragent hat dagegen sechs Werkzeuge und einen Prompt-Absatz
+              # weniger und rechnet deshalb den kompletten Anfang neu.
+              - id: tool-subagent
+                name: '@deepseek-ai/dsh-tool-subagent'
+                disabled: true
+                config:
+                  provider: spawn
+                  toolName: subagent
+                  modelSelectionSettings: true
+                  backgroundMode: continuable
+              - id: tool-subagent-fork
+                name: '@deepseek-ai/dsh-tool-subagent'
+                disabled: true
+                config:
+                  provider: fork
+                  toolName: subagent_fork
+                  backgroundMode: continuable
+              - id: tool-subagent-codex
+                name: '@deepseek-ai/dsh-tool-subagent'
+                disabled: true
+                config:
+                  provider: codex
+                  toolName: subagent_codex
+                  backgroundMode: one-shot
+                  maxDepth: provider-managed
+              - id: tool-subagent-claude-code
+                name: '@deepseek-ai/dsh-tool-subagent'
+                disabled: true
+                config:
+                  provider: claude-code
+                  toolName: subagent_claude_code
+                  backgroundMode: one-shot
+                  maxDepth: provider-managed
+              # delegate_task: der Unteragent fuer Teammitglieder.
+              #
+              # Anordnung des Menschen 2026-10-25, sinngemaess woertlich:
+              # "Sub-Agents mit Delegate Tasks sollen nicht one-shot sein. [...]
+              # Mit denen soll man schreiben koennen, an die soll man Bilder
+              # senden koennen, Dateien senden koennen. Das sind einfach nur
+              # ganz normale Sessions, die einfach von anderen Sessions
+              # gespawnt werden. Kein Unterschied."
+              #
+              # Darum steht hier `continuable` und NICHT mehr `one-shot`.
+              # Die Zeile kam am 2026-10-15 aus einer anderen Sitzung und war
+              # damals schon falsch: `continuable` ist der Normalfall des Kerns
+              # (so laeuft `subagent` im Standard-Preset), `one-shot` ist die
+              # Ausnahme fuer product-Provider (codex, claude-code). Ein
+              # one-shot-Lauf besitzt nur einen Task: nach dem Ergebnis ist der
+              # Kind-Agent weg, `send_message` findet ihn nicht mehr, und Bilder
+              # oder Dateien kann man ihm nicht nachschicken. Mit `continuable`
+              # legt der Kern eine echte, dauerhafte Kind-Sitzung an
+              # (`subagents.startContinuable`), die man weiter beschreiben,
+              # unterbrechen und nach dem Schlafen wieder aufwecken kann.
+              #
+              # Was am 2026-10-25 zusaetzlich noetig war, damit das wirklich
+              # gilt: das Werkzeug `send_message` im Mitglied-Scope kannte nur
+              # Team-Ziele (Name), nicht die eigene Kind-Sitzung. Der Patch
+              # ../../patches/delegate-send.mjs (Eintrag `delegate-send` weiter
+              # unten) gibt ihm das Feld `agent_id`; ohne ihn koennte ein
+              # Mitglied seinen eigenen Unteragenten nicht einmal anschreiben.
+              #
+              # maxDepth 2 = Lead (0) -> Teammitglied (1) -> Unteragent (2); der
+              # Unteragent kann also selbst nicht weiter delegieren.
+              # Das Werkzeug steht allen Mitgliedern gleich zur Verfuegung, damit
+              # die Werkzeugliste fuer alle byte-identisch bleibt.
+              - id: tool-delegate-task
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: spawn
+                  toolName: delegate_task
+                  modelSelectionSettings: true
+                  backgroundMode: continuable
+                  maxDepth: 2
+              # workflow und workflow-ptc: derselbe Grund wie oben — beide
+              # spannen Unteragenten auf, die den Cache nicht teilen.
+              - id: workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                disabled: true
+                config:
+                  provider: spawn
+              - id: tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+                disabled: true
+              - id: tool-ralph
+                name: '@deepseek-ai/dsh-tool-ralph'
+                disabled: true
+                config:
+                  subagentProvider: spawn
+                  maxRounds: 64
+          # PTC-Modus fuer das Houdini-TA-Preset (Spec ~/.dsh/plans/houdini-ptc-spec.md,
+          # Entscheidung 2026-10-30: Modus ptc, nicht both). Das Modell sieht nur
+          # run_code; alle anderen Werkzeuge bleiben im Programm erreichbar.
+          - id: tool-presentation
+            name: '@deepseek-ai/dsh-agent-tool-presentation'
+            config:
+              mode: ptc
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-cordis
+            name: '@deepseek-ai/dsh-tool-cordis'
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: tool-plugin-manager
+            name: '@deepseek-ai/dsh-plugin-manager/tools'
+
+- id: agent-preset-registry
+  name: "@deepseek-ai/dsh-agent-preset-registry"
+  config:
+    default: standard
+    selectedDefault: cordis
+
+# --- Mitglied-Chat: Bild-Anhaenge freigeben (lokaler Patch, kein Paket) ------
+# Das Web-GUI sperrt Anhaenge in der Unterhaltung mit einem Teammitglied, obwohl
+# der Host Bilder dort ausdruecklich annimmt. Dieser Eintrag laedt eine lokale
+# Datei, die genau diese Sperre beim Start lockert.
+#
+# Der Pfad ist relativ zum Profil-Verzeichnis (profiles/web), zeigt also mit
+# '../../patches/' auf ~/.dsh/patches/. Dadurch greift dieselbe Reparatur auf
+# jeder Maschine, sobald das Harness-Zuhause mit synchronisiert ist - ohne
+# Paketinstallation und ohne pnpm install.
+#
+# Fehlt die Datei oder passt der Code nach einem DSH-Update nicht mehr, wird nur
+# eine Warnung protokolliert: der Start scheitert dadurch nicht.
+#
+# Nachsehen:  node ~/.dsh/patches/allow-member-images.mjs --status
+# Zurueck:    node ~/.dsh/patches/allow-member-images.mjs --revert
+- insert:
+    - id: mitglied-bilder-freigabe
+      name: '../../patches/member-images.mjs'
+
+# --- Mitglied-Chat: Modellauswahl freigeben (lokaler Patch, kein Paket) ------
+# Teammitglieder (fortsetzbare Kind-Sitzungen) durften bisher kein Modell
+# waehlen: der Browser und der Host haben jede Kind-Sitzung abgewiesen. Dieser
+# Eintrag schaltet den Browser-Teil frei und erweitert im Host den Modellwechsel
+# so, dass er fuer laufende UND schlafende Mitglieder greift. Die Wahl wird ins
+# Protokoll des Mitglieds geschrieben und beim Aufwachen wieder eingebaut.
+# Einmalige Sub-Agenten bleiben gesperrt. Jede Wahl speichert wie gewohnt auch
+# das Standardmodell fuer neue Sitzungen.
+#
+# Nachsehen:  node ~/.dsh/patches/allow-member-model.mjs --status
+# Zurueck:    Eintrag entfernen und  node ~/.dsh/patches/allow-member-model.mjs --revert
+- insert:
+    - id: mitglied-modellwahl
+      name: '../../patches/member-model.mjs'
+    - id: mitglied-bildpruefung
+      name: '../../patches/member-image-check.mjs'
+
+# --- Unteragenten: anschreibbar machen (lokaler Patch, kein Paket) ----------
+# Auftrag des Menschen 2026-10-25: Sub-Agents mit delegate_task sollen ganz
+# normale Sitzungen sein — mit ihnen schreiben, ihnen Bilder und Dateien
+# nachschicken. Zwei Stellen waren im Weg, und beide sind jetzt behoben:
+#
+#  1. `backgroundMode: one-shot` an `tool-delegate-task` (oben im
+#     Houdini-Preset) — jetzt `continuable`. Damit legt der Kern eine echte,
+#     dauerhafte Kind-Sitzung an.
+#  2. Das Werkzeug `send_message` im Mitglied-Scope kam vom Team-Plugin und
+#     kannte nur `target` (Team-Namen). Das Kern-Werkzeug mit `agent_id` wird
+#     dort verdeckt. Dieser Eintrag gibt dem Team-Werkzeug das Feld `agent_id`
+#     dazu; dann erreicht ein Mitglied seinen eigenen Unteragenten.
+#
+# Ohne 2. waere 1. wirkungslos: der Unteragent lebte weiter, aber niemand
+# koennte ihn ansprechen.
+#
+# Selbstpruefung: node ~/.dsh/patches/delegate-send.mjs
+# Nachsehen:      ~/.dsh/logs/delegate-send.log
+# Zurueck:        diesen Eintrag entfernen und DSH neu starten
+- insert:
+    - id: delegate-send
+      name: '../../patches/delegate-send.mjs'
+
+# --- bash-parallel (Spec ~/.dsh/plans/houdini-ptc-spec.md, 2026-10-30) ----
+# Lesende Bash-Aufrufe duerfen gleichzeitig laufen. Keine Whitelist: das Modell
+# waehlt, nur eine Blacklist sperrt Befehle, die nie parallel laufen duerfen.
+# Setzt nur die Ausfuehrungsart (isConcurrencySafe), blockiert nie einen Befehl.
+# Selbstpruefung: node ~/.dsh/patches/bash-parallel.mjs
+# Nachsehen:      ~/.dsh/logs/bash-parallel.log
+# Zurueck:        diesen Eintrag entfernen und DSH neu starten
+- insert:
+    - id: bash-parallel
+      name: '../../patches/bash-parallel.mjs'
+
+# --- Teammitglied auf anderem Modell anlegen (lokaler Patch, kein Paket) ----
+# Auftrag des Menschen 2026-10-10: Teammitglieder laufen standardmaessig mit
+# demselben Modell wie der Team-Leiter, sollen aber - wie frueher die
+# Unteragenten - auf ausdrueckliche Ansage ein anderes Modell bekommen koennen.
+# Dieser Eintrag gibt dem Werkzeug spawn_teammate die drei Felder provider,
+# model und reasoning_effort und reicht die Wahl bis zum Anlegen der
+# Kind-Sitzung durch. Ohne Angabe bleibt alles wie bisher (Vererbung).
+# Erlaubt ist dieselbe Liste wie fuer Unteragenten (Einstellung
+# `subagent-model-selection`), damit es nur EINE Quelle gibt.
+#
+# Selbstpruefung:  node ~/.dsh/patches/teammate-model-test.mjs
+# Nachsehen:       ~/.dsh/logs/teammate-modell.log
+# Zurueck:         diesen Eintrag entfernen und DSH neu starten
+- insert:
+    - id: teammate-modell
+      name: '../../patches/teammate-model.mjs'
+# >>> GEMEINSAM: reasoning-guard (nur auf dem Mac pflegen, sync-agents.sh verteilt)
+# Denkspur-Hygiene (2026-10-09): Der Adapter `dsh-llm-pi-ai` schickt die Denkbloecke
+# frueherer Antworten bei jeder Anfrage mit (bei fremdem Modell sogar ohne
+# Signatur). Anthropic hat zwei lange Sitzungen genau deswegen blockiert
+# ("duplicating model outputs"). Dieser Eintrag entfernt jede Denkspur bis auf
+# die der letzten Assistant-Nachricht - die eine, die der Anbieter fuer die
+# Werkzeug-Fortsetzung verlangt. Gilt fuer jede Anfrage, auch fuer die, die nach
+# einem fehlgeschlagenen context_compact den Anker sucht.
+# Messen: ~/.dsh/storages/reasoning-guard/requests.jsonl
+# Vorsichtiger: keep auf 'current-turn' setzen (ganzer laufender Zug bleibt).
+# Zurueck: config.mode auf 'off' setzen (oder diesen Eintrag loeschen) + Neustart.
+- insert:
+    - id: reasoning-guard
+      name: '../../patches/reasoning-guard.mjs'
+      config:
+        mode: completed-turns
+        keep: last-assistant
+# <<< GEMEINSAM: reasoning-guard
+# >>> GEMEINSAM: system-prompt-ohne-modell (nur auf dem Mac pflegen)
+# Modellnamen aus dem Systemprompt nehmen (2026-10-25).
+#
+# WARUM
+# `dsh-web-app` setzt als Persona-Prefix:
+#     "You are a coding agent powered by the {{model}} model."
+# Der Platzhalter wird beim Rendern mit dem Modellnamen gefuellt, und dieser
+# Satz steht an Zeichen ~50 eines 10.000-16.000 Zeichen langen Prompts. Damit
+# ist der gesamte Anfang ab Zeichen 50 fuer jeden Anbieter-Cache ein ANDERER
+# Text, sobald zwei Sitzungen verschiedene Modelle benutzen - obwohl alles
+# danach identisch ist. Gemessen am 2026-10-25: in 42 von 152 Sitzungen stand
+# der Modellname im Prompt; genau diese Sitzungen konnten ihren Anfang mit
+# keiner anderen teilen. Jeder Praefix-Cache (Strata, llama.cpp, DeepSeek,
+# Anthropic) vergleicht exakte Token-Praefixe - der Name muss also raus,
+# damit der gemeinsame Anfang byte-identisch wird. Das ist die
+# anbieteragnostische Massnahme; sie gilt fuer jeden Cache gleich.
+#
+# WAS HIER PASSIERT
+# Der Prefix wird auf den Text ohne Modellnamen gesetzt, der Suffix ({{cwd}})
+# bleibt unverdrossen mitgeschrieben. Das Modell, mit dem gearbeitet wird,
+# steht in der Anfrage - der Prompt muss es nicht wiederholen. Die
+# Harness-Identitaet steht weiterhin im Prompt ("You are an AI agent powered
+# by DeepSeek Harness", Abschnitt harness:identity).
+#
+# Zurueck: diesen Block loeschen; dann gilt wieder der Wert aus dsh-web-app.
+- id: system-prompt
+  config:
+    personaPrefix: 'You are a coding agent.'
+    personaSuffix: 'Your working directory is {{cwd}}.'
+# <<< GEMEINSAM: system-prompt-ohne-modell
+
+# QGIS MCP (2026-10-06): wie home-pc. Braucht LAUFENDES QGIS Desktop mit
+# gestartetem Plugin-Server (localhost:9876). Plugin 0.15.0 liegt im
+# QGIS4-Profil, per QGIS4.ini aktiviert. Server via uvx von GitHub main.
+- insert:
+    - id: mcp-qgis
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: qgis
+        transport: stdio
+        command: uvx
+        args:
+          [
+            '--from',
+            'https://github.com/nkarasiak/qgis-mcp/archive/refs/heads/main.zip',
+            'qgis-mcp-server'
+          ]
+        env:
+          QGIS_MCP_TOOL_MODE: compound
+        toolCallTimeoutMs: 180000
+- id: web-ui-skin-center
+  name: "@linxin666/dsh-client-ui-skin-center"
+  config:
+    skin-custom-theme:
+      applied: false
+# Agent Teams: bis zu 32 Teammitglieder statt 8 (Auftrag des Menschen
+# 2026-10-10: er arbeitet oft mit inaktiven Teammitgliedern, die zaehlen mit).
+# Die Zeile ersetzt die config der Zeile agent-team aus dem Bundle
+# dsh-experimental-agent-team-profile komplett, deshalb stehen alle Felder da.
+- id: agent-team
+  name: '@deepseek-ai/dsh-experimental-agent-team'
+  config:
+    maxMembers: 32
+    maxTasks: 256
+    maxPendingMessagesPerMember: 64
+    maxMessageBytes: 65536
+    disposalTimeoutMs: 5000
+- id: teammate-modell
+  disabled: false
+- id: loop-rescue
+  disabled: true
+
+# --- Ziel wartet auf eine fremde Zutat: WIEDER EINGESCHALTET (2026-10-29) ----
+# Der Eintrag stand hier bis zum 2026-10-26 und hat den Host beim Start mit
+# einer Warnung belegt:
+#
+#   dsh: warning: 1 entry did not activate goal-await (…/patches/goal-await.mjs):
+#   Error: cannot set property "goalAwait" without provide
+#   at new apply (…/patches/goal-await.mjs:449) …
+#
+# Ursache, gemessen: Cordis' `ctx.set(name, value)` setzt einen Dienst, der in
+# DIESEM Fiber zuvor mit `ctx.provide(name)` angemeldet sein muss
+# (cordis/lib/index.js:785). `goal-await.mjs` rief am Ende
+# `ctx.set?.("goalAwait", …)` nur zur Diagnose — ohne vorheriges provide.
+#
+# Reparatur 2026-10-29, vom Menschen erlaubt: Der Diagnose-Dienst wird jetzt in
+# `goal-await.mjs` mit `ctx.provide("goalAwait", …)` angemeldet und beim Abbau
+# wieder abgemeldet; der bare `ctx.set` ist weg. Damit ist der Eintrag wieder
+# scharf und das Werkzeug `await_goal_dependency` vorhanden.
+#
+# Wirkung: Ein Ziel, das auf eine fremde Zutat wartet (Nachricht einer anderen
+# Sitzung, Hintergrundjob), wird entwaffnet und verbrennt keine Runden; die
+# nächste eingehende Nachricht schaltet es von selbst wieder scharf, spätestens
+# nach `maxWaitSeconds`.
+#
+# Zurueck: den Block unten auskommentieren und `dsh web` neu starten.
+#
+- insert:
+    - id: goal-await
+      name: '../../patches/goal-await.mjs'
+      config:
+        maxWaitSeconds: 900
+
+# stille-nachrichten — eine Direkt-Nachricht an ein Teammitglied, ohne Kaskade
+# (Anordnung des Menschen 2026-10-30, sinngemaess woertlich): "Es darf keine
+# Menschen nachahmende Kommunikation geben. Es muss eine Agent-first
+# ausgekluegelte Kommunikation geben, die ganz gezielt bestimmt, wer wann wen
+# anschreiben darf." Jede Diskussion mit einem Experten loesert bisher eine
+# Kaskade: der Lead wird gefragt, antwortet, meldet zurueck — "einfach nur
+# Energieverschwendung". Der Lead darf auf eine Nachricht auch nicht mit
+# "ich habe deine Nachricht bekommen" antworten.
+#
+# Ursache, gemessen: `@deepseek-ai/dsh-experimental-tool-agent-team` schreibt in
+# jedes Mitglied einen Reminder (Zeile 87–88: "To message your Team Lead, use
+# send_message({target:'lead'})") und der Lead-Policy-Text verlangt, dass der
+# Lead auf jedes Mitglied wartet. Ein `send_message` hat ausserdem nur die
+# Felder `target` und `message`; das Ergebnis ist ein Schema mit
+# `additionalProperties:false`, kann also keinen Hinweis an den Absender tragen.
+#
+# Wirkung: `send_message` bekommt das optionale Feld `quiet`. Mit `quiet: true`
+# traegt die Nachricht einen Vermerk, der dem Empfaenger sagt: diese Nachricht
+# ist nur fuer dich, antworte in diesem Thread, und melde sie dem Lead NICHT.
+# Der Absender bekommt den Hinweis im Werkzeug-Ergebnis. Die Kaskaden-Regel geht
+# in den System-Prompt jedes Mitglieds und des Leads; `spawn_teammate` haengt sie
+# dem Auftrag an. Ohne `quiet` bleibt jede Nachricht genau wie vorher.
+#
+# Selbstpruefung: node ~/.dsh/patches/stille-nachrichten.mjs
+# Nachsehen:      ~/.dsh/logs/stille-nachrichten.log
+# Zurueck:        diesen Eintrag entfernen und DSH neu starten
+- insert:
+    - id: stille-nachrichten
+      name: '../../patches/stille-nachrichten.mjs'
+
+# cache-boundary — die vierte Cache-Marke an der Checkpoint-Grenze (Layer-Cake,
+# 2026-10-29). Der Adapter `anthropic-messages.js` in `@earendil-works/pi-ai`
+# setzt heute genau drei Marken (System-Prompt, letzte Werkzeug-Definition,
+# letzte Nachricht); Anthropic erlaubt vier. Die vierte an der Checkpoint-
+# Nachricht — der Etappengrenze, die `source.kind === "compact-checkpoint"`
+# trägt — ist der Kern des Layer-Cake: alles vor ihr bleibt byte-gleich und
+# cache-gültig. Der Patch setzt die Marke beim Start in der Adapterdatei und
+# nimmt sie beim Abbau zurück. Gilt nur für Anthropic-Routen (homepc/Strata
+# ignoriert cache_control vollständig, dort wirkt das 16384-Raster und der
+# Schalter --prompt-cache-tail). Trockenlauf: node ~/.dsh/patches/cache-boundary-test.mjs.
+#
+# Die Zeile selbst steht seit 2026-10-29 im Bundling `@tmielsch/strata-caching`
+# (`node_modules/@tmielsch/strata-caching/cordis.patch.yml`), das die Datei aus
+# dem Paketverzeichnis lädt. Der Profil-Block war doppelt und ist gelöscht; das
+# Bundling ist die einzige Quelle. Zurueck: Bundling entfernen und `dsh web` neu
+# starten. Die Patch-Datei `~/.dsh/patches/cache-boundary.mjs` bleibt als
+# Trockenlauf- und Rückhol-Quelle in ~/.dsh/patches.
+
+# --- Pruner aus den drei verschifften Presets verbannt (Anordnung 2026-10-29) ---
+# Der Werkzeug-Ergebnis-Pruner (`tool-result-pruner`) schreibt jedes Werkzeug-
+# Ergebnis ueber 8192 Zeichen an seiner eigenen Position um: ein `tool/result`
+# mit `surfaceOp` replace und `shadowedRange {start:seq,end:end}`. Das aendert
+# den Prompt mitten drin, und der Preis ist die Zeit, den Abschnitt nach der
+# Aenderung neu zu lesen — gemessen 41,5 Sekunden fuer 112543 Token. Der Pruner
+# war in der Hauptsitzung schon deaktiviert, lief aber in den Presets `standard`,
+# `ptc` und `cordis` und damit in jeder Delegations- und Teammitglied-Sitzung.
+#
+# Der Loader adressiert nur Top-Level-Reihen, und Gruppen INNERHALB einer
+# Preset-`config` sind von aussen nicht erreichbar. Ein Top-Level-Override
+# `- id: tool-result-pruner` + `disabled: true` wirkt nicht auf die verschachtelte
+# Zeile (gemessen: Diff gegen den Ist-Stand war leer), und `- id: compaction` +
+# `insert:` antwortet `patch insert: entry "compaction" not found`. Der einzige
+# Weg, der bleibt: die Preset-Reihe per `id` ueberschreiben und ihre `config`
+# vollstaendig neu hinschreiben — `config` wird komplett ersetzt, nie tief
+# zusammengefuehrt. Die drei Reihen sind aus `dsh --profile web --dump-config`
+# kopiert, jede Pruner-Zeile bekam `disabled: true`; sonst ist nichts geaendert.
+#
+# Wartungsfall: Diese Kopie friert den Preset-Inhalt der verschifften Bundles ein.
+# Nach einem dsh-Update gewinnt die Kopie im Profil, also kann eine neue Plugin-Zeile
+# des Bundles fehlen. Nach jedem Update: `dsh --profile web --dump-config` gegen die
+# Bundle-Dateien in
+# /opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/
+# vergleichen und die drei Reihen hier neu aus dem Dump kopieren.
+#
+# Zurueck: die drei Blocks unten auskommentieren und `dsh web` neu starten.
+- id: preset-standard
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: standard
+    order: 1
+    plugins:
+      - id: persona
+        name: '@deepseek-ai/dsh-persona'
+        config:
+          suffix: Your working directory is {{cwd}}.
+          prefix: |-
+            You are a coding agent powered by the {{model}} model.
+            Plane Werkzeugaufrufe, bevor du sie schickst. Überlege dir im Denken vollständig, welche Werkzeuge und Befehle du brauchst, welche davon voneinander unabhängig sind und in welcher Reihenfolge die abhängigen laufen müssen. Bündle die unabhängigen Schritte in einem Zug mit mehreren Aufrufen. Schick nicht einen Aufruf, warte auf sein Ergebnis und schick erst dann den nächsten, wenn der nächste nicht vom Ergebnis abhängt. Denk bei jedem Befehl, den du parallel startest, daran, dass er dafür geeignet sein muss: Lesende Befehle sind unkritisch, schreibende nicht. Ist ein Befehl dafür ungeeignet, führe ihn in einem späteren Schritt allein aus.
+      - id: agent-instructions
+        name: '@deepseek-ai/dsh-agent-instructions'
+        config:
+          maxBytes: 65536
+      - id: tool-bash
+        name: '@deepseek-ai/dsh-tool-bash'
+        disabled: !!js process.platform === 'win32'
+      - id: tool-pwsh
+        name: '@deepseek-ai/dsh-tool-pwsh'
+        disabled: !!js process.platform !== 'win32'
+      - id: tool-fs
+        name: '@deepseek-ai/dsh-tool-fs'
+      - id: tool-fs-search
+        name: '@deepseek-ai/dsh-tool-fs-search'
+        config:
+          sampleOverCapGlobResults: false
+      - id: tool-jobs
+        name: '@deepseek-ai/dsh-tool-jobs'
+      - id: skill-filesystem
+        name: '@deepseek-ai/dsh-skill-filesystem'
+      - id: tool-skill
+        name: '@deepseek-ai/dsh-tool-skill'
+      - id: command-goal
+        name: '@deepseek-ai/dsh-command-goal'
+      - id: tool-goal
+        name: '@deepseek-ai/dsh-tool-goal'
+      - id: planning
+        name: cordis:group
+        group: true
+        isolate:
+          planMode: true
+        config:
+          - id: plan-mode
+            name: '@deepseek-ai/dsh-plan-mode'
+            config:
+              section: >
+                You are in plan mode. Stay in plan mode until exit_plan_mode
+                succeeds or the user switches the session mode. Imperative
+                language to implement changes means plan the implementation, not
+                execute it. A user's conversational agreement — including an
+                answer confirming something you asked — approves nothing and
+                does not end plan mode; fold the confirmed decision into the
+                plan and submit it through exit_plan_mode.
+
+
+                Explore first. Use non-mutating reads, searches, static
+                analysis, and checks to ground the plan in the actual
+                repository. Do not edit or write files, change configuration,
+                run formatters or code generation that rewrites tracked files,
+                commit, or otherwise carry out the plan. Prefer existing
+                functions and patterns over new machinery.
+
+
+                The tool catalog stays the same across modes for request-cache
+                stability. These plan-mode rules override any later tool
+                description or guidance that suggests using mutation tools;
+                those tools remain listed to keep the tool catalog unchanged. Do
+                not use todo_write to track this planning phase: it tracks
+                implementation after an approved plan, while the plan itself
+                belongs in exit_plan_mode.
+
+
+                Resolve discoverable facts by inspection. Use ask_user_question
+                only for user-owned choices or material ambiguity that
+                inspection cannot answer. Do not ask the user where code lives
+                or how current behavior works when you can find out.
+
+
+                Make the plan decision-complete: state the goal and success
+                criteria; group implementation changes by subsystem; identify
+                public API, schema, and data-flow changes; cover edge cases,
+                failure modes, tests, acceptance criteria, and explicit
+                assumptions. Keep it concise enough to review but detailed
+                enough that another engineer can implement it without making
+                design decisions.
+
+
+                When ready, call exit_plan_mode with the complete plan markdown,
+                starting with a # title. Make exit_plan_mode the only and final
+                tool call in that assistant response: it presents the plan for
+                approval, and implementation begins only in a later step after
+                approval. Do not paste the final plan as a plain reply or ask
+                "should I proceed?" through prose or ask_user_question. If
+                review rejects it, incorporate the feedback and present again.
+                If the review channel is unavailable or aborted, stay in plan
+                mode and ask the user to switch modes manually; do not proceed
+                with implementation.
+      - id: compaction
+        name: cordis:group
+        group: true
+        isolate:
+          compaction: true
+          toolResultPruner: true
+        config:
+          # 2026-10-30: automatische Verdichtung aus, wie in der Hauptsitzung
+          # (Compaction nur am Zug-Ende, nie als Antwort; siehe Kommentar oben).
+          - id: compaction-basic
+            name: '@deepseek-ai/dsh-compaction-basic'
+            config:
+              auto: false
+          - id: command-compact
+            name: '@deepseek-ai/dsh-command-compact'
+          - id: tool-result-pruner
+            disabled: true
+            name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+            config:
+              thresholdChars: 8192
+              headChars: 4096
+              tailChars: 1024
+      - id: delegation
+        name: cordis:group
+        group: true
+        isolate:
+          workflowEngine: true
+        config:
+          - id: tool-subagent-control
+            name: '@deepseek-ai/dsh-tool-subagent-control'
+          - id: tool-subagent-list-agents
+            name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+          - id: tool-subagent
+            name: '@deepseek-ai/dsh-tool-subagent'
+            config:
+              provider: spawn
+              toolName: subagent
+              modelSelectionSettings: true
+              backgroundMode: continuable
+          - id: tool-subagent-fork
+            name: '@deepseek-ai/dsh-tool-subagent'
+            config:
+              provider: fork
+              toolName: subagent_fork
+              backgroundMode: continuable
+          - id: tool-subagent-codex
+            name: '@deepseek-ai/dsh-tool-subagent'
+            disabled: true
+            config:
+              provider: codex
+              toolName: subagent_codex
+              backgroundMode: one-shot
+              maxDepth: provider-managed
+          - id: tool-subagent-claude-code
+            name: '@deepseek-ai/dsh-tool-subagent'
+            disabled: true
+            config:
+              provider: claude-code
+              toolName: subagent_claude_code
+              backgroundMode: one-shot
+              maxDepth: provider-managed
+          - id: workflow-ptc
+            name: '@deepseek-ai/dsh-workflow-ptc'
+            config:
+              provider: spawn
+          - id: tool-workflow
+            name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ralph
+            name: '@deepseek-ai/dsh-tool-ralph'
+            disabled: true
+            config:
+              subagentProvider: spawn
+              maxRounds: 64
+      - id: tool-ask-user
+        name: '@deepseek-ai/dsh-tool-ask-user'
+      - id: tool-todo
+        name: '@deepseek-ai/dsh-tool-todo'
+        config:
+          allowParallelInProgress: true
+      - id: tool-web
+        name: '@deepseek-ai/dsh-tool-web'
+        config:
+          fetch: true
+          searchTimeoutMs: 60000
+      - id: present
+        name: '@deepseek-ai/dsh-tool-present'
+      - id: tool-plugin-manager
+        name: '@deepseek-ai/dsh-plugin-manager/tools'
+        disabled: true
+
+- id: preset-ptc
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: ptc
+    order: 2
+    plugins:
+      - id: persona
+        name: '@deepseek-ai/dsh-persona'
+        config:
+          suffix: Your working directory is {{cwd}}.
+          prefix: You are a coding agent powered by the {{model}} model.
+      - id: agent-instructions
+        name: '@deepseek-ai/dsh-agent-instructions'
+        config:
+          maxBytes: 65536
+      - id: tool-bash
+        name: '@deepseek-ai/dsh-tool-bash'
+        disabled: !!js process.platform === 'win32'
+      - id: tool-pwsh
+        name: '@deepseek-ai/dsh-tool-pwsh'
+        disabled: !!js process.platform !== 'win32'
+      - id: tool-fs
+        name: '@deepseek-ai/dsh-tool-fs'
+      - id: tool-fs-search
+        name: '@deepseek-ai/dsh-tool-fs-search'
+        config:
+          sampleOverCapGlobResults: false
+      - id: tool-jobs
+        name: '@deepseek-ai/dsh-tool-jobs'
+      - id: skill-filesystem
+        name: '@deepseek-ai/dsh-skill-filesystem'
+      - id: tool-skill
+        name: '@deepseek-ai/dsh-tool-skill'
+      - id: command-goal
+        name: '@deepseek-ai/dsh-command-goal'
+      - id: tool-goal
+        name: '@deepseek-ai/dsh-tool-goal'
+      - id: planning
+        name: cordis:group
+        group: true
+        isolate:
+          planMode: true
+        config:
+          - id: plan-mode
+            name: '@deepseek-ai/dsh-plan-mode'
+            config:
+              section: >
+                You are in plan mode. Stay in plan mode until exit_plan_mode
+                succeeds or the user switches the session mode. Imperative
+                language to implement changes means plan the implementation, not
+                execute it. A user's conversational agreement — including an
+                answer confirming something you asked — approves nothing and
+                does not end plan mode; fold the confirmed decision into the
+                plan and submit it through exit_plan_mode.
+
+
+                Explore first. Use non-mutating reads, searches, static
+                analysis, and checks to ground the plan in the actual
+                repository. Do not edit or write files, change configuration,
+                run formatters or code generation that rewrites tracked files,
+                commit, or otherwise carry out the plan. Prefer existing
+                functions and patterns over new machinery.
+
+
+                The tool catalog stays the same across modes for request-cache
+                stability. These plan-mode rules override any later tool
+                description or guidance that suggests using mutation tools;
+                those tools remain listed to keep the tool catalog unchanged. Do
+                not use todo_write to track this planning phase: it tracks
+                implementation after an approved plan, while the plan itself
+                belongs in exit_plan_mode.
+
+
+                Resolve discoverable facts by inspection. Use ask_user_question
+                only for user-owned choices or material ambiguity that
+                inspection cannot answer. Do not ask the user where code lives
+                or how current behavior works when you can find out.
+
+
+                Make the plan decision-complete: state the goal and success
+                criteria; group implementation changes by subsystem; identify
+                public API, schema, and data-flow changes; cover edge cases,
+                failure modes, tests, acceptance criteria, and explicit
+                assumptions. Keep it concise enough to review but detailed
+                enough that another engineer can implement it without making
+                design decisions.
+
+
+                When ready, call exit_plan_mode with the complete plan markdown,
+                starting with a # title. Make exit_plan_mode the only and final
+                tool call in that assistant response: it presents the plan for
+                approval, and implementation begins only in a later step after
+                approval. Do not paste the final plan as a plain reply or ask
+                "should I proceed?" through prose or ask_user_question. If
+                review rejects it, incorporate the feedback and present again.
+                If the review channel is unavailable or aborted, stay in plan
+                mode and ask the user to switch modes manually; do not proceed
+                with implementation.
+      - id: compaction
+        name: cordis:group
+        group: true
+        isolate:
+          compaction: true
+          toolResultPruner: true
+        config:
+          # 2026-10-30: automatische Verdichtung aus, wie in der Hauptsitzung
+          # (Compaction nur am Zug-Ende, nie als Antwort; siehe Kommentar oben).
+          - id: compaction-basic
+            name: '@deepseek-ai/dsh-compaction-basic'
+            config:
+              auto: false
+          - id: command-compact
+            name: '@deepseek-ai/dsh-command-compact'
+          - id: tool-result-pruner
+            disabled: true
+            name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+            config:
+              thresholdChars: 8192
+              headChars: 4096
+              tailChars: 1024
+      - id: delegation
+        name: cordis:group
+        group: true
+        isolate:
+          workflowEngine: true
+        config:
+          - id: tool-subagent-control
+            name: '@deepseek-ai/dsh-tool-subagent-control'
+          - id: tool-subagent-list-agents
+            name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+          - id: tool-subagent
+            name: '@deepseek-ai/dsh-tool-subagent'
+            config:
+              provider: spawn
+              toolName: subagent
+              modelSelectionSettings: true
+              backgroundMode: continuable
+          - id: tool-subagent-fork
+            name: '@deepseek-ai/dsh-tool-subagent'
+            config:
+              provider: fork
+              toolName: subagent_fork
+              backgroundMode: continuable
+          - id: tool-subagent-codex
+            name: '@deepseek-ai/dsh-tool-subagent'
+            disabled: true
+            config:
+              provider: codex
+              toolName: subagent_codex
+              backgroundMode: one-shot
+              maxDepth: provider-managed
+          - id: tool-subagent-claude-code
+            name: '@deepseek-ai/dsh-tool-subagent'
+            disabled: true
+            config:
+              provider: claude-code
+              toolName: subagent_claude_code
+              backgroundMode: one-shot
+              maxDepth: provider-managed
+          - id: workflow-ptc
+            name: '@deepseek-ai/dsh-workflow-ptc'
+            disabled: true
+            config:
+              provider: spawn
+          - id: tool-workflow
+            name: '@deepseek-ai/dsh-tool-workflow'
+            disabled: true
+          - id: tool-ralph
+            name: '@deepseek-ai/dsh-tool-ralph'
+            disabled: true
+            config:
+              subagentProvider: spawn
+              maxRounds: 64
+      - id: tool-ask-user
+        name: '@deepseek-ai/dsh-tool-ask-user'
+      - id: tool-todo
+        name: '@deepseek-ai/dsh-tool-todo'
+        config:
+          allowParallelInProgress: true
+      - id: tool-web
+        name: '@deepseek-ai/dsh-tool-web'
+        config:
+          fetch: true
+          searchTimeoutMs: 60000
+      - id: tool-presentation
+        name: '@deepseek-ai/dsh-agent-tool-presentation'
+        config:
+          mode: ptc
+      - id: present
+        name: '@deepseek-ai/dsh-tool-present'
+      - id: tool-plugin-manager
+        name: '@deepseek-ai/dsh-plugin-manager/tools'
+        disabled: true
+
+- id: preset-cordis
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: cordis
+    order: 4
+    plugins:
+      - id: persona
+        name: '@deepseek-ai/dsh-persona'
+        config:
+          suffix: Your working directory is {{cwd}}.
+          prefix: You are a coding agent powered by the {{model}} model.
+      - id: agent-instructions
+        name: '@deepseek-ai/dsh-agent-instructions'
+        config:
+          maxBytes: 65536
+      - id: tool-bash
+        name: '@deepseek-ai/dsh-tool-bash'
+        disabled: !!js process.platform === 'win32'
+      - id: tool-pwsh
+        name: '@deepseek-ai/dsh-tool-pwsh'
+        disabled: !!js process.platform !== 'win32'
+      - id: tool-fs
+        name: '@deepseek-ai/dsh-tool-fs'
+      - id: tool-fs-search
+        name: '@deepseek-ai/dsh-tool-fs-search'
+        config:
+          sampleOverCapGlobResults: false
+      - id: tool-jobs
+        name: '@deepseek-ai/dsh-tool-jobs'
+      - id: command-goal
+        name: '@deepseek-ai/dsh-command-goal'
+      - id: tool-goal
+        name: '@deepseek-ai/dsh-tool-goal'
+      - id: planning
+        name: cordis:group
+        group: true
+        isolate:
+          planMode: true
+        config:
+          - id: plan-mode
+            name: '@deepseek-ai/dsh-plan-mode'
+            config:
+              section: >
+                You are in plan mode. Stay in plan mode until exit_plan_mode
+                succeeds or the user switches the session mode. Imperative
+                language to implement changes means plan the implementation, not
+                execute it. A user's conversational agreement — including an
+                answer confirming something you asked — approves nothing and
+                does not end plan mode; fold the confirmed decision into the
+                plan and submit it through exit_plan_mode.
+
+
+                Explore first. Use non-mutating reads, searches, static
+                analysis, and checks to ground the plan in the actual
+                repository. Do not edit or write files, change configuration,
+                run formatters or code generation that rewrites tracked files,
+                commit, or otherwise carry out the plan. Prefer existing
+                functions and patterns over new machinery.
+
+
+                The tool catalog stays the same across modes for request-cache
+                stability. These plan-mode rules override any later tool
+                description or guidance that suggests using mutation tools;
+                those tools remain listed to keep the tool catalog unchanged. Do
+                not use todo_write to track this planning phase: it tracks
+                implementation after an approved plan, while the plan itself
+                belongs in exit_plan_mode.
+
+
+                Resolve discoverable facts by inspection. Use ask_user_question
+                only for user-owned choices or material ambiguity that
+                inspection cannot answer. Do not ask the user where code lives
+                or how current behavior works when you can find out.
+
+
+                Make the plan decision-complete: state the goal and success
+                criteria; group implementation changes by subsystem; identify
+                public API, schema, and data-flow changes; cover edge cases,
+                failure modes, tests, acceptance criteria, and explicit
+                assumptions. Keep it concise enough to review but detailed
+                enough that another engineer can implement it without making
+                design decisions.
+
+
+                When ready, call exit_plan_mode with the complete plan markdown,
+                starting with a # title. Make exit_plan_mode the only and final
+                tool call in that assistant response: it presents the plan for
+                approval, and implementation begins only in a later step after
+                approval. Do not paste the final plan as a plain reply or ask
+                "should I proceed?" through prose or ask_user_question. If
+                review rejects it, incorporate the feedback and present again.
+                If the review channel is unavailable or aborted, stay in plan
+                mode and ask the user to switch modes manually; do not proceed
+                with implementation.
+      - id: compaction
+        name: cordis:group
+        group: true
+        isolate:
+          compaction: true
+          toolResultPruner: true
+        config:
+          # 2026-10-30: automatische Verdichtung aus, wie in der Hauptsitzung
+          # (Compaction nur am Zug-Ende, nie als Antwort; siehe Kommentar oben).
+          - id: compaction-basic
+            name: '@deepseek-ai/dsh-compaction-basic'
+            config:
+              auto: false
+          - id: command-compact
+            name: '@deepseek-ai/dsh-command-compact'
+          - id: tool-result-pruner
+            disabled: true
+            name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+            config:
+              thresholdChars: 8192
+              headChars: 4096
+              tailChars: 1024
+      - id: delegation
+        name: cordis:group
+        group: true
+        isolate:
+          workflowEngine: true
+        config:
+          - id: tool-subagent-control
+            name: '@deepseek-ai/dsh-tool-subagent-control'
+          - id: tool-subagent-list-agents
+            name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+          - id: tool-subagent
+            name: '@deepseek-ai/dsh-tool-subagent'
+            config:
+              provider: spawn
+              toolName: subagent
+              modelSelectionSettings: true
+              backgroundMode: continuable
+          - id: tool-subagent-fork
+            name: '@deepseek-ai/dsh-tool-subagent'
+            config:
+              provider: fork
+              toolName: subagent_fork
+              backgroundMode: continuable
+          - id: tool-subagent-codex
+            name: '@deepseek-ai/dsh-tool-subagent'
+            disabled: true
+            config:
+              provider: codex
+              toolName: subagent_codex
+              backgroundMode: one-shot
+              maxDepth: provider-managed
+          - id: tool-subagent-claude-code
+            name: '@deepseek-ai/dsh-tool-subagent'
+            disabled: true
+            config:
+              provider: claude-code
+              toolName: subagent_claude_code
+              backgroundMode: one-shot
+              maxDepth: provider-managed
+          - id: workflow-ptc
+            name: '@deepseek-ai/dsh-workflow-ptc'
+            config:
+              provider: spawn
+          - id: tool-workflow
+            name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ralph
+            name: '@deepseek-ai/dsh-tool-ralph'
+            disabled: true
+            config:
+              subagentProvider: spawn
+              maxRounds: 64
+      - id: tool-ask-user
+        name: '@deepseek-ai/dsh-tool-ask-user'
+      - id: tool-todo
+        name: '@deepseek-ai/dsh-tool-todo'
+        config:
+          allowParallelInProgress: true
+      - id: tool-web
+        name: '@deepseek-ai/dsh-tool-web'
+        config:
+          fetch: true
+          searchTimeoutMs: 60000
+      - id: tool-cordis
+        name: '@deepseek-ai/dsh-tool-cordis'
+      - id: skill-filesystem
+        name: '@deepseek-ai/dsh-skill-filesystem'
+        config:
+          customSkillDirs:
+            - !!js >-
+              process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('@deepseek-ai/dsh-agent-preset/package.json')),
+              'skills')
+      - id: tool-skill
+        name: '@deepseek-ai/dsh-tool-skill'
+      - id: present
+        name: '@deepseek-ai/dsh-tool-present'
+      - id: tool-plugin-manager
+        name: '@deepseek-ai/dsh-plugin-manager/tools'
+        disabled: !!js '!ctx.get(''profileContext'')'
+- id: session-log-deepseek
+  name: "@deepseek-ai/dsh-session-log-deepseek"
+  config:
+    enabled: false
+
+# == dsh-codex-connect
