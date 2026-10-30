@@ -202,9 +202,11 @@ function link(weitere) {
 		return
 	}
 	// `link` haengt Verweise nach ~/.dsh/.tm/teams-plus; die Liste steht in scripts/dsh-links.json.
-	// Mit `--relink` geht alles unveraendert weiter: dieser Modus kennt seine eigenen Schalter
-	// (--apply, --dry-run, --revert). Ohne das waere jeder Trockenlauf ein Echtlauf.
-	const argumente = weitere.includes('--relink') ? weitere : ['--apply', ...weitere]
+	// Der Standard ist ein TROCKENLAUF: das Skript schreibt nur mit `--apply`. Fruehere Fassung hing
+	// hier `--apply` an, damit war jeder Aufruf ohne Schalter sofort ein Echtlauf (Abnahme
+	// 2026-10-30, Punkt B1) — bei einem Befehl, der Verweise in ~/.dsh umbaut, ist das zu gefaehrlich.
+	// `--relink` reicht unveraendert durch: dieser Modus kennt seine eigenen Schalter.
+	const argumente = weitere
 	const lauf = spawnSync(process.execPath, [skript, ...argumente], { stdio: 'inherit' })
 	if (lauf.status !== 0) process.exitCode = lauf.status === null ? 1 : lauf.status
 }
@@ -260,6 +262,8 @@ function hilfe() {
 	console.log('  teams-plus einbau      die vier alten Patch-Eintraege im Profil durch den Paket-Eintrag ersetzen (Trockenlauf)')
 	console.log('')
 	console.log('  --ausfuehrlich         bei status, apply, revert und doctor die Ausgabe der Werkzeuge mitzeigen')
+	console.log('  teams-plus link                        Trockenlauf: zeigt, welche Verweise entstehen')
+	console.log('  teams-plus link --apply                die Verweise wirklich anlegen')
 	console.log('  teams-plus link --dsh-home=<pfad>      Trockenlauf gegen ein anderes Zuhause')
 	console.log('  teams-plus link --relink               die ALTEN Verweise in ~/.dsh umhaengen (Trockenlauf)')
 	console.log('  teams-plus link --relink --apply       umhaengen (sichert vorher unter backup-links/)')

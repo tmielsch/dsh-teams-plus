@@ -20,7 +20,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -83,10 +83,18 @@ const ERLAUBT = [
 ]
 
 /** Ein Zuhause mit einer Kopie der Fixture an ihrem Platz. */
-function baueLage() {
+function baueLage({ paketInstalliert = true } = {}) {
   const heim = mkdtempSync(join(tmpdir(), 'teams-plus-einbau-'))
   const dshHome = join(heim, 'dsh')
   const datei = join(dshHome, 'profiles', 'web', 'cordis.patch.yml')
+  // Seit der Abnahme 2026-10-30 (Punkt 1) verweigert `--apply` ohne installiertes Paket. Die
+  // Tests, die das Schreiben pruefen, brauchen deshalb eine Lage MIT Paket; der Test der Sperre
+  // baut eine ohne. Angelegt wird nur ein Rumpf mit `package.json` — mehr prueft der Einbau nicht.
+  if (paketInstalliert) {
+    const paket = join(dshHome, 'profiles', 'web', 'node_modules', '@tmielsch', 'dsh-teams-plus')
+    mkdirSync(paket, { recursive: true })
+    writeFileSync(join(paket, 'package.json'), '{"name":"@tmielsch/dsh-teams-plus","version":"0.0.0"}\n')
+  }
   return { heim, dshHome, datei, aufraeumen: () => rmSync(heim, { recursive: true, force: true }) }
 }
 
@@ -295,8 +303,50 @@ test('die echte ~/.dsh/profiles/web/cordis.patch.yml bleibt unberuehrt', () => {
   assert.equal(sha(readFileSync(echt)), vorher, 'der Test hat die echte Profildatei geaendert')
 })
 
-/** Legt den Ordner an, in dem die Zieldatei liegt. */
+/**
+ * Legt den Ordner an, in dem die Zieldatei liegt, und raeumt eine alte Zieldatei weg.
+ * Frueher loeschte diese Hilfe den GANZEN Ordner `profiles/web` — damit fiel auch das
+ * nachgebaute Paket unter `node_modules` weg, und der Einbau meldete faelschlich
+ * "Paket installiert: nein". Jetzt wird nur die Zieldatei selbst angefasst.
+ */
 function mkdirSyncAt(datei) {
-  rmSync(join(dirname(datei)), { recursive: true, force: true })
-  spawnSync('mkdir', ['-p', dirname(datei)])
+  rmSync(datei, { force: true })
+  mkdirSync(dirname(datei), { recursive: true })
 }
+
+test('--apply verweigert, wenn das Paket nicht installiert ist: nichts geschrieben, Exit 1', () => {
+  // Der Fall aus der Abnahme 2026-10-30, Punkt 1: Ohne Paket wuerde der Einbau den vier
+  // B-Patches den Eintrag nehmen und einen unladbaren dafuer einsetzen.
+  const l = baueLage({ paketInstalliert: false })
+  try {
+    mkdirSyncAt(l.datei)
+    writeFileSync(l.datei, readFileSync(FIXTURE))
+    const vorher = sha(readFileSync(l.datei))
+
+    const lauf = starte(['--apply', `--file=${l.datei}`, `--dsh-home=${l.dshHome}`])
+
+    assert.equal(lauf.status, 1, `ohne Paket muss --apply mit 1 enden, war ${lauf.status}`)
+    assert.match(lauf.stderr, /ABBRUCH/iu, 'es fehlt die Abbruch-Meldung')
+    assert.match(lauf.stderr, /dsh plugin --profile web add/u, 'die Meldung nennt den fehlenden Befehl nicht')
+    assert.equal(sha(readFileSync(l.datei)), vorher, 'die Profildatei wurde trotz Abbruch veraendert')
+    // Keine Sicherung: der Abbruch kommt vor dem ersten Schreibzugriff.
+    assert.ok(!existsSync(join(l.dshHome, '.tm', 'teams-plus', 'backup-profile')), 'es wurde eine Sicherung angelegt')
+  } finally {
+    l.aufraeumen()
+  }
+})
+
+test('der Trockenlauf bleibt ohne Paket erlaubt und zeigt den Zustand', () => {
+  const l = baueLage({ paketInstalliert: false })
+  try {
+    mkdirSyncAt(l.datei)
+    writeFileSync(l.datei, readFileSync(FIXTURE))
+    const vorher = sha(readFileSync(l.datei))
+    const lauf = starte([`--file=${l.datei}`, `--dsh-home=${l.dshHome}`])
+    assert.equal(lauf.status, 0, `Trockenlauf muss mit 0 enden: ${lauf.stderr}`)
+    assert.match(lauf.stdout, /Paket installiert: nein/u, 'der Trockenlauf meldet den Paketzustand nicht')
+    assert.equal(sha(readFileSync(l.datei)), vorher, 'der Trockenlauf hat geschrieben')
+  } finally {
+    l.aufraeumen()
+  }
+})

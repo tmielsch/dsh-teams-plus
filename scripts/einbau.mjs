@@ -374,6 +374,25 @@ export function main(argv, { dshHome: standardHome } = {}) {
     return 0
   }
 
+  // Harte Sperre (Abnahme 2026-10-30, Punkt 1): ohne installiertes Paket nimmt der Einbau den
+  // vier B-Patches den Eintrag und setzt an ihre Stelle einen, der nicht importiert werden kann.
+  // DSH startet dann mit einer blossen Warnung, und in jeder Sitzung fehlen still
+  // await_goal_dependency, quiet, agent_id, Modellfelder und Rollentitel. Deshalb hier Schluss.
+  if (stand.paketInstalliert !== true) {
+    console.error('')
+    console.error('ABBRUCH: das Paket @tmielsch/dsh-teams-plus ist im Profil nicht installiert.')
+    console.error(`  erwartet    ${join(dshHome, 'profiles', 'web', 'node_modules', '@tmielsch', 'dsh-teams-plus')}`)
+    console.error('')
+    console.error('Ohne das Paket wuerde dieser Lauf die vier alten Patch-Eintraege entfernen und an ihre')
+    console.error('Stelle einen Eintrag setzen, den DSH nicht laden kann: await_goal_dependency, quiet,')
+    console.error('agent_id, Modellfelder und Rollentitel fielen still weg. Es wurde nichts geschrieben.')
+    console.error('')
+    console.error('Zuerst das Paket installieren, dann diesen Befehl wiederholen:')
+    console.error('  dsh plugin --profile web add <release-url>')
+    console.error('')
+    return 1
+  }
+
   // Vor dem ersten Schreibzugriff sichern.
   const sicherung = sichere(datei, dshHome)
   writeFileSync(datei, plan.text)

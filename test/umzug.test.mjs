@@ -235,7 +235,9 @@ test('bin/teams-plus.mjs ist ausfuehrbar und status listet die A-Patches', () =>
 test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/.dsh/patches', () => {
 	const heim = mkdtempSync(join(tmpdir(), 'teams-plus-link-'))
 	try {
-		const lauf = starte(BIN, ['link', `--dsh-home=${heim}`])
+		// Seit der Abnahme 2026-10-30 (Punkt B1) ist `link` ohne Schalter ein Trockenlauf.
+		// Angelegt wird nur noch mit `--apply`.
+		const lauf = starte(BIN, ['link', '--apply', `--dsh-home=${heim}`])
 		assert.equal(lauf.status, 0, `${lauf.stdout}${lauf.stderr}`)
 
 		const ziel = join(heim, '.tm', 'teams-plus')
@@ -366,5 +368,24 @@ test('beide Rollen-Patches finden den Ordner: Datenordner, Rueckfall, DSH_ROLLEN
 		assert.deepEqual(paketRollen.listeB, paketRollen.listeA, 'A- und B-Patch sehen verschiedene Rollenlisten')
 	} finally {
 		rmSync(werkstatt, { recursive: true, force: true })
+	}
+})
+
+test('link ohne Schalter ist ein Trockenlauf und legt nichts an (Abnahme 2026-10-30, B1)', () => {
+	// Frueher haengte der Wrapper `--apply` an: wer `teams-plus link` tippte, um zu sehen was
+	// passiert, schrieb sofort in ~/.dsh. Bei einem Befehl, der Verweise umbaut, ist das zu gefaehrlich.
+	const heim = mkdtempSync(join(tmpdir(), 'teams-plus-link-dry-'))
+	try {
+		const lauf = starte(BIN, ['link', `--dsh-home=${heim}`])
+		assert.equal(lauf.status, 0, `${lauf.stdout}${lauf.stderr}`)
+		assert.match(lauf.stdout, /Trockenlauf/u, 'der Aufruf meldet keinen Trockenlauf')
+		assert.ok(!existsSync(join(heim, '.tm', 'teams-plus', 'patches')), 'der Trockenlauf hat patches/ angelegt')
+
+		// Mit --apply wird wirklich angelegt — der Schalter wirkt also noch.
+		const echt = starte(BIN, ['link', '--apply', `--dsh-home=${heim}`])
+		assert.equal(echt.status, 0, `${echt.stdout}${echt.stderr}`)
+		assert.ok(existsSync(join(heim, '.tm', 'teams-plus', 'patches')), 'mit --apply wurde nichts angelegt')
+	} finally {
+		rmSync(heim, { recursive: true, force: true })
 	}
 })
