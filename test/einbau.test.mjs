@@ -350,3 +350,26 @@ test('der Trockenlauf bleibt ohne Paket erlaubt und zeigt den Zustand', () => {
     l.aufraeumen()
   }
 })
+
+test('ein leeres Paketverzeichnis gilt nicht als installiert (Gegenpruefung task-10, Punkt 1b)', () => {
+  // Nach einem abgebrochenen pnpm install kann das Verzeichnis leer stehenbleiben. Fruehere
+  // Fassung pruefte nur `existsSync(paketPfad)` und liess den Einbau dann durch — genau der
+  // Schaden, den die Sperre verhindern soll.
+  const l = baueLage({ paketInstalliert: false })
+  try {
+    mkdirSyncAt(l.datei)
+    writeFileSync(l.datei, readFileSync(FIXTURE))
+    // Verzeichnis anlegen, aber ohne package.json darin.
+    const paket = join(l.dshHome, 'profiles', 'web', 'node_modules', '@tmielsch', 'dsh-teams-plus')
+    mkdirSync(paket, { recursive: true })
+    const vorher = sha(readFileSync(l.datei))
+
+    const lauf = starte(['--apply', `--file=${l.datei}`, `--dsh-home=${l.dshHome}`])
+
+    assert.equal(lauf.status, 1, `ein leeres Paketverzeichnis darf nicht durchgehen, Exit war ${lauf.status}`)
+    assert.equal(sha(readFileSync(l.datei)), vorher, 'die Profildatei wurde veraendert')
+    assert.ok(!existsSync(join(l.dshHome, '.tm', 'teams-plus', 'backup-profile')), 'es wurde eine Sicherung angelegt')
+  } finally {
+    l.aufraeumen()
+  }
+})

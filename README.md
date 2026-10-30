@@ -84,7 +84,7 @@ das ist der wichtigste Test in `test/einbau.test.mjs`. Vor jeder Änderung siche
 ```bash
 npm install        # esbuild, typescript, zod
 npm run build      # schreibt lib/client.js (Browser) und lib/index.js (Host)
-npm test           # 89 Tests, ohne laufendes DSH
+npm test           # 93 Tests, ohne laufendes DSH
 npm pack           # der prepack-Haken baut vorher neu
 ```
 

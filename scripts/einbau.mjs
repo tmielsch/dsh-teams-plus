@@ -133,7 +133,10 @@ export function zustand(text, dshHome) {
   return {
     gefunden,
     neu: neu !== undefined && neu.mehrfach === undefined,
-    paketInstalliert: existsSync(paketPfad) || existsSync(join(dshHome, 'profiles', 'web', 'node_modules', '@tmielsch', 'dsh-teams-plus', 'package.json'))
+    // Nur die `package.json` zaehlt, nicht das blosse Verzeichnis: ein leerer Rest nach einem
+    // abgebrochenen pnpm install wuerde sonst als "installiert" gelten und die Sperre aushebeln
+    // (Gegenpruefung task-10, Punkt 1b).
+    paketInstalliert: existsSync(join(paketPfad, 'package.json'))
   }
 }
 
