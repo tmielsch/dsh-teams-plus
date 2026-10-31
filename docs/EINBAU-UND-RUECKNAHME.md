@@ -1,25 +1,39 @@
 # Einbau und Rücknahme — die zwei Wege für `send_to_session`
 
-Stand: 2026-10-31, 06:00 (Europe/Berlin). Diese Datei ist eine **Vorbereitung**, keine
-Ausführung. Nichts davon ist geschehen.
+Stand: 2026-10-31, 06:14 (Europe/Berlin).
 
-## Der Ist-Zustand, gemessen
+## VOLLZOGEN: Weg B ist in Kraft
 
-| Was | Wert | Beleg |
-|---|---|---|
-| Paket im Profil | `@tmielsch/dsh-teams-plus` **0.4.0** | `node_modules/…/package.json` |
-| Bezugsquelle im Profil | `https://github.com/tmielsch/dsh-teams-plus/releases/download/v0.4.0/tmielsch-dsh-teams-plus-0.4.0.tgz` | `~/.dsh/profiles/web/package.json`, `dependencies` |
-| In `dsh.profile.bundles` | ja | ebd. |
-| Treffer im **Profil**-Patch | **0** | `grep -c 'send-to-session' ~/.dsh/profiles/web/cordis.patch.yml` |
-| Treffer im **Bundle**-Patch des Pakets | **1**, Zeile 34 (`- id: send-to-session`) | `node_modules/@tmielsch/dsh-teams-plus/cordis.patch.yml` |
-| Live im Loader | `include:send-to-session`, `enabled: true`, `fiberPhase: active` | Cordis-Werkzeug-Inspect |
-| Geladene Datei | `md5 38683855484768a3a43e9dc49cab899c` = die in `STOPP-V0.4.0.md` gesperrte Fassung | `md5 -q` |
-| Repo-Stand (ungeprüft) | `md5 928af3d0…` | `md5 -q patches/send-to-session.mjs` |
+**Die gesperrte v0.4.0 ist abgeschaltet.** Gemessen im laufenden Host:
 
-**Die Sperre ist im Betrieb nicht in Kraft.** Sie prüfte den Profil-Patch, die Zeile steht aber im
-Bundle-Patch des Pakets — und ein Bundle bringt seinen Patch mit.
+```
+include:send-to-session  enabled: false  fiberPhase: null
+```
 
----
+Was geschehen ist:
+
+1. Sicherung der Profildatei:
+   `~/.dsh/profiles/web/cordis.patch.yml.bak-vor-s2s-sperre-20261031-061348` (80 444 Bytes)
+2. Ein Block am **Ende** von `~/.dsh/profiles/web/cordis.patch.yml` angehängt:
+   `- id: send-to-session` / `disabled: true`, mit Begründung und Rückwege im Kommentar.
+3. **Kein Neustart nötig** — der Profil-Patch wird live nachgezogen, das Werkzeug ist aus
+   der Werkzeugliste verschwunden.
+
+**Unberührt:** Rollen, Policies, `delegate-send`, `stille-nachrichten`, `teammate-modell`,
+`goal-await`, `rolle-titel` und der Host-Eintrag laufen weiter. Nur das eine Werkzeug ist weg.
+
+**Rücknahme:** den Block am Dateiende entfernen, DSH neu starten. Oder die Sicherung
+zurückspielen.
+
+## Was noch offen ist
+
+Der **bessere** Weg A (v0.6.0 einbauen) braucht einen Neustart von `dsh web`, und der beendet
+alle laufenden Sitzungen. Er bleibt liegen, bis der Mensch einen ruhigen Zeitpunkt wählt.
+Bis dahin gilt: das Werkzeug ist abgeschaltet, nicht ersetzt.
+
+Der Tarball liegt fertig: `tmielsch-dsh-teams-plus-0.6.0.tgz`, geprüft, Einbau in einer Kopie
+verifiziert.
+
 
 ## Weg A — v0.6.0 einbauen (Red-Team-Freigabe liegt vor, mit Auflagen; Auflagen erfüllt)
 
