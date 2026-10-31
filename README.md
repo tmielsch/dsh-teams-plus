@@ -1,5 +1,11 @@
 # Agent Teams Plus (`@tmielsch/dsh-teams-plus`)
 
+> **⛔ v0.4.0 NICHT EINBAUEN.** `send_to_session` ist vom Red-Team gesperrt
+> (`docs/STOPP-V0.4.0.md`, Bericht `docs/REDTEAM-SEND-TO-SESSION.md`). Grund: `source.kind` ist im
+> Kern eine Berechtigung, nicht ein Etikett. Die letzte saubere Fassung ist **v0.3.1**.
+> Das Werkzeug ist nicht geladen — das Profil lädt nur den Host-Eintrag.
+
+
 Das Paket, das Agent Teams in DeepSeek Harness erst vollständig benutzbar macht: die Unlocks,
 die Rollen und ein standardisiertes Policy-Schema — an einem Ort, installierbar in einem Schritt.
 
