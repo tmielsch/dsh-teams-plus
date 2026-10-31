@@ -1,6 +1,8 @@
 # Freigabevorlage v0.6.0 — `send_to_session`
 
-Stand: 2026-10-31, 05:30 (Europe/Berlin). **Nicht eingebaut**, nur im Repo.
+Stand: 2026-10-31, 06:15 (Europe/Berlin). **Nicht eingebaut**, nur im Repo.
+Zweite Red-Team-Runde gegen `bf4854a` gelaufen: **Freigabe mit Auflagen**. Die zwei HOCH-Befunde
+sind in `342647c` abgearbeitet, jede Reparatur mit einer Gegenprobe, die sie rot machen kann.
 Vorgeschichte: `docs/STOPP-V0.4.0.md` (Sperre), `docs/REDTEAM-SEND-TO-SESSION.md` (Altbericht),
 Red-Team-Bericht gegen v0.5.0 (dieser Durchgang, mündlich an die Leitung).
 
@@ -28,9 +30,40 @@ ist derselbe Fehlertyp wie die STOPP-Datei, die am falschen Ort nachsah.
 | **M1** Lost Update über zwei Zustands-Halter | MITTEL | **behoben** — Lesen-Buchen-Schreiben liegt unter einer Dateisperre; Merge allein reichte nicht (gemessen) |
 | **M2** Titelsuche ist tot (`Session` hat kein `title`) | MITTEL | **behoben** — Zielsuche über Kennung, Kennungs-Präfix und `session.header.cwd` |
 | **M3** Protokolle liegen außerhalb des E1-Datenordners | MITTEL | **behoben für dieses Modul** — `~/.dsh/.tm/teams-plus/logs/`; `stille-nachrichten` bleibt offen |
-| **M4** Wurzelsitzung nicht markiert/gesperrt | MITTEL | **behoben** — `followup` an eine Wurzel wird auf `steer` heruntergestuft und gemeldet |
+| **M4** Wurzelsitzung nicht markiert/gesperrt | MITTEL | **behoben** in `342647c` — eine Wurzel bekommt `inject`. Vorher stand hier `steer`; das war falsch, weil `steer` ebenfalls weckt |
 | **N2** Testlauf schrieb ins echte `~/.dsh/logs` | NIEDRIG | **behoben** — `DSH_HOME` zeigt im Test auf ein temporäres Verzeichnis; gemessen: Zuwachs 0 Bytes |
 | **N3** `--test`-Selbstprüfung war versprochen und existierte nicht | NIEDRIG | **behoben** — Kopf nennt jetzt den echten Prüfweg |
+
+## Zweite Runde gegen `bf4854a` — Urteil und was daraus wurde
+
+**Urteil: Freigabe mit Auflagen.** Der Blocker der ersten Runde war wirklich behoben und durch einen
+Test gedeckt, der rot werden kann. Zwei HOCH-Befunde standen davor:
+
+| Befund (Runde 2) | Was nicht stimmte | Stand in `342647c` |
+|---|---|---|
+| **HOCH-1** Nachricht ohne `id` | `llm.createUserMessage` gibt es am Dienst nicht — es ist eine **Modulfunktion** (`dsh-llm/lib/index.js:59`). Der Aufruf war immer `undefined`, der Fallback erzeugte eine Nachricht ohne `id`; der Posteingang wirft dann bei der zweiten ausstehenden Nachricht (`dsh-agent-loop:191-192`) | `createUserMessage` wird aus dem Kernmodul geladen; der Fallback vergibt eine eigene Kennung. Test + Gegenprobe |
+| **HOCH-2** Wurzelschutz erreicht sein Ziel nicht | `steer` weckt ebenfalls: `send(input, "next-step", true)` (`dsh-agent-loop:809-811`), und der Kernvertrag sagt „an idle driver starts a turn". Nur `inject` weckt nicht | Eine Wurzel bekommt `inject`. Der Preis steht in der Antwort: die Nachricht kann liegen bleiben, bis der Mensch tippt |
+| **MITTEL-1** Begründung für die gestrichene Sprunghöhe war falsch | „Die Abstammung sieht dieses Werkzeug nicht" — sie ist sichtbar (`dsh-tool-goal:12-20` liest `event.data.source`) | Begründung korrigiert: messbar ist die erste Stufe, **nicht** die ganze Kette ohne fremde Protokolle. Als benannte Grenze offen |
+| **MITTEL-2** Kopfkommentar beschrieb v0.5.0 und empfahl `kind: "plugin"` | Ein Leser hätte den Blocker wieder eingebaut | Kopf auf 0.6.0, `plugin` ausdrücklich als Blocker markiert |
+| **MITTEL-3** Hermetik-Nachweis maß am alten Logpfad | Der Code schreibt dort nicht mehr — die Messung konnte nicht scheitern | Positiv- und Negativkontrolle am neuen Pfad: neuer Pfad wächst, alter nicht |
+| **MITTEL-4** Fehlendes `roots()` fiel still aus | Ohne den Dienst ging `followup` durch, ohne Meldung | `roots()` steht in `try`, ein Ausfall wird gemeldet; ein werfendes `roots()` verhindert die Zustellung nicht |
+| **NIEDRIG-1** Skalare in der Zustandsdatei still akzeptiert | `null`, `42`, `"x"` galten als frischer Anfang | Sie gelten als `kaputt` und werden gemeldet |
+| **NIEDRIG-3** Parameterbeschreibung versprach eine Titelsuche | Es gibt keinen Titel; die Suche liest `header.cwd` | Beschreibung korrigiert |
+
+**Nicht abgearbeitet, mit Absicht:** NIEDRIG-2 (Test 2 prüft teilweise sich selbst), NIEDRIG-4 (der
+Client zeigt `plugin:…` als menschliche Anfrage — die Herkunft trägt nur der Text), NIEDRIG-5
+(absoluter Codec-Pfad im Test), NIEDRIG-6 (die Policy-Tests der Suite sind nicht hermetisch).
+Alle vier sind benannt und keine davon berührt die Zustellung.
+
+## Drei Gegenproben zu den Reparaturen
+
+| Reparatur zurückgebaut | Wird rot |
+|---|---|
+| `id` aus dem Fallback entfernt | HOCH-1-Test |
+| `inject` zurück auf `steer` | HOCH-2-Test |
+| Merge vor der Buchung entfernt | M1-Integrationstest |
+
+Alle drei gemessen, nicht behauptet.
 
 ## Die Entscheidung, die im Code steckt: Sprunghöhe gestrichen
 
@@ -38,10 +71,13 @@ v0.5.0 hatte einen Kettenzähler mit Sprunghöhe (4) und Rundläufen je Kette. D
 gemessen, dass beides gleichzeitig falsch positiv und falsch negativ war, weil eine „Kette" über
 einen einzigen `ketteVon`-Slot je Sitzung lief.
 
-**Die Sprunghöhe ist nicht repariert, sondern gestrichen.** Eine echte Tiefe braucht die Abstammung
-der Nachricht, und die sieht dieses Werkzeug nicht — es bekommt beim Senden keinen eingehenden
-Nachrichtenkopf. Eine Zahl, die niemand messen kann, ist keine Grenze, sondern ein Versprechen.
-Was bleibt, ist das, was sich **je geordnetem Paar exakt zählen lässt**. Gegenrichtung `A→B` und
+**Die Sprunghöhe ist nicht repariert, sondern gestrichen** — aber die Begründung ist eine andere
+als zuerst hier stand. Falsch war: „die Abstammung sieht dieses Werkzeug nicht". Sie ist sichtbar:
+`dsh-tool-goal` liest über `agent.session.snapshotEvents()` und die Projektion `turnBoundary` die
+Nachricht, die die laufende Runde geöffnet hat, und darin `event.data.source`. Richtig ist: Die
+**ganze Kette** ist so nicht messbar — dafür müsste dieses Werkzeug die Protokolle fremder
+Sitzungen lesen, und das soll es nicht. Was bleibt, ist das, was sich **je geordnetem Paar exakt
+zählen lässt**. Die erste Stufe (wer hat diese Runde geöffnet?) bleibt als benannte Grenze offen. Gegenrichtung `A→B` und
 `B→A` sind verschiedene Paare: wer antwortet, ist nicht der, der angefangen hat.
 
 Der Altbericht verlangte Paar-Zähler **plus** Tiefenstufe. Die Tiefenstufe ist damit **offen
