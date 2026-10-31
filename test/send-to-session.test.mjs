@@ -413,6 +413,52 @@ test('zwei apply()-Instanzen auf einer Datei verlieren keine Zustellung (M1, Int
 	assert.deepEqual(Object.keys(stand.paare).sort(), ['a1 b2', 'a1 c3'])
 })
 
+test('die Sperre schützt über echte Prozessgrenzen (M1, Gegenprobe inklusive)', async () => {
+	// Die einzige ehrliche Prüfung für eine Dateisperre: mehrere PROZESSE, die sich
+	// im kritischen Abschnitt überlappen. In einem Prozess lässt sich das nicht
+	// zeigen — und eine Prüfung, die das nicht zeigt, prüft die Sperre nicht.
+	const { spawn } = await import('node:child_process')
+	const modul = new URL('../patches/send-to-session.mjs', import.meta.url).pathname
+
+	const lauf = (zahlKinder, mitSperre) => new Promise((fertig, fehler) => {
+		const heim = mkdtempSync(join(tmpdir(), 'sperre-'))
+		const pfad = join(heim, 'state.json')
+		const kind = (n) => `
+process.env.DSH_HOME = ${JSON.stringify(heim)};
+const m = await import(${JSON.stringify(modul)});
+const pfad = ${JSON.stringify(pfad)};
+const warte = (ms) => { const bis = Date.now() + ms; while (Date.now() < bis) {} };
+const arbeit = () => {
+  const stand = m.verschmelzeZustand(m.leererZustand(), m.ladeZustand(pfad));
+  warte(40);
+  m.bremseVerbuche(stand, 'A', 'Ziel${n}', 1000);
+  m.speichereZustand(stand, pfad);
+};
+${mitSperre ? 'm.mitSperre(pfad, arbeit);' : 'arbeit();'}
+`
+		let offen = zahlKinder
+		let kaputt = null
+		for (let n = 0; n < zahlKinder; n += 1) {
+			const p = spawn(process.execPath, ['--input-type=module', '-e', kind(n)], { stdio: ['ignore', 'ignore', 'pipe'] })
+			let err = ''
+			p.stderr.on('data', (d) => { err += d })
+			p.on('close', (code) => {
+				if (code !== 0 && kaputt === null) kaputt = new Error(err.slice(0, 300))
+				offen -= 1
+				if (offen > 0) return
+				if (kaputt) return fehler(kaputt)
+				fertig(Object.keys(ladeZustand(pfad).ziel ?? {}).length)
+			})
+		}
+	})
+
+	const mit = await lauf(4, true)
+	const ohne = await lauf(4, false)
+
+	assert.equal(mit, 4, 'mit Sperre darf kein Eintrag verloren gehen')
+	assert.ok(ohne < 4, `ohne Sperre muss Verlust auftreten — sonst prüft dieser Test nichts (gemessen: ${ohne} von 4)`)
+})
+
 test('verschmelzeZustand vereinigt über die Ereignis-Kennung, nicht über den Zeitstempel', () => {
 	const e1 = { t: 1_000, id: 'e1' }
 	const e2 = { t: 2_000, id: 'e2' }

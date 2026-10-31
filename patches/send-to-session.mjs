@@ -126,7 +126,7 @@
  *   node --test test/send-to-session.test.mjs
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -467,6 +467,84 @@ export function verschmelzeZustand(imSpeicher, vonPlatte) {
 	return { absender, ziel, paare };
 }
 
+/**
+ * Fuehrt eine Aktion unter einer Dateisperre aus.
+ *
+ * **Warum eine Sperre und nicht nur Read-Merge-Write.** Der Merge allein verengt
+ * das Fenster, schliesst es aber nicht: Zwei Prozesse, die BEIDE lesen, bevor
+ * einer schreibt, ueberschreiben sich danach trotzdem — gemessen am 2026-10-31
+ * (`/tmp/raceprobe.mjs`: nach verschraenktem Schreiben war das Ziel B weg).
+ *
+ * Die Sperre ist `open(…, 'wx')`: das Anlegen schlaegt fehl, wenn die Datei schon
+ * da ist — auf POSIX atomar. Wer sie haelt, liest, bucht und schreibt; danach
+ * wird sie geloescht.
+ *
+ * **Veraltete Sperre.** Stirbt ein Prozess mit gehaltener Sperre, waere die Datei
+ * fuer immer blockiert. Deshalb gilt eine Sperre nach `VERALTET_MS` als verwaist
+ * und wird entfernt. Das ist eine Heuristik, keine Wahrheit: Ein Prozess, der
+ * laenger als `VERALTET_MS` zwischen Lesen und Schreiben braucht, kann sie
+ * verlieren. Der Abschnitt ist reine Rechnung ohne Netzwerk und dauert
+ * Mikrosekunden, deshalb ist die Frist grosszuegig.
+ *
+ * **Letzter Ausweg.** Bleibt die Sperre nach allen Versuchen belegt, wird die
+ * Aktion OHNE Sperre ausgefuehrt. Eine Zustellung, die wegen einer haengenden
+ * Sperrdatei scheitert, waere schlimmer als ein moeglicher Zaehlerverlust — die
+ * Bremse ist eine Hoeflichkeitsbremse (siehe `ladeZustand`), die Zustellung ist
+ * der Zweck.
+ */
+const SPERRE_VERALTET_MS = 5_000;
+/**
+ * So lange wird auf die Sperre gewartet: `VERSUCHE × WARTE_MS` = 600 ms.
+ *
+ * Warum nicht weniger: Die erste Fassung wartete 120 ms und gab dann auf. Unter
+ * kuenstlicher Last (fuenf Prozesse, je 60 ms im kritischen Abschnitt) reichte das
+ * nicht — gemessen verlor diese Fassung noch 2 von 5 Eintraegen, waehrend die
+ * Fassung ohne Sperre 4 von 5 verlor. Der Unterschied war da, das Loch nicht zu.
+ * Bei 600 ms haelt sie (5 von 5, gemessen).
+ *
+ * Warum nicht mehr: Ein Werkzeugaufruf, der eine Sekunde auf eine Datei wartet,
+ * ist unangenehmer als ein moeglicher Zaehlerverlust.
+ */
+const SPERRE_VERSUCHE = 200;
+const SPERRE_WARTE_MS = 3;
+
+export function mitSperre(pfad, aktion) {
+	const sperre = `${pfad}.lock`;
+	mkdirSync(dirname(pfad), { recursive: true });
+	for (let versuch = 0; versuch < SPERRE_VERSUCHE; versuch += 1) {
+		try {
+			const griff = openSync(sperre, "wx");
+			try {
+				writeFileSync(griff, String(process.pid));
+			} finally {
+				closeSync(griff);
+			}
+			try {
+				return aktion();
+			} finally {
+				try { unlinkSync(sperre); } catch { /* schon weg: nicht schlimm */ }
+			}
+		} catch (fehler) {
+			if (fehler?.code !== "EEXIST") {
+				// Kein Sperrkonflikt, sondern etwas anderes (Rechte, Pfad): nicht haengen.
+				return aktion();
+			}
+			// Verwaiste Sperre eines abgestuerzten Prozesses?
+			try {
+				const stand = statSync(sperre);
+				if (Date.now() - stand.mtimeMs > SPERRE_VERALTET_MS) {
+					unlinkSync(sperre);
+					continue;
+				}
+			} catch { /* zwischenzeitlich weg: naechster Versuch */ }
+			const bis = Date.now() + SPERRE_WARTE_MS;
+			while (Date.now() < bis) { /* kurz warten, der Abschnitt ist synchron */ }
+		}
+	}
+	// Aufgeben: lieber zustellen als an einer Sperrdatei haengen bleiben.
+	return aktion();
+}
+
 /** Die Kante eines geordneten Paares, wie das Buch sie schluesselt. */
 export function kante(von, an) {
 	return `${von} ${an}`;
@@ -804,75 +882,83 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 
 			const jetzt = Date.now();
 
-			// (0) Zuerst den Stand von der Platte holen und mit dem eigenen vereinigen.
-			// Ohne diesen Schritt ginge der Zaehler eines anderen Prozesses verloren —
-			// Red-Team-Befund M1. Der Speicherzustand wird dabei IN PLACE nachgezogen,
-			// damit alle folgenden Pruefungen und Buchungen denselben Stand sehen.
-			const vonPlatte = ladeZustand(pfad);
-			const zusammengefuehrt = verschmelzeZustand(zustand, vonPlatte);
-			zustand.absender = zusammengefuehrt.absender;
-			zustand.ziel = zusammengefuehrt.ziel;
-			zustand.paare = zusammengefuehrt.paare;
+			// (0) LESEN-BUCHEN-SCHREIBEN unter einer Dateisperre.
+			//
+			// Ohne Sperre ginge der Zaehler eines anderen Prozesses verloren — Red-Team-
+			// Befund M1. Der Merge allein reicht nicht: Zwei Prozesse, die BEIDE lesen,
+			// bevor einer schreibt, ueberschreiben sich danach trotzdem (gemessen).
+			// Deshalb liegt der ganze Abschnitt unter `mitSperre`; die Zustellung selbst
+			// passiert INNERHALB, damit zwischen Pruefung und Buchung nichts fremdes
+			// dazwischenkommen kann.
+			const ausgang = mitSperre(pfad, () => {
+				// Stand von der Platte holen und mit dem eigenen vereinigen.
+				const zusammengefuehrt = verschmelzeZustand(zustand, ladeZustand(pfad));
+				zustand.absender = zusammengefuehrt.absender;
+				zustand.ziel = zusammengefuehrt.ziel;
+				zustand.paare = zusammengefuehrt.paare;
 
-			// (1) Die zwei Fenster: je Absender und je Ziel.
-			const gebremst = bremsePruefe(zustand, absenderAgent.id, zielId, jetzt);
-			if (gebremst.ok !== true) {
-				melden("warn", `gebremst grund=${gebremst.grund} absender=${absenderAgent.id} ziel=${zielId}`);
-				const zahl = gebremst.grund === "absender" ? GRENZEN.jeAbsender : GRENZEN.jeZiel;
-				const wer = gebremst.grund === "absender" ? "this sender" : "that target";
+				// (1) Die zwei Fenster: je Absender und je Ziel.
+				const gebremst = bremsePruefe(zustand, absenderAgent.id, zielId, jetzt);
+				if (gebremst.ok !== true) {
+					melden("warn", `gebremst grund=${gebremst.grund} absender=${absenderAgent.id} ziel=${zielId}`);
+					const zahl = gebremst.grund === "absender" ? GRENZEN.jeAbsender : GRENZEN.jeZiel;
+					const wer = gebremst.grund === "absender" ? "this sender" : "that target";
+					return {
+						delivered: false,
+						note: `rate limit: at most ${zahl} deliveries for ${wer} per ${GRENZEN.fensterMs / 60000} minutes; try again later`
+					};
+				}
+
+				// (2) Das Paar-Budget: zwei Nachrichten je geordnetem Paar, keine Wortwiederholung.
+				const kettenPruefung = pruefeKette(zustand, absenderAgent.id, zielId, args.message, jetzt);
+				if (kettenPruefung.ok !== true) {
+					melden("warn", `paar abgewiesen befund=${kettenPruefung.befund} absender=${absenderAgent.id} ziel=${zielId}`);
+					return { delivered: false, note: `${kettenPruefung.befund}: ${kettenPruefung.text}` };
+				}
+
+				// (3) Die Wurzelsitzung ist die, mit der der Mensch spricht. Ein `followup`
+				// dort startet eine NEUE RUNDE in seiner eigenen Sitzung — das darf kein
+				// fremder Agent ausloesen. `steer` ist erlaubt: es kommt an der naechsten
+				// Grenze an, ohne eine Runde zu oeffnen.
+				const istWurzel = typeof dienstAgenten.roots === "function"
+					&& dienstAgenten.roots().some((a) => a.id === zielId);
+				const gewuenscht = loeseModus(args.mode, ziel);
+				const modus = istWurzel && gewuenscht === "followup" ? "steer" : gewuenscht;
+				if (istWurzel) melden("info", `ziel ist eine Wurzelsitzung; modus auf ${modus} begrenzt`);
+
+				const inhalt = baueInhalt(args.message, absenderAgent.id, absenderAgent.session?.cwd);
+				const quelle = baueQuelle(absenderAgent.id, zielId);
+				try {
+					const llm = dienst("llm");
+					const nachricht = typeof llm?.createUserMessage === "function"
+						? llm.createUserMessage({ content: inhalt, source: quelle })
+						: { role: "user", content: inhalt, source: quelle };
+					if (modus === "followup") ziel.followup(nachricht);
+					else ziel.steer(nachricht);
+				} catch (fehler) {
+					const text = fehler instanceof Error ? fehler.message : String(fehler);
+					melden("warn", `Zustellung fehlgeschlagen absender=${absenderAgent.id} ziel=${zielId}: ${text}`);
+					return { delivered: false, note: `delivery failed: ${text}` };
+				}
+
+				// (3) Erst nach erfolgreicher Zustellung buchen — und sofort auf die Platte,
+				// damit ein Neustart die Zaehler nicht vergisst (Red-Team-Befund v0.4.0).
+				bremseVerbuche(zustand, absenderAgent.id, zielId, jetzt);
+				verbucheKette(zustand, absenderAgent.id, zielId, args.message, jetzt);
+				if (speichereZustand(zustand, pfad) !== true) {
+					melden("warn", `Zustand konnte nicht geschrieben werden: ${pfad}`);
+				}
+
+				melden("info", `zugestellt von=${absenderAgent.id} an=${zielId} modus=${modus} "${kurz(args.message)}"`);
 				return {
-					delivered: false,
-					note: `rate limit: at most ${zahl} deliveries for ${wer} per ${GRENZEN.fensterMs / 60000} minutes; try again later`
+					delivered: true,
+					to: zielId,
+					mode: modus,
+					note: `delivered to ${zielId} (${modus}); the target was told the message comes from an agent`
 				};
-			}
+			});
 
-			// (2) Das Paar-Budget: zwei Nachrichten je geordnetem Paar, keine Wortwiederholung.
-			const kettenPruefung = pruefeKette(zustand, absenderAgent.id, zielId, args.message, jetzt);
-			if (kettenPruefung.ok !== true) {
-				melden("warn", `paar abgewiesen befund=${kettenPruefung.befund} absender=${absenderAgent.id} ziel=${zielId}`);
-				return { delivered: false, note: `${kettenPruefung.befund}: ${kettenPruefung.text}` };
-			}
-
-			// (3) Die Wurzelsitzung ist die, mit der der Mensch spricht. Ein `followup`
-			// dort startet eine NEUE RUNDE in seiner eigenen Sitzung — das darf kein
-			// fremder Agent ausloesen. `steer` ist erlaubt: es kommt an der naechsten
-			// Grenze an, ohne eine Runde zu oeffnen.
-			const istWurzel = typeof dienstAgenten.roots === "function"
-				&& dienstAgenten.roots().some((a) => a.id === zielId);
-			const gewuenscht = loeseModus(args.mode, ziel);
-			const modus = istWurzel && gewuenscht === "followup" ? "steer" : gewuenscht;
-			if (istWurzel) melden("info", `ziel ist eine Wurzelsitzung; modus auf ${modus} begrenzt`);
-
-			const inhalt = baueInhalt(args.message, absenderAgent.id, absenderAgent.session?.cwd);
-			const quelle = baueQuelle(absenderAgent.id, zielId);
-			try {
-				const llm = dienst("llm");
-				const nachricht = typeof llm?.createUserMessage === "function"
-					? llm.createUserMessage({ content: inhalt, source: quelle })
-					: { role: "user", content: inhalt, source: quelle };
-				if (modus === "followup") ziel.followup(nachricht);
-				else ziel.steer(nachricht);
-			} catch (fehler) {
-				const text = fehler instanceof Error ? fehler.message : String(fehler);
-				melden("warn", `Zustellung fehlgeschlagen absender=${absenderAgent.id} ziel=${zielId}: ${text}`);
-				return { delivered: false, note: `delivery failed: ${text}` };
-			}
-
-			// (3) Erst nach erfolgreicher Zustellung buchen — und sofort auf die Platte,
-			// damit ein Neustart die Zaehler nicht vergisst (Red-Team-Befund v0.4.0).
-			bremseVerbuche(zustand, absenderAgent.id, zielId, jetzt);
-			verbucheKette(zustand, absenderAgent.id, zielId, args.message, jetzt);
-			if (speichereZustand(zustand, pfad) !== true) {
-				melden("warn", `Zustand konnte nicht geschrieben werden: ${pfad}`);
-			}
-
-			melden("info", `zugestellt von=${absenderAgent.id} an=${zielId} modus=${modus} "${kurz(args.message)}"`);
-			return {
-				delivered: true,
-				to: zielId,
-				mode: modus,
-				note: `delivered to ${zielId} (${modus}); the target was told the message comes from an agent`
-			};
+			return ausgang;
 		}
 	});
 }
