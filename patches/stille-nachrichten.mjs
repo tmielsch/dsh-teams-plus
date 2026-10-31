@@ -75,11 +75,45 @@ const MARKE_SPAWN = Symbol.for("stille-nachrichten.spawn-umgebogen");
 /** Das Werkzeug, um das es geht. */
 export const WERKZEUG = "send_message";
 
+/**
+ * Die Drossel. Am 2026-10-30 hat dieses Modul **37 970** Zeilen in 13 Stunden
+ * geschrieben, in der Spitze 3 933 in einer Sekunde. Ursache war ein
+ * Protokollaufruf im heissen Pfad (`tools/change` × Agentenzahl), nicht ein
+ * Fehler in der Sache.
+ *
+ * Deshalb: hoechstens `DROSSEL_JE_SEKUNDE` Zeilen je Sekunde. Wird die Grenze
+ * erreicht, faellt der Rest weg und EINE Zeile sagt, wie viele unterdrueckt
+ * wurden. Das Protokoll ist Beiwerk; es darf nie der Grund sein, warum eine
+ * Datei 3 MB hat.
+ */
+const DROSSEL_JE_SEKUNDE = 20;
+let drosselFenster = 0;
+let drosselZaehler = 0;
+let drosselUnterdrueckt = 0;
+
+/** Der Pfad des Protokolls. Ueber DSH_STILLE_NACHRICHTEN_LOG umlenkbar (Tests). */
+function protokollPfad() {
+	return process.env.DSH_STILLE_NACHRICHTEN_LOG ?? join(homedir(), ".dsh", "logs", "stille-nachrichten.log");
+}
+
 /** Schreibt eine Zeile ins Protokoll; ein Fehler dabei stoert nie. */
 function protokolliere(text) {
 	try {
-		const pfad = process.env.DSH_STILLE_NACHRICHTEN_LOG ?? join(homedir(), ".dsh", "logs", "stille-nachrichten.log");
-		appendFileSync(pfad, `${new Date().toISOString()} ${text}\n`);
+		const jetzt = Math.floor(Date.now() / 1000);
+		if (jetzt !== drosselFenster) {
+			if (drosselUnterdrueckt > 0) {
+				appendFileSync(protokollPfad(), `${new Date().toISOString()} [Drossel] ${drosselUnterdrueckt} Zeile(n) unterdrueckt.\n`);
+				drosselUnterdrueckt = 0;
+			}
+			drosselFenster = jetzt;
+			drosselZaehler = 0;
+		}
+		if (drosselZaehler >= DROSSEL_JE_SEKUNDE) {
+			drosselUnterdrueckt += 1;
+			return;
+		}
+		drosselZaehler += 1;
+		appendFileSync(protokollPfad(), `${new Date().toISOString()} ${text}\n`);
 	} catch { /* Das Protokoll ist Beigabe, nie Bedingung. */ }
 }
 
@@ -117,19 +151,28 @@ export function absenderHinweis(target) {
  *
  * @param {object} definition - die aufgeloeste Werkzeug-Definition.
  * @param {object} umgebung - `protokoll(text)` schreibt eine Zeile.
- * @returns {{stand: "fertig"|"kern"|"aufgeben", zurueck?: () => void, grund?: string}}
+ * @returns {{stand: "fertig"|"fremd"|"aufgeben", neu?: boolean, zurueck?: () => void, grund?: string}}
  */
 export function erweitereDefinition(definition, umgebung) {
 	if (definition === undefined || typeof definition.execute !== "function" || definition.parameters === undefined) {
 		return { stand: "aufgeben", grund: `das Werkzeug ${WERKZEUG} hat nicht die erwartete Form (DSH-Update?)` };
 	}
-	if (definition.execute[MARKE] === true) return { stand: "fertig" };
+	// Schon erweitert: `neu: false`. Der Unterschied ist der Grund, warum das
+	// Protokoll nicht mehr bei jedem `tools/change` eine Zeile schreibt.
+	if (definition.execute[MARKE] === true) return { stand: "fertig", neu: false };
 	const schema = definition.parameters;
 	const eigenschaften = schema?.properties;
 	if (eigenschaften === undefined || typeof eigenschaften !== "object") {
 		return { stand: "aufgeben", grund: `das Werkzeug ${WERKZEUG} hat kein Parameter-Schema` };
 	}
-	if (!Object.hasOwn(eigenschaften, "target")) return { stand: "aufgeben", grund: `das Werkzeug ${WERKZEUG} hat kein \`target\`; es ist nicht das Team-Werkzeug` };
+	// Das ist der NORMALFALL, kein Fehler: der Subagent-Dienst hat ebenfalls ein
+	// `send_message`, aber ohne `target`. Frueher stand hier `aufgeben` — und
+	// `erweitere()` schrieb dafuer bei jedem `tools/change` eine WARNUNG ins
+	// Protokoll: 3 746 Zeilen fuer einen erwarteten Zustand. Ein erwarteter
+	// Zustand ist keine Warnung.
+	if (!Object.hasOwn(eigenschaften, "target")) {
+		return { stand: "fremd", grund: `das Werkzeug ${WERKZEUG} ist hier nicht das Team-Werkzeug (kein \`target\`)` };
+	}
 	if (Object.hasOwn(eigenschaften, "quiet")) return { stand: "kern" };
 
 	const grundExecute = definition.execute;
@@ -193,6 +236,7 @@ export function erweitereDefinition(definition, umgebung) {
 	definition.execute[MARKE] = true;
 	return {
 		stand: "fertig",
+		neu: true,
 		zurueck() {
 			definition.execute = grundExecute;
 			definition.description = grundBeschreibung;
@@ -265,7 +309,17 @@ export function apply(ctx) {
 
 	const ruecknahmen = new WeakMap();
 	const spawnRuecknahmen = new WeakMap();
-	const promptRegistriert = new WeakMap();
+	/**
+	 * Die eingetragene Regel, nach **Sitzungs-Kennung** geschluesselt.
+	 *
+	 * Vorher war es eine WeakMap ueber das Agenten-OBJEKT. Wird ein Agent neu
+	 * erzeugt (Neuladen, Wiederaufnahme), ist das ein neues Objekt, die WeakMap
+	 * kennt es nicht, und `regelFuer` trug eine ZWEITE Sektion ein — die erste
+	 * wurde nie abgemeldet. Folge: dieselbe Regel stand mehrfach im System-Prompt
+	 * (in der Test-Sitzung mehr als 20-mal). Der Schluessel ist jetzt die Kennung,
+	 * die bleibt.
+	 */
+	const promptRegistriert = new Map();
 
 	const teams = () => {
 		try { return ctx.get("agentTeams"); } catch { return undefined; }
@@ -273,7 +327,9 @@ export function apply(ctx) {
 
 	/** Die Regel, die in den Scope dieses Agenten gehört: Lead-Text oder Kaskaden-Regel. */
 	function regelFuer(agent) {
-		if (promptRegistriert.has(agent)) return;
+		const sitzung = String(agent?.id ?? "");
+		if (sitzung === "") return;
+		if (promptRegistriert.has(sitzung)) return;
 		let rolle = null;
 		try {
 			const t = teams();
@@ -288,7 +344,7 @@ export function apply(ctx) {
 			melden("warn", `die Regel liess sich im Scope nicht eintragen: ${String(error)}`);
 			return;
 		}
-		promptRegistriert.set(agent, disposer);
+		promptRegistriert.set(sitzung, disposer);
 		protokolliere(`Regel im ${rolle}-Scope eingetragen.`);
 	}
 
@@ -302,13 +358,21 @@ export function apply(ctx) {
 		}
 		if (definition === undefined) return "spaeter";
 		const ergebnis = erweitereDefinition(definition, { protokoll: protokolliere, teams });
+		// Ein fremdes Werkzeug mit demselben Namen ist der Normalfall (Subagent-Dienst),
+		// kein Grund fuer eine Warnung bei jedem `tools/change`.
+		if (ergebnis.stand === "fremd") return "fremd";
 		if (ergebnis.stand === "aufgeben") {
 			melden("warn", `${ergebnis.grund}; es bleibt unveraendert.`);
 			return "aufgeben";
 		}
 		if (ergebnis.stand === "kern") return "kern";
 		if (ergebnis.zurueck !== undefined) ruecknahmen.set(definition, ergebnis.zurueck);
-		protokolliere(`Werkzeug ${WERKZEUG} erweitert: \`quiet\` stellt eine stille Direkt-Nachricht zu.`);
+		// NUR protokollieren, wenn wirklich etwas passiert ist. Ohne diese Bedingung
+		// schrieb jeder `tools/change` eine Zeile je Agent — 37 970 Zeilen an einem Tag.
+		if (ergebnis.neu === true) {
+			protokolliere(`Werkzeug ${WERKZEUG} erweitert: \`quiet\` stellt eine stille Direkt-Nachricht zu.`);
+			return "fertig";
+		}
 		return "fertig";
 	};
 
@@ -341,6 +405,16 @@ export function apply(ctx) {
 	ctx.on("agent/created", ({ agent }) => { durchgang(); });
 	ctx.on("tools/change", () => { durchgang(); });
 	ctx.on("app-boot/config-reload", () => { durchgang(); });
+	// Ohne diesen Aufraeumer blieb die Regel im Prompt eines beendeten Agenten stehen,
+	// und eine wiederaufgenommene Sitzung bekam sie ein zweites Mal.
+	ctx.on("agent/disposed", ({ agent }) => {
+		const sitzung = String(agent?.id ?? "");
+		if (sitzung === "") return;
+		const abmelden = promptRegistriert.get(sitzung);
+		if (abmelden === undefined) return;
+		promptRegistriert.delete(sitzung);
+		try { abmelden(); } catch { /* beim Abbau ist alles verziehen */ }
+	});
 
 	ctx.effect(() => {
 		const stand = durchgang();
@@ -354,9 +428,12 @@ export function apply(ctx) {
 				let spawn;
 				try { spawn = ctx.tools.get("spawn_teammate", agent); } catch { spawn = undefined; }
 				if (spawn !== undefined) spawnRuecknahmen.get(spawn)?.();
-				promptRegistriert.get(agent)?.();
-				promptRegistriert.delete(agent);
 			}
+			for (const [sitzung, abmelden] of promptRegistriert) {
+				void sitzung;
+				try { abmelden(); } catch { /* beim Abbau ist alles verziehen */ }
+			}
+			promptRegistriert.clear();
 		};
 	}, "stille-nachrichten");
 }
@@ -452,7 +529,28 @@ if (alsHauptmodul) {
 	{
 		// Fremde Form wird nicht angefasst.
 		pruefe(erweitereDefinition({ name: "send_message" }, { protokoll: () => {} }).stand, "aufgeben", "formlose Definition wird abgelehnt");
-		pruefe(erweitereDefinition({ name: "send_message", parameters: { type: "object", properties: {} }, execute: async () => ({}) }, { protokoll: () => {} }).stand, "aufgeben", "ohne target wird es nicht erkannt");
+		// Ein fremdes Werkzeug mit demselben Namen ist der NORMALFALL (Subagent-Dienst),
+		// kein Fehler: eigener Stand "fremd", keine Warnung im Protokoll.
+		pruefe(erweitereDefinition({ name: "send_message", parameters: { type: "object", properties: {} }, execute: async () => ({}) }, { protokoll: () => {} }).stand, "fremd", "ohne target: fremdes Werkzeug, nicht Aufgeben");
+	}
+
+	// --- 2b. "fertig" unterscheidet "gerade eben" von "war schon" ---
+	// Ohne diesen Unterschied schrieb jeder `tools/change` eine Protokollzeile je Agent.
+	{
+		const props = { target: { type: "string" }, message: { type: "string" } };
+		const definition = {
+			name: "send_message",
+			description: "Send one durable message.",
+			parameters: { type: "object", properties: props, required: ["target", "message"] },
+			execute: async () => ({ messageId: "m" })
+		};
+		const umgebung = { protokoll: () => {}, teams: () => ({ sendMessage: async () => ({}) }) };
+		const erst = erweitereDefinition(definition, umgebung);
+		pruefe(erst.stand, "fertig", "die erste Erweiterung gelingt");
+		pruefe(erst.neu, true, "die erste Erweiterung meldet neu: true");
+		const zweit = erweitereDefinition(definition, umgebung);
+		pruefe(zweit.stand, "fertig", "die zweite Erweiterung ist ebenfalls fertig");
+		pruefe(zweit.neu, false, "die zweite meldet neu: false — sie hat nichts getan");
 	}
 
 	// --- 3. spawn_teammate haengt die Kaskaden-Regel an den Auftrag ---

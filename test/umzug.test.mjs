@@ -53,8 +53,7 @@ const SHA256_ORIGINAL = {
 	'allow-member-model.mjs': 'f2822fe597ea5487c37ad1fb7acbd844da844bad4b325145019a629bdd24e9fd',
 	'member-model.mjs': '8f56ff4eaceb8773c3a537a4d729fa89ffad4f36dd59c7902c4feaf830be4584',
 	'delegate-send.mjs': '62af78119649e92e65fa97ff968e1fe04fe2e074cb4c7f9e8604b87325a69d17',
-	'teammate-model.mjs': 'a02a381d027a478e474116357b4c1ebde876a229809bd90641ea2630e139a09c',
-	'stille-nachrichten.mjs': '31e83a7963ca6d9478414267a0f1a53de885121df1453386e879230677409ffd'
+	'teammate-model.mjs': 'a02a381d027a478e474116357b4c1ebde876a229809bd90641ea2630e139a09c'
 }
 
 /**
@@ -84,7 +83,17 @@ const SHA256_ABWEICHEND = {
 	// zu 84 % unsichtbar. Die Beschreibung des Werkzeugs kommt dagegen bei jedem Aufruf an.
 	'goal-await.mjs': '674454d06e3a4acfc1770995f428b85a9bf8a4d5d6537cfa23285c95090426a8',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
-	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7'
+	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
+	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:
+	//  (1) 37 970 Protokollzeilen in 13 h, weil bei JEDEM `tools/change` eine Zeile je Agent
+	//      geschrieben wurde — auch wenn nichts geschah;
+	//  (2) 3 746 Warnungen fuer den Normalfall "fremdes Werkzeug mit demselben Namen";
+	//  (3) die Prompt-Regel wurde ueber das Agenten-OBJEKT geschluesselt und bei jeder
+	//      Neuerzeugung erneut eingetragen, ohne den alten Eintrag abzumelden — die Regel stand
+	//      in der Test-Sitzung mehr als 20-mal im System-Prompt.
+	// Aenderungen: Protokoll-Drossel (20 Zeilen/s), eigener Stand "fremd" ohne Warnung,
+	// Schluessel ueber die Sitzungs-Kennung, Aufraeumer auf `agent/disposed`.
+	'stille-nachrichten.mjs': '6fa2af089e341e1c8de48bf32aec6062b2656de6b8e861a64c2efda5e434b1f6'
 }
 
 /** Die 18 A-Dateien: sie schreiben in die DSH-Installation. */
@@ -152,8 +161,8 @@ function zieldateien() {
 
 test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen Rollenaufloesung', () => {
 	const alle = { ...SHA256_ORIGINAL, ...SHA256_ABWEICHEND }
-	assert.equal(Object.keys(SHA256_ORIGINAL).length, 20, 'die Liste der unveraenderten Originale muss 20 Dateien haben (19 + goal-await in ABWEICHEND)')
-	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 3, 'es sind genau drei Dateien mit Absicht geaendert (zwei Rollen + goal-await)')
+	assert.equal(Object.keys(SHA256_ORIGINAL).length, 19, 'die Liste der unveraenderten Originale muss 19 Dateien haben')
+	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 4, 'es sind genau vier Dateien mit Absicht geaendert (zwei Rollen + goal-await + stille-nachrichten)')
 
 	const abweichend = []
 	for (const [name, soll] of Object.entries(alle)) {
