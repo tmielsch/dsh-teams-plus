@@ -21,17 +21,33 @@ Bundle-Patch des Pakets — und ein Bundle bringt seinen Patch mit.
 
 ---
 
-## Weg A — v0.6.0 einbauen (nach Red-Team-Freigabe)
+## Weg A — v0.6.0 einbauen (Red-Team-Freigabe liegt vor, mit Auflagen; Auflagen erfüllt)
 
-Voraussetzung: Die zweite Red-Team-Runde gibt `bf4854a` (oder einen Nachfolger) frei.
+**Stand der Vorbereitung, gemessen am 2026-10-31, 06:20:**
+
+- Tarball gebaut: `tmielsch-dsh-teams-plus-0.6.0.tgz`
+- Inhalt geprüft: `package/patches/send-to-session.mjs` mit
+  `QUELL_ART = "plugin:@tmielsch/dsh-teams-plus"`, `stille-nachrichten.mjs`, `cordis.patch.yml`,
+  `package.json` mit `"version": "0.6.0"`
+- **Einbau in einer Kopie geprüft** (`/tmp/profilprobe`, eigenes `package.json`, `pnpm install`):
+  danach liegt `@tmielsch/dsh-teams-plus` **0.6.0** in `node_modules`, und die installierte Fassung
+  trägt die richtige Quellart. Der echte Profilordner wurde dabei **nicht** angefasst.
 
 ```bash
 cd ~/dsh-teams-plus
-npm test                        # muss grün sein, 121 Tests
+npm test                        # 129 Tests, alle grün
+node scripts/build-client.mjs   # lib/ frisch bauen, sonst scheitern 8 Build-Tests
 pnpm pack                       # erzeugt tmielsch-dsh-teams-plus-0.6.0.tgz
 dsh plugin --profile web add file:/Users/tmielsch/dsh-teams-plus/tmielsch-dsh-teams-plus-0.6.0.tgz
 # danach: dsh web neu starten
 ```
+
+**Was der Neustart kostet, und warum das eine Entscheidung des Menschen ist:** Der laufende
+`dsh web`-Prozess hält die geladene Fassung im Speicher. Bis zum Neustart läuft weiter v0.4.0, auch
+wenn auf der Platte 0.6.0 liegt. Der Neustart beendet **alle laufenden Sitzungen**. Ohne Neustart
+entsteht ein Zwischenzustand (Platte 0.6.0, Speicher 0.4.0), der genau die Verwirrung erzeugt, die
+der STOPP beseitigen soll — deshalb: einbauen **und** neu starten, in einem Zug, zu einem Zeitpunkt
+den der Mensch wählt.
 
 Danach prüfen — **beides**, nicht nur eins:
 
