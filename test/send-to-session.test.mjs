@@ -53,6 +53,7 @@ const {
 	pruefeKette,
 	speichereZustand,
 	verbucheKette,
+	verschmelzeZustand,
 	zustandPfad,
 	kante
 } = await import('../patches/send-to-session.mjs')
@@ -299,10 +300,20 @@ test('der Zustand ueberlebt einen Neustart', () => {
 	assert.equal(speichereZustand(zustand, pfad), true)
 
 	const geladen = ladeZustand(pfad)
-	assert.deepEqual(geladen.absender.a1, [1_000], 'die Zustellzeit je Absender fehlt')
-	assert.deepEqual(geladen.ziel.b2, [1_000], 'die Zustellzeit je Ziel fehlt')
+	assert.equal(geladen.absender.a1.length, 1, 'die Zustellzeit je Absender fehlt')
+	assert.equal(geladen.absender.a1[0].t, 1_000)
+	assert.equal(geladen.ziel.b2.length, 1, 'die Zustellzeit je Ziel fehlt')
 	assert.equal(geladen.paare['a1 b2'].zeiten.length, 1)
 	assert.equal(geladen.paare['a1 b2'].letzterText, 'hallo')
+
+	// Zwei Zustellungen in DERSELBEN Millisekunde bleiben zwei Ereignisse.
+	// (Das war der Grund fuer den sporadisch roten Test: ein Set ueber Zahlen
+	// haette sie zu einer verschmolzen, und die Bremse haette zu wenig gezaehlt.)
+	const zustand2 = leererZustand()
+	bremseVerbuche(zustand2, 'c', 'd', 5_000)
+	bremseVerbuche(zustand2, 'c', 'd', 5_000)
+	assert.equal(zustand2.ziel.d.length, 2, 'zwei Zustellungen in einer Millisekunde muessen zwei Ereignisse bleiben')
+	assert.notEqual(zustand2.ziel.d[0].id, zustand2.ziel.d[1].id)
 })
 
 test('eine Datei aus dem alten Kettenmodell wird verworfen, nicht migriert', () => {
@@ -324,6 +335,107 @@ test('eine kaputte Zustandsdatei verhindert den Start nicht — wird aber gemeld
 	const frisch = ladeZustand('/gibt/es/nicht/state.json')
 	assert.deepEqual(frisch, leererZustand())
 	assert.notEqual(frisch.kaputt, true, 'eine fehlende Datei ist kein Fehler')
+})
+
+// ---------------------------------------------------------------------------
+// 6b. M1 — Lost Update über zwei Zustands-Halter
+// ---------------------------------------------------------------------------
+
+test('zwei Zustands-Halter verlieren keine Zähler (M1)', () => {
+	// Zwei Prozesse: jeder hat seinen Speicherstand, beide schreiben nacheinander.
+	const pfad = frischeAblage()
+	const p1 = ladeZustand(pfad)
+	const p2 = ladeZustand(pfad)
+
+	// p1 stellt A→B zu, mit Read-Merge-Write wie im execute.
+	{
+		const stand = verschmelzeZustand(p1, ladeZustand(pfad))
+		bremseVerbuche(stand, 'A', 'B', 1_000)
+		verbucheKette(stand, 'A', 'B', 'hallo B', 1_000)
+		speichereZustand(stand, pfad)
+	}
+
+	// p2 stellt A→C zu und weiß nichts von p1.
+	{
+		const stand = verschmelzeZustand(p2, ladeZustand(pfad))
+		bremseVerbuche(stand, 'A', 'C', 2_000)
+		verbucheKette(stand, 'A', 'C', 'hallo C', 2_000)
+		speichereZustand(stand, pfad)
+	}
+
+	const final = ladeZustand(pfad)
+	assert.deepEqual(final.ziel.B.map((e) => e.t), [1_000], 'der Zähler des ersten Schreibers ging verloren')
+	assert.deepEqual(final.ziel.C.map((e) => e.t), [2_000], 'der Zähler des zweiten Schreibers fehlt')
+	assert.deepEqual(final.absender.A.map((e) => e.t).sort(), [1_000, 2_000], 'der Absender-Zähler muss beide Zustellungen tragen')
+	assert.deepEqual(Object.keys(final.paare).sort(), ['A B', 'A C'])
+})
+
+test('die Gegenprobe greift: ohne Verschmelzen geht ein Zähler verloren', () => {
+	// Dieser Test ist der Beweis, dass der Test darüber etwas prüfen KANN.
+	// Er bildet den alten Weg nach (laden → buchen → schreiben, ohne Merge)
+	// und muss dabei den Verlust zeigen. Bliebe der Verlust aus, wäre die
+	// Reparatur von M1 nicht die Ursache des grünen Tests oben.
+	const pfad = frischeAblage()
+	const p3 = ladeZustand(pfad)
+	const p4 = ladeZustand(pfad)
+
+	bremseVerbuche(p3, 'X', 'Y', 3_000)
+	speichereZustand(p3, pfad)
+	bremseVerbuche(p4, 'X', 'Z', 4_000)
+	speichereZustand(p4, pfad)
+
+	const ohne = ladeZustand(pfad)
+	assert.equal(ohne.ziel.Y, undefined, 'ohne Merge muss Y verloren gehen — sonst prüft der Test oben nichts')
+	assert.deepEqual(ohne.ziel.Z.map((e) => e.t), [4_000])
+})
+
+test('zwei apply()-Instanzen auf einer Datei verlieren keine Zustellung (M1, Integration)', async () => {
+	// Das ist der Test, den die Gegenprobe treffen kann: zwei getrennte apply()
+	// teilen sich eine Zustandsdatei — genau die Lage zweier Prozesse.
+	const pfad = frischeAblage()
+	const gesendet = []
+	const zielB = { id: 'b2', session: {}, steer: (m) => gesendet.push(['B', m]), followup: (m) => gesendet.push(['B', m]) }
+	const zielC = { id: 'c3', session: {}, steer: (m) => gesendet.push(['C', m]), followup: (m) => gesendet.push(['C', m]) }
+	const absender = { id: 'a1', session: {} }
+	const agenten = [absender, zielB, zielC]
+
+	const erster = await anmelden(agenten, { pfad })
+	const zweiter = await anmelden(agenten, { pfad })
+
+	await erster.def.execute({ target: 'b2', message: 'an B' }, { agent: absender, signal: new AbortController().signal })
+	// Der zweite Halter weiß nichts von der ersten Zustellung — er hat beim Laden gelesen.
+	await zweiter.def.execute({ target: 'c3', message: 'an C' }, { agent: absender, signal: new AbortController().signal })
+
+	const stand = ladeZustand(pfad)
+	assert.ok(stand.ziel.b2, 'die Zustellung des ersten Halters ging verloren')
+	assert.ok(stand.ziel.c3, 'die Zustellung des zweiten Halters fehlt')
+	assert.equal(stand.absender.a1.length, 2, 'der Absender-Zähler muss beide Zustellungen tragen')
+	assert.deepEqual(Object.keys(stand.paare).sort(), ['a1 b2', 'a1 c3'])
+})
+
+test('verschmelzeZustand vereinigt über die Ereignis-Kennung, nicht über den Zeitstempel', () => {
+	const e1 = { t: 1_000, id: 'e1' }
+	const e2 = { t: 2_000, id: 'e2' }
+	const e3 = { t: 3_000, id: 'e3' }
+	// e2 steht in BEIDEN Ständen — dasselbe Ereignis, zweimal gesehen.
+	const a = { absender: { A: [e1, e2] }, ziel: { B: [e1] }, paare: { 'A B': { zeiten: [e1], letzterText: 'eins' } } }
+	const b = { absender: { A: [e2, e3] }, ziel: { C: [e3] }, paare: { 'A B': { zeiten: [e2], letzterText: 'zwei' } } }
+	const zusammen = verschmelzeZustand(a, b)
+
+	assert.deepEqual(zusammen.absender.A.map((e) => e.id).sort(), ['e1', 'e2', 'e3'], 'dasselbe Ereignis darf nicht doppelt zählen, kein Ereignis darf fehlen')
+	assert.equal(zusammen.absender.A.length, 3)
+	assert.deepEqual(zusammen.ziel.B.map((e) => e.t), [1_000])
+	assert.deepEqual(zusammen.ziel.C.map((e) => e.t), [3_000])
+	assert.deepEqual(zusammen.paare['A B'].zeiten.map((e) => e.id).sort(), ['e1', 'e2'])
+	// Bei Gleichstand gewinnt der eigene Stand (der des Aufrufs).
+	assert.equal(zusammen.paare['A B'].letzterText, 'eins')
+
+	// Zwei VERSCHIEDENE Ereignisse mit gleichem Zeitstempel bleiben zwei.
+	const gleich = verschmelzeZustand(
+		{ absender: { A: [{ t: 500, id: 'x' }] }, ziel: {}, paare: {} },
+		{ absender: { A: [{ t: 500, id: 'y' }] }, ziel: {}, paare: {} }
+	)
+	assert.equal(gleich.absender.A.length, 2, 'gleicher Zeitstempel, verschiedene Ereignisse: zwei')
 })
 
 test('der Zustandspfad liegt unter .tm/teams-plus (E1)', () => {

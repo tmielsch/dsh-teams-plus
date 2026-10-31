@@ -387,11 +387,16 @@ function istObjekt(wert) {
 /**
  * Schreibt den Zustand. Erst in eine Nebendatei, dann umbenennen: ein Abbruch
  * mitten im Schreiben hinterlaesst so nie eine halbe Datei. Wirft nie.
+ *
+ * **Der Name der Nebendatei ist eindeutig** (PID + Zufall). Bis 2026-10-31 stand
+ * dort fest \`\${pfad}.neu\`; zwei Prozesse, die gleichzeitig schrieben, oeffneten
+ * dieselbe Nebendatei, und einer griff beim \`rename\` ins Leere. Red-Team-Befund
+ * M1, Teil 2.
  */
 export function speichereZustand(zustand, pfad = zustandPfad()) {
 	try {
 		mkdirSync(dirname(pfad), { recursive: true });
-		const vorlaeufig = `${pfad}.neu`;
+		const vorlaeufig = `${pfad}.${process.pid}.${Math.random().toString(36).slice(2, 10)}.neu`;
 		writeFileSync(vorlaeufig, `${JSON.stringify(zustand, null, "\t")}\n`);
 		renameSync(vorlaeufig, pfad);
 		return true;
@@ -400,9 +405,100 @@ export function speichereZustand(zustand, pfad = zustandPfad()) {
 	}
 }
 
+/**
+ * Fuehrt zwei Zustaende zusammen — den im Speicher und den auf der Platte.
+ *
+ * **Warum das noetig ist (Red-Team-Befund M1, Teil 1).** Bis 2026-10-31 las
+ * \`apply\` den Zustand EINMAL beim Laden und \`execute\` schrieb danach das ganze
+ * Objekt. Zwei Prozesse (zwei \`dsh\`-Hosts, zwei Profile, ein Neustart neben einem
+ * laufenden Host) ueberschrieben sich damit gegenseitig: der zweite Schreibvorgang
+ * verlor die Zaehler des ersten.
+ *
+ * Alle Zaehler hier sind **anhangend** — Zeitstempel, die nur dazukommen, und Paare,
+ * deren Zeiten man vereinigen kann. Fuer solche Daten gibt es eine verlustfreie
+ * Vereinigung: die Mengenvereinigung der Zeitstempel. Kein Feld wird „zuletzt
+ * gewinnt" ueberschrieben, weil es kein Feld gibt, das ein anderer Prozess
+ * wegnehmen koennte.
+ *
+ * Beim Paar-Buch gewinnt der **laengere** Zeitstempel-Vektor; \`letzterText\` kommt
+ * von dem Stand, der mehr Zeiten hat (bei Gleichstand vom Speicher, also vom
+ * eigenen Aufruf).
+ */
+export function verschmelzeZustand(imSpeicher, vonPlatte) {
+	const leer = leererZustand();
+	const quelle = istObjekt(vonPlatte) ? vonPlatte : leer;
+	const eigen = istObjekt(imSpeicher) ? imSpeicher : leer;
+
+	// Vereinigung ueber die EREIGNIS-Kennung. Zwei Zustellungen in derselben
+	// Millisekunde bleiben damit zwei; dasselbe Ereignis, zweimal gesehen, bleibt eins.
+	const vereinige = (a, b) => {
+		const nachId = new Map();
+		for (const eintrag of [...ereignisse(a), ...ereignisse(b)]) nachId.set(eintrag.id, eintrag);
+		return [...nachId.values()].sort((x, y) => x.t - y.t);
+	};
+
+	const absender = { ...(istObjekt(quelle.absender) ? quelle.absender : {}) };
+	for (const [id, zeiten] of Object.entries(eigen.absender ?? {})) {
+		absender[id] = vereinige(zeiten, absender[id]);
+	}
+
+	const ziel = { ...(istObjekt(quelle.ziel) ? quelle.ziel : {}) };
+	for (const [id, zeiten] of Object.entries(eigen.ziel ?? {})) {
+		ziel[id] = vereinige(zeiten, ziel[id]);
+	}
+
+	const paare = { ...(istObjekt(quelle.paare) ? quelle.paare : {}) };
+	for (const [schluessel, buch] of Object.entries(eigen.paare ?? {})) {
+		const fremd = paare[schluessel];
+		if (!istObjekt(fremd)) {
+			paare[schluessel] = buch;
+			continue;
+		}
+		const zeiten = vereinige(buch?.zeiten, fremd?.zeiten);
+		// Der Text gehoert zu dem Stand mit den mehr Zeiten; bei Gleichstand zum eigenen.
+		const eigenerText = ereignisse(buch?.zeiten).length;
+		const fremderText = ereignisse(fremd?.zeiten).length;
+		paare[schluessel] = {
+			zeiten,
+			letzterText: eigenerText >= fremderText ? buch?.letzterText : fremd?.letzterText
+		};
+	}
+
+	return { absender, ziel, paare };
+}
+
 /** Die Kante eines geordneten Paares, wie das Buch sie schluesselt. */
 export function kante(von, an) {
 	return `${von} ${an}`;
+}
+
+/**
+ * Eine Zustellung ist ein **Ereignis**, kein Zeitpunkt.
+ *
+ * Warum nicht ein nackter Zeitstempel: Beim Zusammenfuehren zweier Zustaende
+ * (Red-Team-Befund M1) muss die Vereinigung „dasselbe Ereignis, zweimal gesehen"
+ * von „zwei Ereignisse in derselben Millisekunde" unterscheiden koennen. Ein
+ * `Set` ueber Zahlen kann das nicht — zwei Zustellungen im selben Millisekunden
+ * wurden zu EINER, und die Bremse zaehlte zu wenig. Das ist beim Testen
+ * aufgefallen, nicht beim Nachdenken.
+ *
+ * Die Kennung macht die Vereinigung eindeutig; `t` bleibt die Zahl, an der das
+ * Fenster gemessen wird.
+ */
+export function neuesEreignis(jetzt = Date.now()) {
+	return { t: jetzt, id: `${jetzt.toString(36)}-${Math.random().toString(36).slice(2, 10)}` };
+}
+
+/** Liest ein Ereignis aus einem gespeicherten Eintrag — auch aus dem alten Zahlenformat. */
+function alsEreignis(wert) {
+	if (typeof wert === "number") return { t: wert, id: `alt-${wert}` };
+	if (istObjekt(wert) && typeof wert.t === "number") return wert;
+	return undefined;
+}
+
+/** Die Ereignisse eines Arrays, ohne unbrauchbare Eintraege. */
+function ereignisse(wert) {
+	return Array.isArray(wert) ? wert.map(alsEreignis).filter(Boolean) : [];
 }
 
 /**
@@ -425,7 +521,7 @@ export function kante(von, an) {
 export function pruefeKette(zustand, von, an, text, jetzt = Date.now(), grenzen = GRENZEN) {
 	const buch = zustand.paare?.[kante(von, an)];
 	if (buch === undefined) return { ok: true };
-	const zeiten = (Array.isArray(buch.zeiten) ? buch.zeiten : []).filter((t) => jetzt - t < grenzen.fensterMs);
+	const zeiten = ereignisse(buch.zeiten).filter((e) => jetzt - e.t < grenzen.fensterMs);
 	if (zeiten.length >= grenzen.paarNachrichten) {
 		return {
 			ok: false,
@@ -447,8 +543,8 @@ export function pruefeKette(zustand, von, an, text, jetzt = Date.now(), grenzen 
 export function verbucheKette(zustand, von, an, text, jetzt = Date.now(), grenzen = GRENZEN) {
 	const schluessel = kante(von, an);
 	const alt = zustand.paare?.[schluessel];
-	const zeiten = (Array.isArray(alt?.zeiten) ? alt.zeiten : []).filter((t) => jetzt - t < grenzen.fensterMs);
-	zeiten.push(jetzt);
+	const zeiten = ereignisse(alt?.zeiten).filter((e) => jetzt - e.t < grenzen.fensterMs);
+	zeiten.push(neuesEreignis(jetzt));
 	zustand.paare = zustand.paare ?? {};
 	zustand.paare[schluessel] = { zeiten, letzterText: text };
 
@@ -462,7 +558,7 @@ export function verbucheKette(zustand, von, an, text, jetzt = Date.now(), grenze
 
 /** Prueft eine Liste von Zeitstempeln gegen ein Fenster. Reine Rechnung. */
 export function bremseOk(zeiten, jetzt = Date.now(), grenzen = GRENZEN) {
-	const frisch = zeiten.filter((t) => jetzt - t < grenzen.fensterMs);
+	const frisch = ereignisse(zeiten).filter((e) => jetzt - e.t < grenzen.fensterMs);
 	return { ok: frisch.length < grenzen.jeAbsender, frisch };
 }
 
@@ -476,11 +572,8 @@ export function bremseOk(zeiten, jetzt = Date.now(), grenzen = GRENZEN) {
  * @returns `{ ok: true, absenderFrisch, zielFrisch }` oder `{ ok: false, grund }`.
  */
 export function bremsePruefe(zustand, absenderId, zielId, jetzt = Date.now(), grenzen = GRENZEN) {
-	const absenderStand = Array.isArray(zustand.absender?.[absenderId]) ? zustand.absender[absenderId] : [];
-	const zielStand = Array.isArray(zustand.ziel?.[zielId]) ? zustand.ziel[zielId] : [];
-
-	const absenderFrisch = absenderStand.filter((t) => jetzt - t < grenzen.fensterMs);
-	const zielFrisch = zielStand.filter((t) => jetzt - t < grenzen.fensterMs);
+	const absenderFrisch = ereignisse(zustand.absender?.[absenderId]).filter((e) => jetzt - e.t < grenzen.fensterMs);
+	const zielFrisch = ereignisse(zustand.ziel?.[zielId]).filter((e) => jetzt - e.t < grenzen.fensterMs);
 
 	if (absenderFrisch.length >= grenzen.jeAbsender) {
 		return { ok: false, grund: "absender", frisch: absenderFrisch };
@@ -493,14 +586,12 @@ export function bremsePruefe(zustand, absenderId, zielId, jetzt = Date.now(), gr
 
 /** Verbucht eine Zustellung in beiden Fenstern. */
 export function bremseVerbuche(zustand, absenderId, zielId, jetzt = Date.now(), grenzen = GRENZEN) {
-	const frischAbsender = (Array.isArray(zustand.absender[absenderId]) ? zustand.absender[absenderId] : [])
-		.filter((t) => jetzt - t < grenzen.fensterMs);
-	frischAbsender.push(jetzt);
+	const frischAbsender = ereignisse(zustand.absender[absenderId]).filter((e) => jetzt - e.t < grenzen.fensterMs);
+	frischAbsender.push(neuesEreignis(jetzt));
 	zustand.absender[absenderId] = frischAbsender;
 
-	const frischZiel = (Array.isArray(zustand.ziel[zielId]) ? zustand.ziel[zielId] : [])
-		.filter((t) => jetzt - t < grenzen.fensterMs);
-	frischZiel.push(jetzt);
+	const frischZiel = ereignisse(zustand.ziel[zielId]).filter((e) => jetzt - e.t < grenzen.fensterMs);
+	frischZiel.push(neuesEreignis(jetzt));
 	zustand.ziel[zielId] = frischZiel;
 
 	return zustand;
@@ -712,6 +803,16 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 			if (ziel === undefined) return { delivered: false, note: "the target session is not live" };
 
 			const jetzt = Date.now();
+
+			// (0) Zuerst den Stand von der Platte holen und mit dem eigenen vereinigen.
+			// Ohne diesen Schritt ginge der Zaehler eines anderen Prozesses verloren —
+			// Red-Team-Befund M1. Der Speicherzustand wird dabei IN PLACE nachgezogen,
+			// damit alle folgenden Pruefungen und Buchungen denselben Stand sehen.
+			const vonPlatte = ladeZustand(pfad);
+			const zusammengefuehrt = verschmelzeZustand(zustand, vonPlatte);
+			zustand.absender = zusammengefuehrt.absender;
+			zustand.ziel = zusammengefuehrt.ziel;
+			zustand.paare = zusammengefuehrt.paare;
 
 			// (1) Die zwei Fenster: je Absender und je Ziel.
 			const gebremst = bremsePruefe(zustand, absenderAgent.id, zielId, jetzt);
