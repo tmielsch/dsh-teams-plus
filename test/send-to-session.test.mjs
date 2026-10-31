@@ -33,9 +33,28 @@ import { test } from 'node:test'
 const HEIM = mkdtempSync(join(tmpdir(), 's2s-home-'))
 process.env.DSH_HOME = HEIM
 
-const { releasedV4SessionFormatCodec } = await import(
-	'/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session-format-v3-to-v4/lib/index.js'
-)
+// Den Codec aufloesen, nicht hart kodieren (Red-Team NIEDRIG-5). Ein absoluter
+// Pfad bindet den Test an diesen Rechner und an die Formatgeneration v3→v4.
+const { createRequire: cr } = await import('node:module')
+const { existsSync: ex } = await import('node:fs')
+const { join: jn } = await import('node:path')
+const { homedir: hm } = await import('node:os')
+const codecKandidaten = []
+try {
+	codecKandidaten.push(cr(import.meta.url).resolve('@deepseek-ai/dsh-session-format-v3-to-v4/lib/index.js'))
+} catch { /* nicht im Suchpfad */ }
+for (const basis of [
+	'/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules',
+	jn(hm(), '.npm-global/lib/node_modules/@deepseek-ai/dsh/node_modules'),
+	'/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules'
+]) {
+	codecKandidaten.push(jn(basis, '@deepseek-ai', 'dsh-session-format-v3-to-v4', 'lib', 'index.js'))
+}
+const codecPfad = codecKandidaten.find((p) => p && ex(p))
+if (codecPfad === undefined) {
+	throw new Error('der v3→v4-Codec ist nicht auffindbar; ohne ihn kann dieser Test die Quelle nicht pruefen — das soll LAUT scheitern, nicht still')
+}
+const { releasedV4SessionFormatCodec } = await import(codecPfad)
 
 const {
 	GRENZEN,
@@ -130,17 +149,69 @@ test('die Nachricht hat IMMER eine id (Red-Team HOCH-1)', () => {
 	assert.equal(mitKern.id, 'aus-dem-kern', 'die Kennung des Kerns muss uebernommen werden')
 })
 
-test('die Quelle ist die dokumentierte Erzeuger-Art und oeffnet kein Ziel', () => {
-	const quelle = baueQuelle('abc123', 'def456')
-	assert.equal(quelle.kind, QUELL_ART)
-	assert.equal(QUELL_ART, 'plugin:@tmielsch/dsh-teams-plus')
-	// `hasDirectHumanInput` (dsh-tool-goal) kennt nur diese drei. Keine davon darf es sein.
-	assert.notEqual(quelle.kind, 'user')
-	assert.notEqual(quelle.kind, 'agent-message', 'agent-message waere eine Zielberechtigung')
-	assert.notEqual(quelle.kind, 'team-message', 'team-message waere eine Zielberechtigung')
-	assert.equal(quelle.senderSessionId, 'abc123')
-	assert.equal(quelle.targetSessionId, 'def456')
-	assert.equal(quelle.form, 'relay')
+test('die Quelle oeffnet kein Ziel — geprueft gegen den KERN, nicht gegen eine eigene Liste', async () => {
+	// RED-TEAM NIEDRIG-2: Die erste Fassung dieses Tests verglich den Wert mit sich
+	// selbst (assert.equal(quelle.kind, QUELL_ART)) und die drei notEqual gegen
+	// hartkodierte Zeichenketten. Das konnte nicht fehlschlagen, wenn der Kern
+	// seine Meinung aendert. Jetzt wird die Liste der akzeptierten Arten aus
+	// `hasDirectHumanInput` SELBST gelesen: steht unsere Art dort, ist dieser Test rot.
+	const { readFileSync } = await import('node:fs')
+	const { createRequire } = await import('node:module')
+
+	// Den Kern aufloesen: erst ueber die Modulauflösung, sonst ueber die
+	// bekannten Installationsorte. Findet keiner den Kern, wird der Test
+	// UEBERSPRUNGEN statt falsch zu scheitern — aber er sagt es laut.
+	const require = createRequire(import.meta.url)
+	const { existsSync } = await import('node:fs')
+	const { join } = await import('node:path')
+	const { homedir } = await import('node:os')
+
+	const kandidaten = []
+	try {
+		kandidaten.push(require.resolve('@deepseek-ai/dsh-tool-goal/lib/index.js'))
+	} catch { /* nicht im Suchpfad */ }
+	const basen = [
+		'/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules',
+		join(homedir(), '.npm-global/lib/node_modules/@deepseek-ai/dsh/node_modules'),
+		'/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules'
+	]
+	for (const basis of basen) kandidaten.push(join(basis, '@deepseek-ai', 'dsh-tool-goal', 'lib', 'index.js'))
+
+	const kernPfad = kandidaten.find((p) => p && existsSync(p))
+	if (kernPfad === undefined) {
+		console.log('[uebersprungen] der DSH-Kern ist auf diesem Rechner nicht auffindbar — hasDirectHumanInput nicht pruefbar')
+		return
+	}
+
+	const quelle = readFileSync(kernPfad, 'utf8')
+	const i = quelle.indexOf('function hasDirectHumanInput')
+	assert.ok(i > 0, 'hasDirectHumanInput nicht gefunden — der Test kann nichts pruefen')
+
+	// Der Koerper der Funktion: bis zum naechsten "function" oder Ende.
+	const rest = quelle.slice(i)
+	const ende = rest.indexOf('\nfunction ', 10)
+	const koerper = ende > 0 ? rest.slice(0, ende) : rest
+
+	const akzeptiert = [...new Set([...koerper.matchAll(/quelle\.kind === "([a-z-]+)"/gu)].map((m) => m[1]))]
+	assert.ok(akzeptiert.length >= 2, 'die akzeptierten Arten liessen sich nicht lesen: ' + JSON.stringify(akzeptiert))
+	assert.ok(akzeptiert.includes('user'), 'die Liste sieht nicht wie hasDirectHumanInput aus: ' + JSON.stringify(akzeptiert))
+
+	// DAS ist die Pruefung: unsere Art darf nicht darunter sein.
+	assert.ok(
+		!akzeptiert.includes(QUELL_ART),
+		'unser kind "' + QUELL_ART + '" steht in hasDirectHumanInput — die Nachricht wuerde ein Ziel oeffnen. Akzeptiert sind: ' + akzeptiert.join(', ')
+	)
+	// Und die drei gefaehrlichen Arten sind ausdruecklich NICHT unsere.
+	for (const gefaehrlich of akzeptiert) {
+		assert.notEqual(QUELL_ART, gefaehrlich, 'die Quelle faellt mit einer berechtigenden Art zusammen')
+	}
+
+	// Der Rest der Quelle bleibt geprueft.
+	const gebaut = baueQuelle('abc123', 'def456')
+	assert.equal(gebaut.kind, QUELL_ART)
+	assert.equal(gebaut.senderSessionId, 'abc123')
+	assert.equal(gebaut.targetSessionId, 'def456')
+	assert.equal(gebaut.form, 'relay')
 })
 
 // ---------------------------------------------------------------------------
