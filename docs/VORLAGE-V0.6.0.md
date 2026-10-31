@@ -25,7 +25,7 @@ ist derselbe Fehlertyp wie die STOPP-Datei, die am falschen Ort nachsah.
 | **H1** Kettenbudget falsch positiv **und** falsch negativ (ein `ketteVon`-Slot pro Sitzung) | HOCH | **ersetzt** durch ein **Paar-Budget**: 2 Nachrichten je geordnetem Paar im Fenster, keine Wortwiederholung. Die Sprunghöhe ist **gestrichen**, nicht repariert (siehe unten) |
 | **H2** Zustandsdatei ist schreibbar/löschbar; `ladeZustand` fiel fail-open | HOCH | **abgeschwächt, nicht gelöst** — `kaputt` wird gemeldet statt still verschluckt; im Kopf steht jetzt, dass die Bremse eine Höflichkeitsbremse ist, keine Sicherheitsgrenze |
 | **H3** v0.4.0 läuft live, der Fix ist blockiert | HOCH | **offen** — das entscheidet der Mensch, nicht der Patch |
-| **M1** Lost Update über zwei Zustands-Halter | MITTEL | **offen** — im einen Prozess nicht möglich, über zwei Prozesse ja. Braucht Lock oder Read-Merge |
+| **M1** Lost Update über zwei Zustands-Halter | MITTEL | **behoben** — Lesen-Buchen-Schreiben liegt unter einer Dateisperre; Merge allein reichte nicht (gemessen) |
 | **M2** Titelsuche ist tot (`Session` hat kein `title`) | MITTEL | **behoben** — Zielsuche über Kennung, Kennungs-Präfix und `session.header.cwd` |
 | **M3** Protokolle liegen außerhalb des E1-Datenordners | MITTEL | **behoben für dieses Modul** — `~/.dsh/.tm/teams-plus/logs/`; `stille-nachrichten` bleibt offen |
 | **M4** Wurzelsitzung nicht markiert/gesperrt | MITTEL | **behoben** — `followup` an eine Wurzel wird auf `steer` heruntergestuft und gemeldet |
@@ -118,16 +118,33 @@ Profilaulagen: headless laedt @tmielsch/dsh-teams-plus NICHT, web schon
 
 **Ein** Prozess lädt das Plugin. Der Pfad `~/.dsh/.tm/teams-plus/state/` ist allerdings **nicht
 pro Profil** getrennt: Sobald ein zweites Profil das Paket lädt (oder ein zweiter `dsh web` läuft),
-schreiben zwei Prozesse dieselbe Datei. M1 ist damit heute **theoretisch** und morgen **echt** —
-eine Auflage, kein Blocker.
+schreiben zwei Prozesse dieselbe Datei.
+
+Nachgemessen mit vier bzw. fünf **echten Kindprozessen**, die sich im kritischen Abschnitt
+überlappen (künstliche Verzögerung, sonst überlappen sie nicht — ein Prüflauf ohne Überlappung
+kann eine Sperre nicht prüfen):
+
+| Fassung | Ziele, die ankamen |
+|---|---|
+| ohne Sperre | **1 von 5** |
+| mit Merge, ohne Sperre | **3 von 5** |
+| mit Sperre | **5 von 5** |
+
+Der Merge allein war also nicht die Lösung — erst die Sperre schließt das Loch. Der Test
+`die Sperre schützt über echte Prozessgrenzen` führt beides aus und **verlangt**, dass die Fassung
+ohne Sperre verliert; sonst wäre er wertlos.
 
 ## Offene Auflagen vor dem Einbau
 
 1. **H3:** Die gesperrte v0.4.0 läuft. Entweder v0.6.0 einbauen (nach diesem Pass) oder die Zeile
    entfernen. Der jetzige Zustand ist der schlechteste von beiden.
    Die beiden Wege stehen fertig in `docs/EINBAU-UND-RUECKNAHME.md`.
-2. **M1:** Lost Update über zwei Prozesse — Lock oder Read-Merge. Schwere gemessen: nur **ein**
-   Prozess lädt das Paket, der Pfad ist aber nicht profilgetrennt. Heute theoretisch.
+2. ~~**M1:** Lost Update über zwei Prozesse.~~ **erledigt** in `c25e2c5`: eine Dateisperre
+   (`open … 'wx'`) umschließt Lesen, Buchen und Schreiben; veraltete Sperren werden nach 5 s
+   entfernt, gewartet wird bis 600 ms. Der Merge allein genügte **nicht** — gemessen verlor auch
+   die Merge-Fassung ohne Sperre noch 2 von 5 Einträgen. Restgrenze, offen benannt: Hält ein
+   Prozess die Sperre länger als die Wartezeit, arbeitet der nächste **ohne** sie weiter (lieber
+   zustellen als hängen); dann greift wieder der Merge.
 3. **H2:** Die Zustandsdatei ist keine Sicherheitsgrenze. Entweder in einen geschützten Store legen
    oder im Kopf ausdrücklich als Höflichkeitsbremse führen (letzteres ist getan).
 4. ~~**M3:** `stille-nachrichten.mjs` schreibt nach `~/.dsh/logs/`.~~ **erledigt** in `cb5c7db`:
