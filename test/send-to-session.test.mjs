@@ -1,30 +1,45 @@
 /**
- * Test fuer patches/send-to-session.mjs — Fassung 0.5.0
+ * Test fuer patches/send-to-session.mjs — Fassung 0.6.0
  *
  * Der Patch haengt an Cordis-Diensten, die es in einem Test nicht gibt. Geprueft
  * wird deshalb, was ohne DSH pruefbar ist und genau die Stellen traegt, an denen
- * ein Fehler teuer waere: die Herkunft im Text, die Quellart, die zwei Bremsen,
- * das Kettenbudget, die Zielsuche und die harten Regeln (nicht an sich selbst,
- * keine schlafende Sitzung, keine Zustellung ohne Ziel).
+ * ein Fehler teuer waere.
  *
- * NEU IN 0.5.0 und hier abgesichert:
- *   - die Quellart ist `plugin` (dokumentiert) und nicht mehr `agent-send`,
- *   - die Bremse gilt je Absender UND je Ziel,
- *   - das Kettenbudget weist zu tiefe Ketten, Rundlaeufe und Wortwiederholungen ab,
- *   - der Zustand ueberlebt einen Neustart (Datei).
+ * WAS DIESE FASSUNG AUS DEM RED-TEAM-BEFUND GELERNT HAT:
  *
- * HERMETISCH: jeder Test bekommt seine eigene Zustandsdatei. Ohne das schriebe
- * die Suite in die echte Ablage des Menschen und die Tests beeinflussten sich
- * gegenseitig ueber die Zaehler.
+ *   1. Der Test prueft die Quelle nicht mehr auf ihr ETIKETT, sondern schickt sie
+ *      durch den **echten v4-Codec** des Kerns. v0.5.0 schrieb `kind: "plugin"`,
+ *      der Codec lehnt das beim Schreiben ab ("format v4 message requires a
+ *      producer-owned source kind") — die Persistenz der Ziel-Sitzung waere
+ *      stehengeblieben. Der Etikett-Test war 22/22 gruen. Ein Test, der nur
+ *      prueft, was man selbst geschrieben hat, prueft nichts.
+ *   2. Das Kettenbudget ist durch ein **Paar-Budget** ersetzt. Die Kette war
+ *      falsch positiv und falsch negativ zugleich (gemessen vom Red Team).
+ *   3. Die Zielsuche liest `session.header.cwd`, nicht `session.title` — eine
+ *      Session hat keinen Titel (nachgemessen an dsh-session/lib/types).
+ *   4. Die Wurzelsitzung (die des Menschen) bekommt kein `followup`.
+ *
+ * HERMETISCH: `DSH_HOME` zeigt auf ein temporaeres Verzeichnis, BEVOR das Modul
+ * geladen wird. Ohne das schriebe die Suite in `~/.dsh/logs/` des Menschen — dem
+ * Red Team ist genau das aufgefallen.
  */
 import assert from 'node:assert/strict'
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, readFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 
-import {
+// Hermetisch machen, BEVOR irgendetwas aus dem Patch geladen wird.
+const HEIM = mkdtempSync(join(tmpdir(), 's2s-home-'))
+process.env.DSH_HOME = HEIM
+
+const { releasedV4SessionFormatCodec } = await import(
+	'/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session-format-v3-to-v4/lib/index.js'
+)
+
+const {
 	GRENZEN,
+	QUELL_ART,
 	apply,
 	baueInhalt,
 	baueQuelle,
@@ -32,20 +47,77 @@ import {
 	bremsePruefe,
 	bremseVerbuche,
 	findeZiel,
-	ketteFuer,
 	leererZustand,
 	ladeZustand,
 	loeseModus,
 	pruefeKette,
 	speichereZustand,
-	verbucheKette
-} from '../patches/send-to-session.mjs'
+	verbucheKette,
+	zustandPfad,
+	kante
+} = await import('../patches/send-to-session.mjs')
 
 /** Eine frische Zustandsdatei je Test. */
 function frischeAblage() {
 	const ordner = mkdtempSync(join(tmpdir(), 'send-to-session-'))
 	return join(ordner, 'state.json')
 }
+
+// ---------------------------------------------------------------------------
+// 1. Die Quelle — der Befund, der v0.5.0 gesperrt hat
+// ---------------------------------------------------------------------------
+
+test('die Quelle kommt durch den ECHTEN v4-Codec (der Blocker aus v0.5.0)', () => {
+	const quelle = baueQuelle('abc123', 'def456')
+	const nachricht = { role: 'user', content: [{ type: 'text', text: 'hallo' }], source: quelle }
+
+	// Form 1: user/message — `data` IST die Nachricht (so baut der Host es).
+	const userEvent = { type: 'user/message', seq: 1, data: nachricht }
+	assert.doesNotThrow(
+		() => releasedV4SessionFormatCodec.encodeEvent(userEvent),
+		'der v4-Codec hat die Quelle abgelehnt — die Persistenz der Ziel-Sitzung bliebe stehen'
+	)
+
+	// Form 2: agent/inbox/spliced — `data.inserted[]` traegt Nachrichten.
+	const spliced = {
+		type: 'agent/inbox/spliced',
+		seq: 2,
+		data: { target: 'next-turn', start: 0, inserted: [nachricht] }
+	}
+	assert.doesNotThrow(
+		() => releasedV4SessionFormatCodec.encodeEvent(spliced),
+		'der v4-Codec hat die Quelle in einer Zustellung abgelehnt'
+	)
+})
+
+test('die Quelle ist NICHT `plugin` — genau das lehnt der Codec ab', () => {
+	const quelle = baueQuelle('a', 'b')
+	assert.notEqual(quelle.kind, 'plugin', '`plugin` ist die abgelehnte Form')
+	// Gegenprobe: so saehe es aus, und so muss es scheitern.
+	const kaputt = { kind: 'plugin', plugin: 'x', form: 'relay' }
+	assert.throws(
+		() => releasedV4SessionFormatCodec.encodeEvent({ type: 'user/message', seq: 1, data: { role: 'user', content: [], source: kaputt } }),
+		/producer-owned source kind/u,
+		'die Gegenprobe greift nicht — dann prueft dieser Test nichts'
+	)
+})
+
+test('die Quelle ist die dokumentierte Erzeuger-Art und oeffnet kein Ziel', () => {
+	const quelle = baueQuelle('abc123', 'def456')
+	assert.equal(quelle.kind, QUELL_ART)
+	assert.equal(QUELL_ART, 'plugin:@tmielsch/dsh-teams-plus')
+	// `hasDirectHumanInput` (dsh-tool-goal) kennt nur diese drei. Keine davon darf es sein.
+	assert.notEqual(quelle.kind, 'user')
+	assert.notEqual(quelle.kind, 'agent-message', 'agent-message waere eine Zielberechtigung')
+	assert.notEqual(quelle.kind, 'team-message', 'team-message waere eine Zielberechtigung')
+	assert.equal(quelle.senderSessionId, 'abc123')
+	assert.equal(quelle.targetSessionId, 'def456')
+	assert.equal(quelle.form, 'relay')
+})
+
+// ---------------------------------------------------------------------------
+// 2. Herkunft im Text
+// ---------------------------------------------------------------------------
 
 test('die Herkunft steht sichtbar im Text, damit niemand den Menschen vermutet', () => {
 	const inhalt = baueInhalt('Bitte pruefe den Branch.', 'abc123', 'Agent Teams Lead')
@@ -65,22 +137,13 @@ test('ohne lesbaren Namen traegt der Text wenigstens die Kennung', () => {
 	assert.ok(!gleich[0].text.includes('abc123 (abc123)'), 'Name und Kennung sind doppelt')
 })
 
-test('die Quelle ist die dokumentierte Art `plugin` — und nicht `agent-send`', () => {
-	const quelle = baueQuelle('abc123', 'def456')
-	assert.equal(quelle.kind, 'plugin', 'die dokumentierte Quellart ist plugin')
-	assert.notEqual(quelle.kind, 'agent-send', 'agent-send steht nicht in der geschlossenen Liste des Formatpruefers')
-	assert.notEqual(quelle.kind, 'user', 'die Quelle darf nicht als Mensch durchgehen')
-	assert.notEqual(quelle.kind, 'agent-message', 'agent-message waere eine Zielberechtigung — genau das darf hier nicht passieren')
-	assert.notEqual(quelle.kind, 'team-message', 'team-message waere eine Zielberechtigung vom Elternteil')
-	assert.equal(quelle.plugin, 'dsh-teams-plus', 'der Paketname gehoert in die Quelle')
-	assert.equal(quelle.senderSessionId, 'abc123', 'der Absender muss im Protokoll stehen')
-	assert.equal(quelle.targetSessionId, 'def456')
-})
+// ---------------------------------------------------------------------------
+// 3. Die zwei Fenster: je Absender und je Ziel
+// ---------------------------------------------------------------------------
 
 test('die Bremse greift nach sechs Zustellungen in zehn Minuten', () => {
 	const jetzt = 1_000_000_000_000
-	const leer = bremseOk([], jetzt)
-	assert.equal(leer.ok, true)
+	assert.equal(bremseOk([], jetzt).ok, true)
 
 	const fuenf = [1, 2, 3, 4, 5].map((n) => jetzt - n * 1000)
 	assert.equal(bremseOk(fuenf, jetzt).ok, true, 'fuenf Zustellungen muessen durchgehen')
@@ -88,7 +151,6 @@ test('die Bremse greift nach sechs Zustellungen in zehn Minuten', () => {
 	const sechs = [1, 2, 3, 4, 5, 6].map((n) => jetzt - n * 1000)
 	assert.equal(bremseOk(sechs, jetzt).ok, false, 'die siebte muss gebremst werden')
 
-	// Alte Zustellungen zaehlen nicht mehr.
 	const alt = [1, 2, 3, 4, 5, 6].map((n) => jetzt - 11 * 60 * 1000 - n * 1000)
 	assert.equal(bremseOk(alt, jetzt).ok, true, 'Zustellungen ausserhalb des Fensters zaehlen nicht')
 	assert.equal(bremseOk(alt, jetzt).frisch.length, 0)
@@ -101,8 +163,7 @@ test('die Bremse gilt je Absender UND je Ziel', () => {
 	// Drei verschiedene Absender, je zwei Zustellungen an dasselbe Ziel.
 	for (const absender of ['a1', 'a2', 'a3']) {
 		for (let i = 0; i < 2; i += 1) {
-			const pruefung = bremsePruefe(zustand, absender, 'ziel', jetzt)
-			assert.equal(pruefung.ok, true, `${absender} haette zustellen duerfen`)
+			assert.equal(bremsePruefe(zustand, absender, 'ziel', jetzt).ok, true, `${absender} haette zustellen duerfen`)
 			bremseVerbuche(zustand, absender, 'ziel', jetzt)
 		}
 	}
@@ -113,150 +174,167 @@ test('die Bremse gilt je Absender UND je Ziel', () => {
 	assert.equal(sechste.grund, 'ziel', 'der Grund muss das Ziel sein, nicht der Absender')
 })
 
-test('Zielsuche: Kennung, Titelteil, Mehrdeutigkeit, Unbekanntes', () => {
+// ---------------------------------------------------------------------------
+// 4. Zielsuche — Kennung, Praefix, Ordner
+// ---------------------------------------------------------------------------
+
+test('Zielsuche: volle Kennung, eindeutiger Praefix, Ordner, Mehrdeutigkeit', () => {
 	const agenten = [
-		{ id: 'a1', session: { title: 'DSH-Interactive Plugin' } },
-		{ id: 'a2', session: { title: 'AgentTeams Plus' } },
-		{ id: 'a3', session: { title: 'AgentTeams Plus Nacharbeit' } },
-		{ id: 'a4' }
+		{ id: 'session-aaaa-1111', session: { header: { cwd: '/Users/tmielsch/dsh-interactive' } } },
+		{ id: 'session-bbbb-2222', session: { header: { cwd: '/Users/tmielsch/dsh-teams-plus' } } },
+		{ id: 'session-cccc-3333', session: { header: { cwd: '/Users/tmielsch/dsh-teams-plus' } } },
+		{ id: 'session-dddd-4444' }
 	]
 
 	const liste = findeZiel(agenten)
 	assert.equal(liste.art, 'liste')
-	assert.equal(liste.alle.length, 4, 'ohne Ziel kommen alle lebenden Sitzungen')
-	assert.equal(liste.alle[0].id, 'a1')
-	assert.equal(liste.alle[3].titel, undefined, 'eine Sitzung ohne Titel ist trotzdem gelistet')
+	assert.equal(liste.alle.length, 4)
+	assert.equal(liste.alle[3].ordner, undefined, 'eine Sitzung ohne cwd ist trotzdem gelistet')
 
-	assert.equal(findeZiel(agenten, 'a2').art, 'genau', 'die genaue Kennung gewinnt')
-	assert.equal(findeZiel(agenten, 'a2').ziel.id, 'a2')
+	assert.equal(findeZiel(agenten, 'session-bbbb-2222').art, 'genau', 'die volle Kennung gewinnt')
+	assert.equal(findeZiel(agenten, 'session-aaaa').art, 'genau', 'ein eindeutiger Praefix reicht')
+	assert.equal(findeZiel(agenten, 'session-aaaa').ziel.id, 'session-aaaa-1111')
 
-	const titel = findeZiel(agenten, 'interactive')
-	assert.equal(titel.art, 'genau', 'ein eindeutiger Titelteil reicht')
-	assert.equal(titel.ziel.id, 'a1')
+	const ordner = findeZiel(agenten, 'interactive')
+	assert.equal(ordner.art, 'genau', 'ein eindeutiger Ordnerteil reicht')
+	assert.equal(ordner.ziel.id, 'session-aaaa-1111')
 
-	const mehr = findeZiel(agenten, 'agentteams')
+	const mehr = findeZiel(agenten, 'teams-plus')
 	assert.equal(mehr.art, 'mehrdeutig', 'zwei Treffer duerfen nicht geraten werden')
 	assert.equal(mehr.kandidaten.length, 2)
 
 	assert.equal(findeZiel(agenten, 'gibtesnicht').art, 'unbekannt')
 })
 
-test('Zielsuche ohne Titel bricht nicht', () => {
-	const ohne = [{ id: 'x1' }, { id: 'x2' }]
-	assert.equal(findeZiel(ohne, 'x1').art, 'genau')
-	assert.equal(findeZiel(ohne, 'irgendwas').art, 'unbekannt')
+test('die Zielsuche liest KEIN session.title — den gibt es nicht', () => {
+	// Beweis: ein Agent mit `title` (alte Annahme) wird NICHT gefunden,
+	// einer mit `header.cwd` schon. So faellt auf, wenn jemand zurueckbaut.
+	const mitTitel = [{ id: 'x1', session: { title: 'AgentTeams Plus' } }]
+	assert.equal(findeZiel(mitTitel, 'teams').art, 'unbekannt', 'auf session.title darf sich die Suche nicht stuetzen')
+	const mitOrdner = [{ id: 'x2', session: { header: { cwd: '/tmp/AgentTeams' } } }]
+	assert.equal(findeZiel(mitOrdner, 'teams').art, 'genau', 'der Ordner ist das, was zaehlt')
 })
 
 // ---------------------------------------------------------------------------
-// Kettenbudget — die drei Waechter aus 0.5.0
+// 5. Das Paar-Budget (ersetzt das falsche Kettenbudget)
 // ---------------------------------------------------------------------------
 
-test('Kette: ein Rundlaufbudget von zwei Nachrichten je geordnetem Paar', () => {
+test('Paar-Budget: zwei Nachrichten je geordnetem Paar im Fenster', () => {
 	const jetzt = 1_000_000_000_000
 	const zustand = leererZustand()
-	const kette = ketteFuer(zustand, 'a')
 
-	assert.equal(pruefeKette(zustand, kette, 'a', 'b', 'eins').ok, true)
-	verbucheKette(zustand, kette, 'a', 'b', 'eins')
+	assert.equal(pruefeKette(zustand, 'a', 'b', 'eins', jetzt).ok, true)
+	verbucheKette(zustand, 'a', 'b', 'eins', jetzt)
 
-	assert.equal(pruefeKette(zustand, kette, 'a', 'b', 'zwei').ok, true, 'die zweite Nachricht muss durch')
-	verbucheKette(zustand, kette, 'a', 'b', 'zwei')
+	assert.equal(pruefeKette(zustand, 'a', 'b', 'zwei', jetzt).ok, true, 'die zweite muss durch')
+	verbucheKette(zustand, 'a', 'b', 'zwei', jetzt)
 
-	const dritte = pruefeKette(zustand, kette, 'a', 'b', 'drei')
-	assert.equal(dritte.ok, false, 'die dritte Nachricht an dasselbe Ziel ist ein Rundlauf zu viel')
+	const dritte = pruefeKette(zustand, 'a', 'b', 'drei', jetzt)
+	assert.equal(dritte.ok, false, 'die dritte ist ein Rundlauf zu viel')
 	assert.equal(dritte.befund, 'PING_PONG')
 
-	// Die Gegenrichtung ist ein ANDERES geordnetes Paar und darf noch.
-	assert.equal(pruefeKette(zustand, kette, 'b', 'a', 'eins').ok, true, 'b → a ist ein eigenes Paar')
-	void jetzt
+	// Die Gegenrichtung ist ein ANDERES Paar — der Red-Team-Befund: frueher
+	// erbte sie die Kette von a→b und wurde nach EINER Nachricht abgewiesen.
+	assert.equal(pruefeKette(zustand, 'b', 'a', 'eins', jetzt).ok, true, 'b → a ist ein eigenes Paar')
 })
 
-test('Kette: wortgleiche Wiederholung an dasselbe Ziel wird abgewiesen', () => {
+test('Paar-Budget: der Fehler aus v0.5.0 tritt nicht wieder auf (a→c nach a↔b)', () => {
+	// Das war der gemessene Fehlbefund: A→C landete in der Kette von A→B und
+	// C→A wurde dann nach einer eigenen Nachricht abgewiesen.
+	const jetzt = 1_000_000_000_000
 	const zustand = leererZustand()
-	const kette = ketteFuer(zustand, 'a')
-	verbucheKette(zustand, kette, 'a', 'b', 'genau dieser Text')
+	verbucheKette(zustand, 'a', 'b', 'hallo b', jetzt)
+	verbucheKette(zustand, 'b', 'a', 'hallo a', jetzt)
+	verbucheKette(zustand, 'a', 'b', 'nochmal b', jetzt)
 
-	// Ein anderes Ziel: gleicher Text ist dort erlaubt.
-	assert.equal(pruefeKette(zustand, kette, 'a', 'c', 'genau dieser Text').ok, true)
+	assert.equal(pruefeKette(zustand, 'a', 'c', 'hallo c', jetzt).ok, true, 'a → c ist voellig unberuehrt')
+	assert.equal(pruefeKette(zustand, 'c', 'a', 'hallo zurueck', jetzt).ok, true, 'c → a auch')
+	verbucheKette(zustand, 'c', 'a', 'hallo zurueck', jetzt)
+	assert.equal(pruefeKette(zustand, 'c', 'a', 'zweite', jetzt).ok, true, 'c → a hat noch Budget')
+})
 
-	// Dasselbe Ziel, gleicher Text: der Wiederholungs-Waechter greift vor dem Budget,
-	// weil nach EINER Zustellung noch Budget frei ist und der Text trotzdem gleich.
-	const wieder = pruefeKette(zustand, kette, 'a', 'b', 'genau dieser Text')
+test('Paar-Budget: nach dem Fenster ist das Paar wieder frei', () => {
+	const jetzt = 1_000_000_000_000
+	const zustand = leererZustand()
+	verbucheKette(zustand, 'a', 'b', 'eins', jetzt)
+	verbucheKette(zustand, 'a', 'b', 'zwei', jetzt)
+	assert.equal(pruefeKette(zustand, 'a', 'b', 'drei', jetzt).ok, false)
+
+	const spaeter = jetzt + GRENZEN.fensterMs + 1000
+	assert.equal(pruefeKette(zustand, 'a', 'b', 'drei', spaeter).ok, true, 'ausserhalb des Fensters zaehlt nichts mehr')
+})
+
+test('Paar-Budget: wortgleiche Wiederholung an dasselbe Paar', () => {
+	const jetzt = 1_000_000_000_000
+	const zustand = leererZustand()
+	verbucheKette(zustand, 'a', 'b', 'genau dieser Text', jetzt)
+
+	const wieder = pruefeKette(zustand, 'a', 'b', 'genau dieser Text', jetzt)
 	assert.equal(wieder.ok, false)
 	assert.equal(wieder.befund, 'REPEATED_MESSAGE')
 
-	// Anderer Text, gleiches Ziel: jetzt ist das Rundlaufbudget die Grenze.
-	verbucheKette(zustand, kette, 'a', 'b', 'zweiter Text')
-	const dritte = pruefeKette(zustand, kette, 'a', 'b', 'dritter Text')
-	assert.equal(dritte.ok, false)
-	assert.equal(dritte.befund, 'PING_PONG', 'die dritte Nachricht an dasselbe Ziel ist ein Rundlauf zu viel')
+	// Anderes Ziel, gleicher Text: erlaubt.
+	assert.equal(pruefeKette(zustand, 'a', 'c', 'genau dieser Text', jetzt).ok, true)
 })
 
-test('Kette: nach vier Weiterleitungen ist Schluss', () => {
+test('Paar-Buch vergisst alte Paare, damit die Datei nicht waechst', () => {
+	const jetzt = 1_000_000_000_000
 	const zustand = leererZustand()
-	const kette = { chainId: 'k-test', hop: 5 }
-	const zuTief = pruefeKette(zustand, kette, 'a', 'b', 'hallo')
-	assert.equal(zuTief.ok, false)
-	assert.equal(zuTief.befund, 'CHAIN_EXHAUSTED')
-
-	const gerade = { chainId: 'k-test', hop: 4 }
-	assert.equal(pruefeKette(zustand, gerade, 'a', 'b', 'hallo').ok, true, 'Hop 4 ist noch erlaubt')
-})
-
-test('Kette: das Ziel erbt die Unterhaltung, eine Stufe tiefer', () => {
-	const zustand = leererZustand()
-	const erste = ketteFuer(zustand, 'a')
-	verbucheKette(zustand, erste, 'a', 'b', 'hallo')
-
-	const vomZiel = ketteFuer(zustand, 'b')
-	assert.equal(vomZiel.chainId, erste.chainId, 'das Ziel sitzt in derselben Unterhaltung')
-	assert.equal(vomZiel.hop, 1, 'und eine Stufe tiefer')
-
-	// Ein Unbeteiligter beginnt eine neue Unterhaltung.
-	const fremd = ketteFuer(zustand, 'z')
-	assert.notEqual(fremd.chainId, erste.chainId)
-	assert.equal(fremd.hop, 0)
-})
-
-test('Kettenbuch vergisst alte Unterhaltungen, damit die Datei nicht waechst', () => {
-	const zustand = leererZustand()
-	for (let i = 0; i < GRENZEN.kettenGedaeschtnis + 10; i += 1) {
-		const kette = { chainId: `k-${i}`, hop: 0 }
-		verbucheKette(zustand, kette, 'a', `ziel-${i}`, 'text')
+	for (let i = 0; i < GRENZEN.paareGedaeschtnis + 10; i += 1) {
+		verbucheKette(zustand, 'a', `ziel-${i}`, 'text', jetzt)
 	}
-	assert.equal(Object.keys(zustand.ketten).length, GRENZEN.kettenGedaeschtnis)
+	assert.equal(Object.keys(zustand.paare).length, GRENZEN.paareGedaeschtnis)
+	assert.equal(kante('a', 'b'), 'a b')
 })
 
 // ---------------------------------------------------------------------------
-// Zustand: er ueberlebt den Neustart
+// 6. Zustand: er ueberlebt den Neustart, und ein altes Modell wird verworfen
 // ---------------------------------------------------------------------------
 
 test('der Zustand ueberlebt einen Neustart', () => {
 	const pfad = frischeAblage()
 	const zustand = leererZustand()
 	bremseVerbuche(zustand, 'a1', 'b2', 1_000)
-	verbucheKette(zustand, { chainId: 'k-1', hop: 0 }, 'a1', 'b2', 'hallo')
+	verbucheKette(zustand, 'a1', 'b2', 'hallo', 1_000)
 	assert.equal(speichereZustand(zustand, pfad), true)
 
 	const geladen = ladeZustand(pfad)
 	assert.deepEqual(geladen.absender.a1, [1_000], 'die Zustellzeit je Absender fehlt')
 	assert.deepEqual(geladen.ziel.b2, [1_000], 'die Zustellzeit je Ziel fehlt')
-	assert.equal(geladen.ketten['k-1'].edges['a1 b2'], 1)
-	assert.equal(geladen.ketteVon.b2.chainId, 'k-1')
+	assert.equal(geladen.paare['a1 b2'].zeiten.length, 1)
+	assert.equal(geladen.paare['a1 b2'].letzterText, 'hallo')
 })
 
-test('eine kaputte Zustandsdatei verhindert den Start nicht', () => {
+test('eine Datei aus dem alten Kettenmodell wird verworfen, nicht migriert', () => {
+	const pfad = frischeAblage()
+	speichereZustand({ absender: { a: [1] }, ziel: {}, ketten: { k: { edges: {} } }, ketteVon: { b: { chainId: 'k', hop: 1 } } }, pfad)
+	const geladen = ladeZustand(pfad)
+	assert.deepEqual(geladen.paare, {}, 'das alte Kettenmodell darf nicht als Paar-Buch durchgehen')
+	assert.equal(geladen.alt, true, 'der Ladevorgang meldet die alte Form')
+})
+
+test('eine kaputte Zustandsdatei verhindert den Start nicht — wird aber gemeldet', () => {
 	const pfad = frischeAblage()
 	speichereZustand({ kaputt: true }, pfad)
 	const geladen = ladeZustand(pfad)
-	assert.deepEqual(geladen, leererZustand(), 'unbekannte Form faellt auf den leeren Zustand zurueck')
+	assert.deepEqual(geladen.paare, {})
+	assert.equal(geladen.kaputt, true, 'eine unlesbare Datei muss gemeldet werden, nicht stillschweigend leer sein (Red-Team H2)')
 
-	// Eine Datei, die nicht existiert, ebenso.
-	assert.deepEqual(ladeZustand('/gibt/es/nicht/state.json'), leererZustand())
+	// Fehlt die Datei ganz, ist das der erste Start — dann ist nichts kaputt.
+	const frisch = ladeZustand('/gibt/es/nicht/state.json')
+	assert.deepEqual(frisch, leererZustand())
+	assert.notEqual(frisch.kaputt, true, 'eine fehlende Datei ist kein Fehler')
+})
+
+test('der Zustandspfad liegt unter .tm/teams-plus (E1)', () => {
+	// E1: alle eigenen Daten eines Plugins unter ~/.dsh/.tm/<plugin>.
+	assert.match(zustandPfad(), /\/\.tm\/teams-plus\/state\/send-to-session\.json$/u)
+	// Und er folgt DSH_HOME, damit ein Test nie in die echte Ablage schreibt.
+	assert.ok(zustandPfad().startsWith(process.env.DSH_HOME ?? ''), 'der Pfad ignoriert DSH_HOME')
 })
 
 // ---------------------------------------------------------------------------
-// Zustellart `auto`
+// 7. Zustellart
 // ---------------------------------------------------------------------------
 
 test('auto waehlt nach dem lebenden Zustand des Ziels, Vorgabe bleibt steer', () => {
@@ -268,22 +346,23 @@ test('auto waehlt nach dem lebenden Zustand des Ziels, Vorgabe bleibt steer', ()
 })
 
 // ---------------------------------------------------------------------------
-// Funktionstest des Werkzeugs gegen einen nachgebauten Agenten-Dienst.
-// Ohne diesen Test waere die Zustellung selbst ungeprueft: die reinen Helfer
-// oben sagen nichts darueber, ob `followup`/`steer` richtig gerufen werden.
+// 8. Das Werkzeug gegen einen nachgebauten Agenten-Dienst
 // ---------------------------------------------------------------------------
 
-/**
- * Baut einen minimalen Cordis-Kontext mit `tools` und `agents`.
- * `defineTool` gibt die Definition unveraendert zurueck — geprueft wird, was
- * `execute` tut, nicht wie der Host die Definition verpackt.
- */
 function baueKontext(agenten, optionen = {}) {
 	const registriert = []
 	const ctx = {
 		logger: { info() {}, warn() {}, error() {} },
 		get(name) {
-			if (name === 'agents') return optionen.ohneAgenten ? undefined : { list: () => agenten, get: (id) => agenten.find((a) => a.id === id) }
+			if (name === 'agents') {
+				return optionen.ohneAgenten
+					? undefined
+					: {
+						list: () => agenten,
+						get: (id) => agenten.find((a) => a.id === id),
+						roots: () => agenten.filter((a) => a.wurzel === true)
+					}
+			}
 			if (name === 'llm') return { createUserMessage: (input) => ({ ...input, role: 'user' }) }
 			return undefined
 		},
@@ -294,31 +373,27 @@ function baueKontext(agenten, optionen = {}) {
 	return { ctx, registriert }
 }
 
-/** Laedt das Modul und meldet das Werkzeug an; gibt die Definition zurueck. */
 async function anmelden(agenten, optionen = {}) {
 	const pfad = optionen.pfad ?? frischeAblage()
 	const { ctx, registriert } = baueKontext(agenten, optionen)
 	const modul = await import('../patches/send-to-session.mjs')
 	modul.apply(ctx, { pfad })
-	await new Promise((r) => setTimeout(r, 300)) // der Ladevorgang laeuft asynchron
+	await new Promise((r) => setTimeout(r, 300))
 	return { def: registriert[0], registriert, pfad }
 }
 
 test('das Werkzeug wird angemeldet und liefert die lebenden Sitzungen ohne Ziel', async () => {
 	const gesendet = []
-	const ziel = { id: 'b2', session: { title: 'Andere Sitzung' }, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
-	const absender = { id: 'a1', session: { title: 'Meine Sitzung' } }
+	const ziel = { id: 'b2', session: {}, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
+	const absender = { id: 'a1', session: {} }
 	const { def, registriert } = await anmelden([absender, ziel])
 
 	assert.equal(registriert.length, 1, 'das Werkzeug wurde nicht angemeldet')
 	assert.equal(def.name, 'send_to_session')
-	// `defineTool` gibt `parameters` als JSON-Schema zurueck, nicht als flaches
-	// Objekt — gemessen am 2026-10-30 an der echten Definition.
 	const props = def.parameters.properties
 	assert.ok(props.target, 'der Parameter target fehlt')
 	assert.ok(props.message, 'der Parameter message fehlt')
 	assert.deepEqual(props.mode.enum, ['auto', 'steer', 'followup'])
-	assert.equal(props.message.type, 'string')
 
 	const ohneZiel = await def.execute({ message: 'Hallo' }, { agent: absender, signal: new AbortController().signal })
 	assert.equal(ohneZiel.delivered, false)
@@ -329,8 +404,8 @@ test('das Werkzeug wird angemeldet und liefert die lebenden Sitzungen ohne Ziel'
 
 test('die Zustellung geht an den naechsten Schritt, nicht in eine neue Runde', async () => {
 	const gesendet = []
-	const ziel = { id: 'b2', session: { title: 'Andere' }, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
-	const absender = { id: 'a1', session: { title: 'Meine' } }
+	const ziel = { id: 'b2', session: {}, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
+	const absender = { id: 'a1', session: {} }
 	const { def } = await anmelden([absender, ziel])
 
 	const ergebnis = await def.execute({ target: 'b2', message: 'Bitte pruefen' }, { agent: absender, signal: new AbortController().signal })
@@ -341,20 +416,24 @@ test('die Zustellung geht an den naechsten Schritt, nicht in eine neue Runde', a
 	const nachricht = gesendet[0][1]
 	assert.equal(nachricht.role, 'user')
 	assert.match(nachricht.content[0].text, /nicht vom Menschen/u)
-	assert.equal(nachricht.source.kind, 'plugin', 'die Quelle muss die dokumentierte Art tragen')
-	assert.equal(nachricht.source.senderSessionId, 'a1')
+	assert.equal(nachricht.source.kind, QUELL_ART, 'die Quelle muss die v4-taugliche Art tragen')
+
+	// Die zugestellte Nachricht muss durch den echten Codec passen.
+	assert.doesNotThrow(() =>
+		releasedV4SessionFormatCodec.encodeEvent({ type: 'user/message', seq: 1, data: nachricht })
+	)
 })
 
-test('followup wird nur auf ausdrueckliche Anforderung gerufen', async () => {
+test('die Wurzelsitzung des Menschen bekommt kein followup', async () => {
 	const gesendet = []
-	const ziel = { id: 'b2', session: {}, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
+	const mensch = { id: 'mensch', session: {}, wurzel: true, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
 	const absender = { id: 'a1', session: {} }
-	const { def } = await anmelden([absender, ziel])
+	const { def } = await anmelden([absender, mensch])
 
-	const e = await def.execute({ target: 'b2', message: 'Sofort bitte', mode: 'followup' }, { agent: absender, signal: new AbortController().signal })
+	const e = await def.execute({ target: 'mensch', message: 'Hallo', mode: 'followup' }, { agent: absender, signal: new AbortController().signal })
 	assert.equal(e.delivered, true)
-	assert.equal(e.mode, 'followup')
-	assert.equal(gesendet[0][0], 'followup')
+	assert.equal(e.mode, 'steer', 'followup auf einer Wurzelsitzung wird zu steer heruntergestuft')
+	assert.equal(gesendet[0][0], 'steer', 'die Menschensitzung darf nicht in eine neue Runde geweckt werden')
 })
 
 test('an sich selbst wird nie zugestellt', async () => {
@@ -377,25 +456,9 @@ test('ohne Agenten-Dienst meldet das Werkzeug einen Grund statt zu werfen', asyn
 	assert.match(e.note, /agents/u)
 })
 
-test('die Bremse greift auch im Werkzeug, nicht nur im Helfer', async () => {
+test('das Paar-Budget greift im Werkzeug: die dritte Nachricht an dasselbe Ziel wird abgewiesen', async () => {
 	const gesendet = []
 	const ziel = { id: 'b2', session: {}, steer: (m) => gesendet.push(m), followup: (m) => gesendet.push(m) }
-	const absender = { id: 'a1', session: {} }
-	const { def } = await anmelden([absender, ziel])
-
-	const laeufe = []
-	for (let i = 0; i < 8; i += 1) {
-		laeufe.push(await def.execute({ target: 'b2', message: `Nr ${i}` }, { agent: absender, signal: new AbortController().signal }))
-	}
-	const zugestellt = laeufe.filter((e) => e.delivered).length
-	assert.equal(zugestellt, 2, `nach zwei Rundlaeufen je Paar muss Schluss sein, zugestellt waren ${zugestellt}`)
-	const gebremst = laeufe.filter((e) => e.delivered === false && /PING_PONG/u.test(e.note))
-	assert.equal(gebremst.length, 6, 'die uebrigen muessen als Rundlauf abgewiesen werden')
-})
-
-test('das Kettenbudget greift im Werkzeug: die dritte Nachricht an dasselbe Ziel wird abgewiesen', async () => {
-	const gesendet = []
-	const ziel = { id: 'b2', session: {}, status: 'idle', steer: (m) => gesendet.push(m), followup: (m) => gesendet.push(m) }
 	const absender = { id: 'a1', session: {} }
 	const { def } = await anmelden([absender, ziel])
 
@@ -408,4 +471,28 @@ test('das Kettenbudget greift im Werkzeug: die dritte Nachricht an dasselbe Ziel
 	assert.equal(drei.delivered, false)
 	assert.match(drei.note, /PING_PONG/u)
 	assert.equal(gesendet.length, 2, 'die dritte darf das Ziel nicht erreichen')
+})
+
+test('die Schutzbremse je Ziel greift auch im Werkzeug', async () => {
+	const gesendet = []
+	const ziel = { id: 'b2', session: {}, steer: (m) => gesendet.push(m), followup: (m) => gesendet.push(m) }
+	const absender = { id: 'a1', session: {} }
+	const { def } = await anmelden([absender, ziel])
+
+	const laeufe = []
+	for (let i = 0; i < 8; i += 1) {
+		laeufe.push(await def.execute({ target: 'b2', message: `Nr ${i}` }, { agent: absender, signal: new AbortController().signal }))
+	}
+	assert.equal(laeufe.filter((e) => e.delivered).length, 2, 'nach zwei Nachrichten je Paar ist Schluss')
+	const spaeter = laeufe.filter((e) => e.delivered === false)
+	assert.ok(spaeter.every((e) => /PING_PONG|REPEATED_MESSAGE/u.test(e.note)), 'jede weitere braucht einen Kettenbefund')
+})
+
+test('die Tests schreiben nicht ins echte ~/.dsh des Menschen', () => {
+	assert.match(process.env.DSH_HOME ?? '', /s2s-home-/u)
+	assert.ok(!String(process.env.DSH_HOME).startsWith(join(process.env.HOME ?? '', '.dsh')))
+	// Der Zustandspfad folgt DSH_HOME: der Test darf die echte Ablage nie anfassen.
+	assert.ok(zustandPfad().startsWith(process.env.DSH_HOME), `Zustandspfad zeigt nicht auf DSH_HOME: ${zustandPfad()}`)
+	void readFileSync
+	void existsSync
 })

@@ -119,10 +119,11 @@
  *  - Jede Abweisung wird protokolliert: Grund, Absender, Ziel.
  *
  * NACHSEHEN
- *   ~/.dsh/logs/send-to-session.log
+ *   ~/.dsh/.tm/teams-plus/logs/send-to-session.log   (E1: alle eigenen Daten unter .tm/)
  *   ~/.dsh/.tm/teams-plus/state/send-to-session.json
- * SELBSTPRUEFUNG (ohne laufendes DSH)
- *   node patches/send-to-session.mjs --test
+ * PRUEFUNG (die fruehere Angabe \`node patches/send-to-session.mjs --test\` war falsch —
+ * es gab diesen Pfad nie; das Red Team hat es beanstandet):
+ *   node --test test/send-to-session.test.mjs
  */
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -138,33 +139,50 @@ const WERKZEUG = "send_to_session";
  *   v0.4.0 und bleibt. Sie beantwortet "wie viel redet eine Sitzung".
  * - `jeZiel`: 6 in 10 Minuten beantwortet "wie viel bekommt eine Sitzung".
  *   Ohne diese zweite Zahl heben drei Absender die erste Bremse gemeinsam auf.
- * - `ketteHops`: 4 Weiterleitungen. Danach ist aus einer Unterhaltung ein
- *   Stille-Post-Spiel geworden.
- * - `ketteRundlaeufe`: 2 Nachrichten je geordnetem Paar in einer Unterhaltung.
+ * - `paarNachrichten`: zwei Nachrichten je geordnetem Paar im selben Fenster.
  *   Reicht fuer Rueckfrage und Antwort; ein drittes Mal ist kein Gespraech.
- * - `kettenGedaeschtnis`: so viele Unterhaltungen werden behalten. Aeltere
- *   fallen weg, damit die Zustandsdatei nicht unbegrenzt waechst.
+ * - `paareGedaeschtnis`: so viele Paare werden behalten.
+ *
+ * **WAS HIER NICHT MEHR STEHT, UND WARUM.** v0.5.0 hatte ein "Kettenbudget" mit
+ * Sprunghoehe (4) und Rundlaeufen je Kette. Das Red-Team hat es gemessen und
+ * beides beanstandet: es war **falsch positiv** und **falsch negativ** zugleich,
+ * weil eine "Kette" ueber eine einzige `ketteVon`-Zuordnung je Sitzung lief.
+ * A→B verbrauchte die Kette; A→C landete in derselben, und C→A wurde dann nach
+ * EINER Nachricht abgewiesen. Umgekehrt oeffnete ein fremder Erstabsender eine
+ * neue Kette, und danach war A→B wieder frei.
+ *
+ * Die Sprunghoehe ist deshalb **gestrichen**, nicht repariert: Eine echte Tiefe
+ * braucht die Abstammung der Nachricht, und die sieht dieses Werkzeug nicht —
+ * es bekommt keinen eingehenden Nachrichtenkopf. Eine Zahl, die niemand messen
+ * kann, ist keine Grenze, sondern ein Versprechen. Was bleibt, ist das, was sich
+ * je Paar exakt zaehlen laesst.
  */
 export const GRENZEN = Object.freeze({
 	fensterMs: 10 * 60 * 1000,
 	jeAbsender: 6,
 	jeZiel: 6,
-	ketteHops: 4,
-	ketteRundlaeufe: 2,
-	kettenGedaeschtnis: 200
+	paarNachrichten: 2,
+	paareGedaeschtnis: 200
 });
 
-/** Die drei Befunde des Kettenbudgets. Sie stehen im Protokoll und in der Antwort. */
+/** Die zwei Befunde des Paar-Budgets. Sie stehen im Protokoll und in der Antwort. */
 export const KETTEN_BEFUNDE = Object.freeze({
-	hops: "CHAIN_EXHAUSTED",
 	rundlaeufe: "PING_PONG",
 	wiederholung: "REPEATED_MESSAGE"
 });
 
-/** Wo das Protokoll liegt. Ueber DSH_HOME umlenkbar, damit Tests hermetisch bleiben. */
+/**
+ * Wo das Protokoll liegt: `~/.dsh/.tm/teams-plus/logs/`.
+ *
+ * E1 des Pakets (siehe `docs/ENTSCHEIDUNGEN.md`): alle eigenen Daten eines
+ * Plugins liegen unter `~/.dsh/.tm/<plugin>`, damit ein Update des Pakets sie
+ * nie ueberschreibt und der Mensch sie an EINER Stelle findet. v0.5.0 schrieb
+ * nach `~/.dsh/logs/` und widersprach damit der eigenen README. Ueber
+ * `DSH_HOME` umlenkbar, damit Tests hermetisch bleiben.
+ */
 function protokollPfad() {
 	const heim = process.env.DSH_HOME ?? join(homedir(), ".dsh");
-	return join(heim, "logs", "send-to-session.log");
+	return join(heim, ".tm", "teams-plus", "logs", "send-to-session.log");
 }
 
 /** Wo der Zustand liegt (Zaehler, Ketten). Gleiche Umlenkung wie das Protokoll. */
@@ -266,19 +284,33 @@ export function baueInhalt(text, absender, absenderName) {
 /**
  * Die Quelle, mit der die Nachricht im Sitzungsprotokoll steht.
  *
- * `kind: "plugin"` ist die dokumentierte Form (siehe Kopfkommentar, Punkt 1):
- * sie steht in der geschlossenen Liste des Formatpruefers und sie oeffnet in
- * `hasDirectHumanInput` KEIN Ziel. Das ist Absicht, nicht Zufall — ein Test
- * haelt beides fest.
+ * **`kind: "plugin"` waere FALSCH — gemessen, nicht vermutet.** Der v4-Codec
+ * (`dsh-session-format-v3-to-v4/lib/index.js`, Funktion `source()`, Zeile 126)
+ * lehnt genau diesen Wert beim Schreiben ab: *"format v4 message requires a
+ * producer-owned source kind"*. Die Folge waere nicht ein Fehler im Werkzeug,
+ * sondern eine SITZUNG, DEREN PERSISTENZ STEHENBLEIBT: die Nachricht ist im
+ * Speicher da, `delivered: true` wird gemeldet, und die Platte schreibt nicht
+ * mehr. Wer das einbaut, beschaedigt fremde Sitzungen, ohne es zu merken.
  *
- * `senderSessionId` traegt der Kern selbst bei `agent-message`-Quellen und die
- * Client-Haelfte von DSH zeigt damit den Absender an. `targetSessionId` steht
- * daneben, damit das Protokoll beweist, wer wem geschrieben hat.
+ * Was v4 akzeptiert, ist eine **erzeugereigene** Art. Der Umbenenner des Kerns
+ * bildet sie selbst so (`producerKind`, Zeile 87-93): `plugin:<paketname>`.
+ * Genau diese Form steht hier — und sie ist weiterhin **keine Berechtigung**:
+ * `hasDirectHumanInput` (dsh-tool-goal) kennt nur `user`, `agent-message` und
+ * `team-message` vom direkten Elternteil. `plugin:…` faellt durch.
+ *
+ * Der Test schickt diese Quelle durch den ECHTEN Codec. Ein Test, der nur das
+ * Etikett prueft, haette den Fehler nicht gefunden — die Suite war 22/22 gruen,
+ * waehrend die Fassung unbrauchbar war.
+ *
+ * `senderSessionId` traegt der Kern selbst bei `agent-message`-Quellen; die
+ * Client-Haelfte zeigt damit den Absender an. `targetSessionId` steht daneben,
+ * damit das Protokoll beweist, wer wem geschrieben hat.
  */
+export const QUELL_ART = "plugin:@tmielsch/dsh-teams-plus";
+
 export function baueQuelle(absender, ziel) {
 	return {
-		kind: "plugin",
-		plugin: "dsh-teams-plus",
+		kind: QUELL_ART,
 		form: "relay",
 		senderSessionId: String(absender),
 		targetSessionId: String(ziel)
@@ -291,14 +323,37 @@ export function baueQuelle(absender, ziel) {
 // gewachsen ist.
 // ---------------------------------------------------------------------------
 
-/** Der leere Zustand. Die Form ist die Form der Datei auf der Platte. */
+/**
+ * Der leere Zustand. Die Form ist die Form der Datei auf der Platte.
+ *
+ * Aeltere Dateien tragen `ketten`/`ketteVon`. Sie werden beim Laden
+ * **verworfen**, nicht migriert: die Kette war nachweislich falsch gebaut (siehe
+ * GRENZEN), und alte Zaehler fuer ein kaputtes Modell zu uebernehmen waere
+ * schlimmer als frisch anzufangen. Ein neuer Zustand kostet hoechstens ein
+ * Zeitfenster Kulanz.
+ */
 export function leererZustand() {
-	return { absender: {}, ziel: {}, ketten: {}, ketteVon: {} };
+	return { absender: {}, ziel: {}, paare: {} };
 }
 
 /**
- * Laedt den Zustand. Fehlt die Datei oder ist sie unlesbar, kommt der leere
- * Zustand zurueck — eine kaputte Zaehlerdatei darf den Start nie verhindern.
+ * Laedt den Zustand.
+ *
+ * **Fehlt** die Datei, beginnt ein frischer Zustand — beim ersten Start ist das
+ * richtig.
+ *
+ * **Ist sie da und kaputt**, wird das gemeldet (`kaputt: true`) und der Aufrufer
+ * entscheidet. Frueher fiel beides zusammen: ein Fehler lieferte stillschweigend
+ * den leeren Zustand, und damit war das Loeschen der Datei ein bequemer Weg, die
+ * Bremse zurueckzusetzen. Das Red Team hat es beanstandet (Befund H2), und es
+ * stimmt: Das Web-Profil laeuft mit `danger-full-access`, der Datenordner
+ * gehoert demselben Benutzer, `test -w` sagt ja. Die Bremse ist damit eine
+ * Hoeflichkeitsbremse gegen Versehen, **keine** Sicherheitsgrenze gegen einen
+ * Agenten, der sie umgehen will. Das steht hier, damit niemand sich auf sie
+ * verlaesst.
+ *
+ * Was der Aufrufer (`apply`) mit `kaputt` macht: laut melden und den Zustand
+ * trotzdem fuehren — aber die Kaputtheit nicht vergessen.
  */
 export function ladeZustand(pfad = zustandPfad()) {
 	try {
@@ -309,11 +364,18 @@ export function ladeZustand(pfad = zustandPfad()) {
 		return {
 			absender: istObjekt(roh.absender) ? roh.absender : leer.absender,
 			ziel: istObjekt(roh.ziel) ? roh.ziel : leer.ziel,
-			ketten: istObjekt(roh.ketten) ? roh.ketten : leer.ketten,
-			ketteVon: istObjekt(roh.ketteVon) ? roh.ketteVon : leer.ketteVon
+			paare: istObjekt(roh.paare) ? roh.paare : leer.paare,
+			// Eine Datei aus v0.5.0 (vor dem Umbau) traegt ein anderes Modell.
+			alt: istObjekt(roh.ketten) || istObjekt(roh.ketteVon),
+			// Die Datei WAR da, ist aber kein Zustand: entweder kein Objekt, oder ein
+			// Objekt ohne einen einzigen bekannten Schluessel. Beides wird gemeldet
+			// statt stillschweigend als "frischer Anfang" verbucht.
+			kaputt: !istObjekt(roh)
+				|| (istObjekt(roh.absender) === false && istObjekt(roh.ziel) === false
+					&& istObjekt(roh.paare) === false && istObjekt(roh.ketten) === false)
 		};
 	} catch {
-		return leererZustand();
+		return { ...leererZustand(), kaputt: true };
 	}
 }
 
@@ -338,96 +400,62 @@ export function speichereZustand(zustand, pfad = zustandPfad()) {
 	}
 }
 
-/** Die Kante eines geordneten Paares, wie das Kettenbuch sie schluesselt. */
-function kante(von, an) {
+/** Die Kante eines geordneten Paares, wie das Buch sie schluesselt. */
+export function kante(von, an) {
 	return `${von} ${an}`;
 }
 
 /**
- * Die Unterhaltung, zu der ein Absender gerade gehoert.
+ * Darf diese Nachricht von `von` an `an` noch raus?
  *
- * Hat er zuletzt eine Nachricht bekommen, erbt er deren Unterhaltung — so wird
- * aus einer Weiterleitungskette EINE Unterhaltung. Hat er nichts bekommen,
- * beginnt er eine neue.
- */
-export function ketteFuer(zustand, absenderId) {
-	// (a) Er hat zuletzt etwas BEKOMMEN: er sitzt in der Unterhaltung, eine Stufe tiefer.
-	const geerbt = zustand.ketteVon?.[absenderId];
-	if (geerbt !== undefined && typeof geerbt.chainId === "string") {
-		return { chainId: geerbt.chainId, hop: Number(geerbt.hop) || 0 };
-	}
-	// (b) Er hat zuletzt etwas GESCHICKT: die Unterhaltung, in der er schon steckt,
-	//     wird fortgesetzt. Ohne diesen Zweig begaenne jede Nachricht desselben
-	//     Absenders eine NEUE Unterhaltung — und das Rundlaufbudget griffe nie.
-	//     (Genau dieser Fehler ist beim ersten Testlauf aufgefallen.)
-	for (const [chainId, buch] of Object.entries(zustand.ketten ?? {})) {
-		const kanten = Object.keys(buch?.edges ?? {});
-		if (kanten.some((k) => k.startsWith(`${absenderId} `))) return { chainId, hop: 0 };
-	}
-	// (c) Er ist an nichts beteiligt: neue Unterhaltung.
-	return { chainId: `k-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, hop: 0 };
-}
-
-/**
- * Darf diese Nachricht in dieser Unterhaltung noch raus?
+ * **Das Budget haengt am geordneten PAAR, nicht an einer Kette.** Zwei Fragen im
+ * selben Zeitfenster: hat dieses Paar seine zwei Nachrichten aufgebraucht, und
+ * ist es wortgleich derselbe Text wie zuletzt.
  *
- * Drei Fragen, in dieser Reihenfolge: ist die Kette schon zu tief, hat dieses
- * geordnete Paar sein Rundlaufbudget aufgebraucht, ist es wortgleich dieselbe
- * Nachricht wie zuletzt an dieses Ziel.
+ * Warum je Paar und nicht je Kette: Eine Kette musste raten, wer mit wem
+ * spricht. Sie tat es falsch — A→C erbte die Kette von A→B, und C→A wurde dann
+ * nach einer Nachricht abgewiesen, obwohl das Paar C→A noch nichts gesagt hatte.
+ * Das Paar ist die Groesse, die sich ohne Raten zaehlen laesst.
+ *
+ * Gegenrichtung: `A B` und `B A` sind **verschiedene** Paare. Wer antwortet,
+ * ist nicht der, der angefangen hat.
  *
  * @returns `{ ok: true }` oder `{ ok: false, befund, text }`.
  */
-export function pruefeKette(zustand, kette, von, an, text, grenzen = GRENZEN) {
-	if (kette.hop > grenzen.ketteHops) {
-		return {
-			ok: false,
-			befund: KETTEN_BEFUNDE.hops,
-			text: `relay ${kette.hop} of at most ${grenzen.ketteHops} — the conversation has gone far enough`
-		};
-	}
-	const buch = zustand.ketten?.[kette.chainId];
+export function pruefeKette(zustand, von, an, text, jetzt = Date.now(), grenzen = GRENZEN) {
+	const buch = zustand.paare?.[kante(von, an)];
 	if (buch === undefined) return { ok: true };
-	const schluessel = kante(von, an);
-	const runden = Number(buch.edges?.[schluessel]) || 0;
-	if (runden >= grenzen.ketteRundlaeufe) {
+	const zeiten = (Array.isArray(buch.zeiten) ? buch.zeiten : []).filter((t) => jetzt - t < grenzen.fensterMs);
+	if (zeiten.length >= grenzen.paarNachrichten) {
 		return {
 			ok: false,
 			befund: KETTEN_BEFUNDE.rundlaeufe,
-			text: `${runden} message(s) already went to that session in this conversation (at most ${grenzen.ketteRundlaeufe})`
+			text: `${zeiten.length} message(s) already went from that sender to that target (at most ${grenzen.paarNachrichten} per ${grenzen.fensterMs / 60000} minutes)`
 		};
 	}
-	if (buch.said?.[schluessel] === text) {
+	if (buch.letzterText === text && zeiten.length > 0) {
 		return {
 			ok: false,
 			befund: KETTEN_BEFUNDE.wiederholung,
-			text: "this exact message already went to that session in this conversation"
+			text: "this exact message already went from that sender to that target"
 		};
 	}
 	return { ok: true };
 }
 
-/**
- * Verbucht eine angenommene Zustellung: Paar zaehlen, Text merken, und dem Ziel
- * die Unterhaltung vererben (eine Stufe tiefer).
- */
-export function verbucheKette(zustand, kette, von, an, text, grenzen = GRENZEN) {
+/** Verbucht eine angenommene Zustellung im Paar-Buch. */
+export function verbucheKette(zustand, von, an, text, jetzt = Date.now(), grenzen = GRENZEN) {
 	const schluessel = kante(von, an);
-	const buch = zustand.ketten[kette.chainId] ?? { edges: {}, said: {} };
-	buch.edges = buch.edges ?? {};
-	buch.said = buch.said ?? {};
-	buch.edges[schluessel] = (Number(buch.edges[schluessel]) || 0) + 1;
-	buch.said[schluessel] = text;
-	zustand.ketten[kette.chainId] = buch;
+	const alt = zustand.paare?.[schluessel];
+	const zeiten = (Array.isArray(alt?.zeiten) ? alt.zeiten : []).filter((t) => jetzt - t < grenzen.fensterMs);
+	zeiten.push(jetzt);
+	zustand.paare = zustand.paare ?? {};
+	zustand.paare[schluessel] = { zeiten, letzterText: text };
 
-	// Das Ziel erbt die Unterhaltung eine Stufe tiefer.
-	zustand.ketteVon[an] = { chainId: kette.chainId, hop: kette.hop + 1 };
-
-	// Alte Unterhaltungen fallen weg, damit die Datei nicht unbegrenzt waechst.
-	const schluesselAlle = Object.keys(zustand.ketten);
-	if (schluesselAlle.length > grenzen.kettenGedaeschtnis) {
-		for (const alt of schluesselAlle.slice(0, schluesselAlle.length - grenzen.kettenGedaeschtnis)) {
-			delete zustand.ketten[alt];
-		}
+	// Alte Paare fallen weg, damit die Datei nicht unbegrenzt waechst.
+	const alle = Object.keys(zustand.paare);
+	if (alle.length > grenzen.paareGedaeschtnis) {
+		for (const altes of alle.slice(0, alle.length - grenzen.paareGedaeschtnis)) delete zustand.paare[altes];
 	}
 	return zustand;
 }
@@ -503,16 +531,30 @@ export function loeseModus(modus, ziel) {
  * @returns das Ergebnis als schlichtes Objekt, damit es pruefbar bleibt.
  */
 export function findeZiel(agenten, eingabe) {
+	// Was eine Sitzung wirklich hergibt: id, cwd, createdAt, origin. Ein `title`
+	// steht NICHT auf der Session — gemessen am 2026-10-31 an
+	// `dsh-session/lib/types/index.d.ts` (SessionHeader: version, id, createdAt,
+	// cwd, parentSession, isSeeded, origin, …). v0.5.0 suchte nach `session.title`
+	// und fand nie etwas; nur die exakte Kennung funktionierte. Das Red-Team hat
+	// es beanstandet, und es stimmt.
 	const alle = agenten.map((a) => ({
-		id: a.id,
-		titel: typeof a.session?.title === "string" ? a.session.title : undefined
+		id: String(a.id),
+		ordner: typeof a.session?.header?.cwd === "string"
+			? a.session.header.cwd
+			: typeof a.session?.cwd === "string" ? a.session.cwd : undefined
 	}));
 	if (eingabe === undefined || eingabe === "") return { art: "liste", alle };
-	const treffer = alle.find((a) => a.id === eingabe);
+	const text = String(eingabe);
+	const treffer = alle.find((a) => a.id === text);
 	if (treffer !== undefined) return { art: "genau", ziel: treffer };
-	const nachTitel = alle.filter((a) => typeof a.titel === "string" && a.titel.toLowerCase().includes(String(eingabe).toLowerCase()));
-	if (nachTitel.length === 1) return { art: "genau", ziel: nachTitel[0] };
-	if (nachTitel.length > 1) return { art: "mehrdeutig", kandidaten: nachTitel };
+	// Ein Praefix der Kennung ist eindeutig genug, solange es nur einen gibt.
+	const nachId = alle.filter((a) => a.id.startsWith(text));
+	if (nachId.length === 1) return { art: "genau", ziel: nachId[0] };
+	if (nachId.length > 1) return { art: "mehrdeutig", kandidaten: nachId };
+	// Der Ordner ist das, was ein Mensch an einer Sitzung wiedererkennt.
+	const nachOrdner = alle.filter((a) => typeof a.ordner === "string" && a.ordner.toLowerCase().includes(text.toLowerCase()));
+	if (nachOrdner.length === 1) return { art: "genau", ziel: nachOrdner[0] };
+	if (nachOrdner.length > 1) return { art: "mehrdeutig", kandidaten: nachOrdner };
 	return { art: "unbekannt", alle };
 }
 
@@ -535,9 +577,15 @@ export function apply(ctx, optionen = {}) {
 		} catch { /* Ein fehlendes Protokoll darf den Start nie stoeren. */ }
 	};
 
-	/** Der Zustand: Zaehler und Ketten. Beim Laden einmal gelesen, danach gefuehrt. */
+	/** Der Zustand: Zaehler und Paar-Buch. Beim Laden einmal gelesen, danach gefuehrt. */
 	const pfad = optionen.pfad ?? zustandPfad();
-	const zustand = ladeZustand(pfad);
+	const geladen = ladeZustand(pfad);
+	const zustand = geladen;
+	if (geladen.kaputt === true) {
+		melden("warn", `die Zustandsdatei ${pfad} ist unlesbar; die Bremsen beginnen bei null. Das ist eine Hoeflichkeitsbremse, keine Sicherheitsgrenze.`);
+	} else if (geladen.alt === true) {
+		melden("warn", `die Zustandsdatei ${pfad} traegt das alte Kettenmodell; Paar-Zaehler beginnen bei null.`);
+	}
 
 	/** Holt einen Dienst, ohne beim Fehlen zu werfen. */
 	const dienst = (name) => {
@@ -597,8 +645,10 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 			"`followup` queues a new turn and wakes the target — use it only when the target should act now.",
 			"`auto` picks by the target's live state: running → steer, idle → followup.",
 			"",
-			"LIMITS: at most 6 messages per sender and 6 per target within 10 minutes; one conversation",
-			"may relay at most 4 hops, and one ordered pair may exchange at most 2 messages in it.",
+			"LIMITS: at most 6 messages per sender and 6 per target within 10 minutes;",
+			"one ordered sender/target pair may exchange at most 2 messages in that window.",
+			"A root session (the one a human is typing in) never receives a new turn: followup is",
+			"downgraded to steer there.",
 			"",
 			"The message is marked as coming from an agent, not from the human. Say who you are in your text.",
 			"Without a target it returns the list of live sessions."
@@ -649,10 +699,10 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 				return { delivered: false, sessions: suche.alle, note: "no target given; pass `target` to deliver" };
 			}
 			if (suche.art === "mehrdeutig") {
-				return { delivered: false, sessions: suche.kandidaten, note: "the title matches several sessions; use the id" };
+				return { delivered: false, sessions: suche.kandidaten, note: "the folder matches several sessions; use the id" };
 			}
 			if (suche.art === "unbekannt") {
-				return { delivered: false, sessions: suche.alle, note: "no live session has that id or title" };
+				return { delivered: false, sessions: suche.alle, note: "no live session has that id or folder" };
 			}
 			const zielId = suche.ziel.id;
 			if (zielId === absenderAgent.id) {
@@ -675,16 +725,24 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 				};
 			}
 
-			// (2) Das Kettenbudget: Sprunghoehe, Rundlaeufe je Paar, wortgleiche Wiederholung.
-			const kette = ketteFuer(zustand, absenderAgent.id);
-			const kettenPruefung = pruefeKette(zustand, kette, absenderAgent.id, zielId, args.message);
+			// (2) Das Paar-Budget: zwei Nachrichten je geordnetem Paar, keine Wortwiederholung.
+			const kettenPruefung = pruefeKette(zustand, absenderAgent.id, zielId, args.message, jetzt);
 			if (kettenPruefung.ok !== true) {
-				melden("warn", `kette abgewiesen befund=${kettenPruefung.befund} absender=${absenderAgent.id} ziel=${zielId}`);
+				melden("warn", `paar abgewiesen befund=${kettenPruefung.befund} absender=${absenderAgent.id} ziel=${zielId}`);
 				return { delivered: false, note: `${kettenPruefung.befund}: ${kettenPruefung.text}` };
 			}
 
-			const modus = loeseModus(args.mode, ziel);
-			const inhalt = baueInhalt(args.message, absenderAgent.id, absenderAgent.session?.title);
+			// (3) Die Wurzelsitzung ist die, mit der der Mensch spricht. Ein `followup`
+			// dort startet eine NEUE RUNDE in seiner eigenen Sitzung — das darf kein
+			// fremder Agent ausloesen. `steer` ist erlaubt: es kommt an der naechsten
+			// Grenze an, ohne eine Runde zu oeffnen.
+			const istWurzel = typeof dienstAgenten.roots === "function"
+				&& dienstAgenten.roots().some((a) => a.id === zielId);
+			const gewuenscht = loeseModus(args.mode, ziel);
+			const modus = istWurzel && gewuenscht === "followup" ? "steer" : gewuenscht;
+			if (istWurzel) melden("info", `ziel ist eine Wurzelsitzung; modus auf ${modus} begrenzt`);
+
+			const inhalt = baueInhalt(args.message, absenderAgent.id, absenderAgent.session?.cwd);
 			const quelle = baueQuelle(absenderAgent.id, zielId);
 			try {
 				const llm = dienst("llm");
@@ -702,12 +760,12 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 			// (3) Erst nach erfolgreicher Zustellung buchen — und sofort auf die Platte,
 			// damit ein Neustart die Zaehler nicht vergisst (Red-Team-Befund v0.4.0).
 			bremseVerbuche(zustand, absenderAgent.id, zielId, jetzt);
-			verbucheKette(zustand, kette, absenderAgent.id, zielId, args.message);
+			verbucheKette(zustand, absenderAgent.id, zielId, args.message, jetzt);
 			if (speichereZustand(zustand, pfad) !== true) {
 				melden("warn", `Zustand konnte nicht geschrieben werden: ${pfad}`);
 			}
 
-			melden("info", `zugestellt von=${absenderAgent.id} an=${zielId} modus=${modus} kette=${kette.chainId} hop=${kette.hop} "${kurz(args.message)}"`);
+			melden("info", `zugestellt von=${absenderAgent.id} an=${zielId} modus=${modus} "${kurz(args.message)}"`);
 			return {
 				delivered: true,
 				to: zielId,
