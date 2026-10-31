@@ -24,7 +24,7 @@
  * Red Team ist genau das aufgefallen.
  */
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, existsSync } from 'node:fs'
+import { mkdtempSync, readFileSync, existsSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
@@ -42,6 +42,7 @@ const {
 	QUELL_ART,
 	apply,
 	baueInhalt,
+	baueNachricht,
 	baueQuelle,
 	bremseOk,
 	bremsePruefe,
@@ -50,6 +51,7 @@ const {
 	leererZustand,
 	ladeZustand,
 	loeseModus,
+	mitSperre,
 	pruefeKette,
 	speichereZustand,
 	verbucheKette,
@@ -101,6 +103,31 @@ test('die Quelle ist NICHT `plugin` — genau das lehnt der Codec ab', () => {
 		/producer-owned source kind/u,
 		'die Gegenprobe greift nicht — dann prueft dieser Test nichts'
 	)
+})
+
+test('die Nachricht hat IMMER eine id (Red-Team HOCH-1)', () => {
+	// Der echte llm-DIENST hat kein createUserMessage — es ist eine Modulfunktion
+	// (dsh-llm/lib/index.js:59), und erst sie vergibt ueber createMessage eine id.
+	// Eine Nachricht ohne id laesst den Posteingang des Ziels werfen, sobald zwei
+	// ausstehen (dsh-agent-loop/lib/index.js:191-192).
+	const quelle = baueQuelle('a', 'b')
+	const inhalt = baueInhalt('hallo', 'a', undefined)
+
+	// (a) Ohne geladenen Kernbaustein muss der Fallback eine id vergeben.
+	const ohneKern = baueNachricht(inhalt, quelle, undefined)
+	assert.equal(typeof ohneKern.id, 'string', 'ohne Kernbaustein fehlt die id')
+	assert.ok(ohneKern.id.length > 0)
+	assert.equal(ohneKern.role, 'user')
+	assert.deepEqual(ohneKern.source, quelle)
+
+	// (b) Zwei Nachrichten duerfen nie dieselbe id tragen.
+	const zweite = baueNachricht(inhalt, quelle, undefined)
+	assert.notEqual(ohneKern.id, zweite.id, 'zwei Nachrichten mit derselben id kollidieren im Posteingang')
+
+	// (c) Mit einem Baustein, der wie der Kern arbeitet, kommt dessen id.
+	const kern = { createUserMessage: (input) => ({ ...input, role: 'user', id: 'aus-dem-kern' }) }
+	const mitKern = baueNachricht(inhalt, quelle, kern)
+	assert.equal(mitKern.id, 'aus-dem-kern', 'die Kennung des Kerns muss uebernommen werden')
 })
 
 test('die Quelle ist die dokumentierte Erzeuger-Art und oeffnet kein Ziel', () => {
@@ -335,6 +362,14 @@ test('eine kaputte Zustandsdatei verhindert den Start nicht — wird aber gemeld
 	const frisch = ladeZustand('/gibt/es/nicht/state.json')
 	assert.deepEqual(frisch, leererZustand())
 	assert.notEqual(frisch.kaputt, true, 'eine fehlende Datei ist kein Fehler')
+
+	// Skalare sind KAPUTT, nicht frisch (Red-Team NIEDRIG-1): die Datei war da,
+	// hat aber die falsche Form. Vorher fielen genau diese drei still durch.
+	for (const skalar of [null, 42, 'x']) {
+		const p = frischeAblage()
+		writeFileSync(p, JSON.stringify(skalar))
+		assert.equal(ladeZustand(p).kaputt, true, 'Skalar ' + JSON.stringify(skalar) + ' muss als kaputt gelten')
+	}
 })
 
 // ---------------------------------------------------------------------------
@@ -434,7 +469,7 @@ const arbeit = () => {
   m.bremseVerbuche(stand, 'A', 'Ziel${n}', 1000);
   m.speichereZustand(stand, pfad);
 };
-${mitSperre ? 'm.mitSperre(pfad, arbeit);' : 'arbeit();'}
+${mitSperre ? 'await m.mitSperre(pfad, arbeit);' : 'arbeit();'}
 `
 		let offen = zahlKinder
 		let kaputt = null
@@ -457,6 +492,26 @@ ${mitSperre ? 'm.mitSperre(pfad, arbeit);' : 'arbeit();'}
 
 	assert.equal(mit, 4, 'mit Sperre darf kein Eintrag verloren gehen')
 	assert.ok(ohne < 4, `ohne Sperre muss Verlust auftreten — sonst prüft dieser Test nichts (gemessen: ${ohne} von 4)`)
+})
+
+test('das Warten auf die Sperre blockiert den Ereignisfaden nicht', async () => {
+	// Das Modul läuft IM HOST-PROZESS, in dem alle Sitzungen des Menschen leben.
+	// Eine leere Warteschleife würde sie alle mit einfrieren — schlimmer als der
+	// Zählerverlust, den die Sperre verhindern soll. Diese Prüfung hält das fest:
+	// Während der Wartezeit muss ein Timer weiterlaufen.
+	const pfad = frischeAblage()
+	const { writeFileSync } = await import('node:fs')
+	writeFileSync(`${pfad}.lock`, 'fremder Halter') // Sperre von außen belegt
+
+	let ticks = 0
+	const uhr = setInterval(() => { ticks += 1 }, 10)
+	try {
+		await mitSperre(pfad, () => 'durchgelassen')
+	} finally {
+		clearInterval(uhr)
+	}
+
+	assert.ok(ticks >= 5, `der Ereignisfaden war blockiert — nur ${ticks} Timer-Ticks in der Wartezeit`)
 })
 
 test('verschmelzeZustand vereinigt über die Ereignis-Kennung, nicht über den Zeitstempel', () => {
@@ -582,16 +637,51 @@ test('die Zustellung geht an den naechsten Schritt, nicht in eine neue Runde', a
 	)
 })
 
-test('die Wurzelsitzung des Menschen bekommt kein followup', async () => {
+test('die Wurzelsitzung des Menschen wird NIE geweckt (Red-Team HOCH-2)', async () => {
+	// Korrektur: `steer` weckt ebenfalls (dsh-agent-loop:809-811 ruft send(…, true);
+	// "an idle driver starts a turn" steht im Kernvertrag). Die einzige Zustellart
+	// ohne Wecken ist `inject` — also bekommt eine Wurzel `inject`.
 	const gesendet = []
-	const mensch = { id: 'mensch', session: {}, wurzel: true, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]) }
+	const mensch = {
+		id: 'mensch',
+		session: {},
+		wurzel: true,
+		steer: (m) => gesendet.push(['steer', m]),
+		followup: (m) => gesendet.push(['followup', m]),
+		inject: (m) => gesendet.push(['inject', m])
+	}
 	const absender = { id: 'a1', session: {} }
 	const { def } = await anmelden([absender, mensch])
 
-	const e = await def.execute({ target: 'mensch', message: 'Hallo', mode: 'followup' }, { agent: absender, signal: new AbortController().signal })
-	assert.equal(e.delivered, true)
-	assert.equal(e.mode, 'steer', 'followup auf einer Wurzelsitzung wird zu steer heruntergestuft')
-	assert.equal(gesendet[0][0], 'steer', 'die Menschensitzung darf nicht in eine neue Runde geweckt werden')
+	for (const mode of ['followup', 'steer', 'auto']) {
+		// Je Modus eine frische Instanz, sonst greift das Paar-Budget (2 je Paar)
+		// und der Test misst das Falsche.
+		gesendet.length = 0
+		const frisch = await anmelden([absender, mensch])
+		const e = await frisch.def.execute({ target: 'mensch', message: 'Hallo ' + mode, mode }, { agent: absender, signal: new AbortController().signal })
+		assert.equal(e.delivered, true, 'Modus ' + mode + ' wurde nicht zugestellt')
+		assert.equal(e.mode, 'inject', 'Modus ' + mode + ' auf einer Wurzel muss inject werden')
+		assert.equal(gesendet[0][0], 'inject', 'weder steer noch followup duerfen die Menschensitzung wecken')
+	}
+})
+
+test('ein werfendes roots() zerstoert den Werkzeugaufruf nicht (MITTEL-4)', async () => {
+	const gesendet = []
+	const mensch = { id: 'mensch', session: {}, steer: (m) => gesendet.push(['steer', m]), followup: (m) => gesendet.push(['followup', m]), inject: (m) => gesendet.push(['inject', m]) }
+	const absender = { id: 'a1', session: {} }
+	const { ctx, registriert } = baueKontext([absender, mensch])
+	const original = ctx.get
+	ctx.get = (name) => {
+		const d = original(name)
+		if (name === 'agents' && d) return { list: d.list, get: d.get, roots: () => { throw new Error('roots kaputt') } }
+		return d
+	}
+	const modul = await import('../patches/send-to-session.mjs')
+	modul.apply(ctx, { pfad: frischeAblage() })
+	await new Promise((r) => setTimeout(r, 300))
+
+	const e = await registriert[0].execute({ target: 'mensch', message: 'Hallo' }, { agent: absender, signal: new AbortController().signal })
+	assert.equal(e.delivered, true, 'ein werfendes roots() darf die Zustellung nicht verhindern')
 })
 
 test('an sich selbst wird nie zugestellt', async () => {

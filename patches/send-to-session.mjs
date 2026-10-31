@@ -25,55 +25,50 @@
  * ausserdem gefaehrlich gewesen: er haette das Verhalten eines Kernwerkzeugs
  * fuer alle Agenten verschoben. Dieses Modul legt ein NEUES Werkzeug daneben.
  * `send_message` bleibt unveraendert und behaelt seine enge, sichere Bedeutung.
- *
- * ---------------------------------------------------------------------------
- * FASSUNG 0.5.0 — was gegenueber v0.4.0 geaendert ist, und warum
- * ---------------------------------------------------------------------------
- *
- * (1) QUELLART: `agent-send` ist ersetzt durch `kind: "plugin"`.
- *
- * v0.4.0 schrieb `kind: "agent-send"`. Das ist in DSH eine ERWEITERUNG, aber
- * keine DOKUMENTIERTE Quelle: der Formatpruefer fuehrt eine geschlossene Liste
- * `SOURCE_KINDS` (dsh-session-format-v2-to-v3/lib/index.js:14-30) — `plugin`
- * steht darin, `agent-send` nicht. Zeile 125 wirft bei allem, was nicht in der
- * Liste steht: "cannot safely transform unclassified message source". Heute
- * faellt das nicht auf, weil die Migration v2→v3 nur alte Staende anfasst; eine
- * kuenftige Pruefung wuerde die Nachricht verwerfen.
- *
- * DIE BERECHTIGUNGSFRAGE IST DER EIGENTLICHE GRUND (Red-Team-Befund, E-Code
- * `hasDirectHumanInput` in dsh-tool-goal/lib/index.js:49-82): Eine Quellart ist
- * im Kern keine Etikettierung, sondern eine BERECHTIGUNG. Sie oeffnet einem
- * Agenten das Recht, ein ZIEL anzulegen, abzuschliessen oder zu blockieren.
- * Geprueft wird genau:
- *
- *   quelle.kind === "user"            → ja
- *   istWurzel                        → nein (Wurzelsitzung bleibt menschlich)
- *   quelle.kind === "agent-message"   → ja
- *   quelle.kind === "team-message"    → nur vom direkten Elternteil
- *
- * `plugin` steht in KEINEM dieser Zweige. Die Nachricht kommt also an, wird
- * gelesen — und oeffnet trotzdem kein Ziel. Das ist die Eigenschaft, die wir
- * wollen: zustellen ja, Berechtigung nein.
- *
- * Das ist derselbe Weg, den `duanyunlun/dsh-conversation-link` (MIT) und
- * `stark-l-1/dsh-peer-mailbox` gehen; beide schreiben `kind: 'plugin'`.
- *
- * (2) KETTENBUDGET: drei Waechter gegen das Zutexten.
- *
- * v0.4.0 hatte nur eine Bremse JE ABSENDER. Zwei Sitzungen konnten sich
- * gegenseitig unbegrenzt Nachrichten schicken, solange jede unter ihrem eigenen
- * Kontingent blieb — das war ein offener Red-Team-Befund.
- *
- * Die drei Waechter sind nach dem Vorbild von `huxint/dsh-team` (MIT,
- * `assertBudget`/`recordDelivery`, dist/index.js) neu geschrieben, nicht
- * kopiert: ein Sprungbudget je Unterhaltung (Vorgabe 4), ein Rundlaufbudget je
- * geordnetem Paar (Vorgabe 2) und die Abweisung einer wortgleichen Wiederholung
- * an dasselbe Ziel in derselben Unterhaltung.
- *
- * Was eine "Kette" hier ist: Wer eine Nachricht bekommt, erbt die Unterhaltung
- * und gibt sie beim Weitersenden weiter. So entsteht aus einer Kette von
- * Weiterleitungen EINE begrenzte Unterhaltung statt einer unbegrenzten Folge.
- *
+  *
+  * ---------------------------------------------------------------------------
+  * FASSUNG 0.6.0 — was gegenueber v0.5.0 geaendert ist, und warum
+  * ---------------------------------------------------------------------------
+  *
+  * **HISTORIE, NICHT NACHBAUEN.** Die Fassung 0.5.0 schrieb `kind: "plugin"`.
+  * Das ist ein BLOCKER: der v4-Codec lehnt genau diesen Wert beim Schreiben ab
+  * ("format v4 message requires a producer-owned source kind"), die Persistenz
+  * der Ziel-Sitzung bleibt stehen. Wer diesen Abschnitt als Anleitung liest,
+  * baut den Fehler wieder ein. Er steht hier nur, damit die Entscheidungen
+  * nachvollziehbar bleiben.
+  *
+  * (1) QUELLART: `kind: "plugin:<paketname>"`.
+  *
+  * Der v4-Codec akzeptiert KEINE `plugin`-Wrapper mehr, sondern nur
+  * **erzeugereigene** Arten. Der Umbenenner des Kerns bildet sie selbst so
+  * (`producerKind`, dsh-session-format-v3-to-v4/lib/index.js:87-93):
+  * `plugin:<paketname>`. Genau diese Form wird geschrieben.
+  *
+  * DIE BERECHTIGUNGSFRAGE BLEIBT DER GRUND (E-Code `hasDirectHumanInput` in
+  * dsh-tool-goal/lib/index.js:49-82): Eine Quellart ist im Kern keine
+  * Etikettierung, sondern eine BERECHTIGUNG. Sie oeffnet einem Agenten das
+  * Recht, ein ZIEL anzulegen, abzuschliessen oder zu blockieren. Geprueft wird:
+  *
+  *   quelle.kind === "user"            → ja
+  *   istWurzel                         → nein (Wurzelsitzung bleibt menschlich)
+  *   quelle.kind === "agent-message"   → ja
+  *   quelle.kind === "team-message"    → nur vom direkten Elternteil
+  *
+  * `plugin:…` steht in KEINEM dieser Zweige. Die Nachricht kommt an, wird
+  * gelesen — und oeffnet trotzdem kein Ziel: zustellen ja, Berechtigung nein.
+  *
+  * (2) PAAR-BUDGET statt Kettenbudget.
+  *
+  * v0.5.0 hatte ein Kettenbudget mit Sprunghoehe. Das Red Team hat gemessen,
+  * dass es gleichzeitig falsch positiv und falsch negativ war: A→B verbrauchte
+  * die Kette, A→C landete darin, und C→A wurde dann nach EINER Nachricht
+  * abgewiesen; umgekehrt setzte ein fremder Erstabsender die Kette zurueck.
+  *
+  * Jetzt gilt: zwei Nachrichten je **geordnetem Paar** im Fenster, keine
+  * wortgleiche Wiederholung. `A B` und `B A` sind verschiedene Paare — wer
+  * antwortet, ist nicht der, der angefangen hat. Die Sprunghoehe ist
+  * GESTRICHEN, nicht repariert; die Begruendung steht bei `GRENZEN`.
+  *
  * (3) DIE BREMSE UEBERLEBT DEN NEUSTART.
  *
  * v0.4.0 hielt die Zustellzeiten nur im Speicher; ein DSH-Neustart setzte sie
@@ -151,11 +146,25 @@ const WERKZEUG = "send_to_session";
  * EINER Nachricht abgewiesen. Umgekehrt oeffnete ein fremder Erstabsender eine
  * neue Kette, und danach war A→B wieder frei.
  *
- * Die Sprunghoehe ist deshalb **gestrichen**, nicht repariert: Eine echte Tiefe
- * braucht die Abstammung der Nachricht, und die sieht dieses Werkzeug nicht —
- * es bekommt keinen eingehenden Nachrichtenkopf. Eine Zahl, die niemand messen
- * kann, ist keine Grenze, sondern ein Versprechen. Was bleibt, ist das, was sich
- * je Paar exakt zaehlen laesst.
+ * Die Sprunghoehe ist deshalb **gestrichen**, nicht repariert — aber die
+ * Begruendung dafuer ist eine andere als zuerst hier stand. (Korrektur nach
+ * Red-Team-Befund MITTEL-1, 2026-10-31.)
+ *
+ * FALSCH war: „die Abstammung sieht dieses Werkzeug nicht". Sie ist sichtbar:
+ * `dsh-tool-goal/lib/index.js:12-20` liest ueber `agent.session.snapshotEvents()`
+ * und `ctx.sessionProjections.stateOf(…, "turnBoundary")` die Nachricht, die die
+ * laufende Runde geoeffnet hat, und `:37-43` liest darin `event.data.source`.
+ * Wer diese Runde geoeffnet hat, ist also messbar — die erste Stufe einer Tiefe
+ * waere billig zu haben.
+ *
+ * RICHTIG ist: Die **ganze Kette** ist so nicht messbar. Dafuer muesste dieses
+ * Werkzeug die Protokolle fremder Sitzungen lesen, um zu wissen, wer wem
+ * vorher geschrieben hat. Das ist ein Zugriff, den ein Zustellwerkzeug nicht
+ * braucht und nicht bekommen soll. Was bleibt, ist das, was sich ohne fremde
+ * Protokolle exakt zaehlen laesst: das geordnete Paar.
+ *
+ * Die erste Stufe (wer hat diese Runde geoeffnet?) bleibt als **benannte Grenze**
+ * offen und ist nicht vergessen.
  */
 export const GRENZEN = Object.freeze({
 	fensterMs: 10 * 60 * 1000,
@@ -210,9 +219,24 @@ function kurz(text, grenze = 60) {
 
 /** Die Kernpakete, die dieses Modul zur Laufzeit braucht (nie statisch importieren). */
 const PAKET_WERKZEUGE = "@deepseek-ai/dsh-tools";
+/**
+ * Das Paket, das `createUserMessage` bereitstellt.
+ *
+ * **Warum aus dem Modul und nicht vom Dienst.** `createUserMessage` ist eine
+ * MODULFUNKTION in `dsh-llm/lib/index.js:59` — der Dienst `llm` exportiert sie
+ * NICHT (gemessen: seine Methodenliste enthaelt sie nicht). Bis 2026-10-31 stand
+ * hier `llm?.createUserMessage`; das war immer `undefined`, und der Fallback
+ * erzeugte eine Nachricht OHNE `id`. Der Posteingang des Ziels prueft die
+ * Eindeutigkeit ueber diese Kennung (`dsh-agent-loop/lib/index.js:191-192`) und
+ * wirft bei der zweiten Nachricht `message "undefined" is already pending`.
+ * Red-Team-Befund HOCH-1.
+ */
+const PAKET_NACHRICHTEN = "@deepseek-ai/dsh-llm";
 
 /** Einmal geladener Werkzeug-Baustein; ein zweiter Ladeversuch waere Verschwendung. */
 let werkzeugBaustein;
+/** Einmal geladener Nachrichten-Baustein (createUserMessage). */
+let nachrichtenBaustein;
 
 /**
  * Die Basis-Ordner der dsh-Installation, in der Reihenfolge der Wahrscheinlichkeit.
@@ -360,7 +384,9 @@ export function ladeZustand(pfad = zustandPfad()) {
 		if (!existsSync(pfad)) return leererZustand();
 		const roh = JSON.parse(readFileSync(pfad, "utf8"));
 		const leer = leererZustand();
-		if (roh === null || typeof roh !== "object") return leer;
+		// Ein Skalar (null, Zahl, Zeichenkette) ist ein KAPUTTER Zustand, kein
+		// frischer Anfang: die Datei war da, hat aber die falsche Form.
+		if (roh === null || typeof roh !== "object") return { ...leer, kaputt: true };
 		return {
 			absender: istObjekt(roh.absender) ? roh.absender : leer.absender,
 			ziel: istObjekt(roh.ziel) ? roh.ziel : leer.ziel,
@@ -491,6 +517,10 @@ export function verschmelzeZustand(imSpeicher, vonPlatte) {
  * Sperrdatei scheitert, waere schlimmer als ein moeglicher Zaehlerverlust — die
  * Bremse ist eine Hoeflichkeitsbremse (siehe `ladeZustand`), die Zustellung ist
  * der Zweck.
+ *
+ * **Asynchron, mit Absicht.** Das Warten ist ein `setTimeout`, keine leere
+ * Schleife: dieses Modul laeuft im Host-Prozess, in dem alle Sitzungen des
+ * Menschen leben. Ein blockierendes Warten von 600 ms friert sie alle mit ein.
  */
 const SPERRE_VERALTET_MS = 5_000;
 /**
@@ -508,7 +538,20 @@ const SPERRE_VERALTET_MS = 5_000;
 const SPERRE_VERSUCHE = 200;
 const SPERRE_WARTE_MS = 3;
 
-export function mitSperre(pfad, aktion) {
+/**
+ * Wartet, ohne den Ereignisfaden zu blockieren.
+ *
+ * **Warum das nicht optional ist.** Die erste Fassung wartete mit einer leeren
+ * Schleife (`while (Date.now() < bis) {}`) — und die laeuft IM HOST-PROZESS, in
+ * dem alle Sitzungen des Menschen leben. Ein Werkzeug, das dort 600 ms busy
+ * wartet, friert jede andere Sitzung mit ein. Das waere schlimmer als der
+ * Zaehlerverlust, den die Sperre verhindern soll.
+ */
+function warte(ms) {
+	return new Promise((fertig) => setTimeout(fertig, ms));
+}
+
+export async function mitSperre(pfad, aktion) {
 	const sperre = `${pfad}.lock`;
 	mkdirSync(dirname(pfad), { recursive: true });
 	for (let versuch = 0; versuch < SPERRE_VERSUCHE; versuch += 1) {
@@ -537,12 +580,32 @@ export function mitSperre(pfad, aktion) {
 					continue;
 				}
 			} catch { /* zwischenzeitlich weg: naechster Versuch */ }
-			const bis = Date.now() + SPERRE_WARTE_MS;
-			while (Date.now() < bis) { /* kurz warten, der Abschnitt ist synchron */ }
+			await warte(SPERRE_WARTE_MS);
 		}
 	}
 	// Aufgeben: lieber zustellen als an einer Sperrdatei haengen bleiben.
 	return aktion();
+}
+
+/**
+ * Baut die Nachricht — **mit Kennung**.
+ *
+ * `createUserMessage` stammt aus dem Kernmodul (nicht vom Dienst, siehe
+ * `PAKET_NACHRICHTEN`) und vergibt ueber `createMessage` eine `id`
+ * (`dsh-llm/lib/index.js:37-42`). Ist es nicht ladbar, wird eine eigene Kennung
+ * erzeugt: eine Nachricht OHNE `id` laesst den Posteingang des Ziels werfen,
+ * sobald zwei ausstehen (`dsh-agent-loop/lib/index.js:191-192`).
+ */
+export function baueNachricht(inhalt, quelle, baustein = nachrichtenBaustein) {
+	if (typeof baustein?.createUserMessage === "function") {
+		return baustein.createUserMessage({ content: inhalt, source: quelle });
+	}
+	return {
+		id: `s2s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+		role: "user",
+		content: inhalt,
+		source: quelle
+	};
 }
 
 /** Die Kante eines geordneten Paares, wie das Buch sie schluesselt. */
@@ -765,7 +828,15 @@ export function apply(ctx, optionen = {}) {
 		let abgemeldet = false;
 		let ab;
 		(async () => {
+			// Beides laden: das Werkzeug-Geruest und die Nachrichten-Fabrik.
+			[nachrichtenBaustein, werkzeugBaustein] = await Promise.all([
+				ladeKern(PAKET_NACHRICHTEN),
+				ladeKern(PAKET_WERKZEUGE)
+			]);
 			werkzeugBaustein ??= await ladeKern(PAKET_WERKZEUGE);
+			if (typeof nachrichtenBaustein?.createUserMessage !== "function") {
+				melden("warn", "createUserMessage ist nicht auffindbar; Nachrichten bekommen eine eigene Kennung");
+			}
 			if (abgemeldet) return;
 			const defineTool = werkzeugBaustein?.defineTool;
 			if (typeof defineTool !== "function") {
@@ -810,9 +881,12 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 			"- It does not replace `send_message`: that one talks to your own children and stays unchanged.",
 			"- It grants no authority: the message arrives as a plugin message and opens no goal.",
 			"",
-			"MODES: `steer` (default) arrives at the target's next natural step and does NOT interrupt.",
+			"MODES: `steer` (default) arrives at the target's next natural step. It does NOT interrupt a running",
+			"turn — but it DOES wake an idle one, so the target starts a turn.",
 			"`followup` queues a new turn and wakes the target — use it only when the target should act now.",
 			"`auto` picks by the target's live state: running → steer, idle → followup.",
+			"A ROOT session (the one the human is typing in) always receives `inject`: the message waits in",
+			"its inbox until the human acts. A foreign agent must not pull the human's session into a turn.",
 			"",
 			"LIMITS: at most 6 messages per sender and 6 per target within 10 minutes;",
 			"one ordered sender/target pair may exchange at most 2 messages in that window.",
@@ -825,13 +899,13 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 		parameters: {
 			target: {
 				type: "string",
-				description: "Session id or a distinctive part of the session title. Omit to list all live sessions."
+				description: "Session id, a unique prefix of it, or part of its working directory (cwd). Omit to list all live sessions."
 			},
 			message: { type: "string", description: "The message to deliver." },
 			mode: {
 				type: "string",
 				enum: ["auto", "steer", "followup"],
-				description: "steer (default) = next step, no interruption. followup = new turn, wakes the target. auto = by the target's live state."
+				description: "steer (default) = next step. followup = new turn. auto = by the target's live state. A root session always gets inject."
 			}
 		},
 		output: {
@@ -890,7 +964,7 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 			// Deshalb liegt der ganze Abschnitt unter `mitSperre`; die Zustellung selbst
 			// passiert INNERHALB, damit zwischen Pruefung und Buchung nichts fremdes
 			// dazwischenkommen kann.
-			const ausgang = mitSperre(pfad, () => {
+			const ausgang = await mitSperre(pfad, () => {
 				// Stand von der Platte holen und mit dem eigenen vereinigen.
 				const zusammengefuehrt = verschmelzeZustand(zustand, ladeZustand(pfad));
 				zustand.absender = zusammengefuehrt.absender;
@@ -916,24 +990,40 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 					return { delivered: false, note: `${kettenPruefung.befund}: ${kettenPruefung.text}` };
 				}
 
-				// (3) Die Wurzelsitzung ist die, mit der der Mensch spricht. Ein `followup`
-				// dort startet eine NEUE RUNDE in seiner eigenen Sitzung — das darf kein
-				// fremder Agent ausloesen. `steer` ist erlaubt: es kommt an der naechsten
-				// Grenze an, ohne eine Runde zu oeffnen.
-				const istWurzel = typeof dienstAgenten.roots === "function"
-					&& dienstAgenten.roots().some((a) => a.id === zielId);
+				// (4) Die Wurzelsitzung ist die, mit der der Mensch spricht.
+				//
+				// **Korrektur 2026-10-31 (Red-Team-Befund HOCH-2).** Hier stand, `steer`
+				// sei erlaubt, weil es „ohne eine Runde zu oeffnen" ankomme. Das ist
+				// FALSCH: `steer` ruft `send(input, "next-step", true)`
+				// (`dsh-agent-loop/lib/index.js:809-811`), und das dritte Argument ist das
+				// Wecken. Der Kernvertrag sagt es ausdruecklich: „An idle driver starts a
+				// turn" (`dsh-agent/types/runtime-types.d.ts:194`). Die EINZIGE
+				// Zustellart ohne Wecken ist `inject` (`:812-814`).
+				//
+				// Folge: eine Wurzelsitzung bekommt `inject` — die Nachricht liegt dann
+				// im Posteingang, bis der Mensch selbst etwas tippt. Das ist gewollt: ein
+				// fremder Agent darf die Sitzung des Menschen nicht in eine Runde ziehen.
+				// Der Preis steht in der Antwort: die Nachricht kann warten.
+				let istWurzel = false;
+				try {
+					istWurzel = typeof dienstAgenten.roots === "function"
+						&& dienstAgenten.roots().some((a) => a.id === zielId);
+				} catch (fehler) {
+					// Kein stiller Ausfall: ohne roots() ist der Schutz nicht da, und das
+					// muss sichtbar sein (Red-Team-Befund MITTEL-4).
+					melden("warn", `roots() warf (${String(fehler)}); der Wurzelschutz greift fuer diesen Aufruf nicht`);
+					istWurzel = false;
+				}
 				const gewuenscht = loeseModus(args.mode, ziel);
-				const modus = istWurzel && gewuenscht === "followup" ? "steer" : gewuenscht;
-				if (istWurzel) melden("info", `ziel ist eine Wurzelsitzung; modus auf ${modus} begrenzt`);
+				const modus = istWurzel ? "inject" : gewuenscht;
+				if (istWurzel) melden("info", `ziel ist eine Wurzelsitzung; modus auf inject begrenzt (weckt nicht)`);
 
 				const inhalt = baueInhalt(args.message, absenderAgent.id, absenderAgent.session?.cwd);
 				const quelle = baueQuelle(absenderAgent.id, zielId);
 				try {
-					const llm = dienst("llm");
-					const nachricht = typeof llm?.createUserMessage === "function"
-						? llm.createUserMessage({ content: inhalt, source: quelle })
-						: { role: "user", content: inhalt, source: quelle };
-					if (modus === "followup") ziel.followup(nachricht);
+					const nachricht = baueNachricht(inhalt, quelle);
+					if (modus === "inject") ziel.inject(nachricht);
+					else if (modus === "followup") ziel.followup(nachricht);
 					else ziel.steer(nachricht);
 				} catch (fehler) {
 					const text = fehler instanceof Error ? fehler.message : String(fehler);
