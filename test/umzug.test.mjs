@@ -93,7 +93,15 @@ const SHA256_ABWEICHEND = {
 	//      in der Test-Sitzung mehr als 20-mal im System-Prompt.
 	// Aenderungen: Protokoll-Drossel (20 Zeilen/s), eigener Stand "fremd" ohne Warnung,
 	// Schluessel ueber die Sitzungs-Kennung, Aufraeumer auf `agent/disposed`.
-	'stille-nachrichten.mjs': '6fa2af089e341e1c8de48bf32aec6062b2656de6b8e861a64c2efda5e434b1f6'
+	//
+	// Zweite Runde (Red-Team M3/M5/N1, 2026-10-31):
+	//  (1) Logpfad nach ~/.dsh/.tm/teams-plus/logs/ (E1) samt mkdirSync — vorher haette
+	//      der Umzug das Protokoll still verschluckt, weil appendFileSync ohne Ordner wirft;
+	//  (2) der Spawn-Anhang der Kaskaden-Regel ist ENTFERNT — sie stand damit zweimal im
+	//      Modell-Input (Spawn-Prompt und System-Sektion). Die Sektion traegt sie allein;
+	//      Begruendung und gemessener Beleg stehen bei `kaskadenRegelTraeger`;
+	//  (3) die Drossel-Summenzeile wird jetzt auch bei Ruhe geschrieben (Timer mit unref).
+	'stille-nachrichten.mjs': '82a080adf2a872eb18d7786c55e8faa9aed7cb84d6089d183cc8992fc5456946'
 }
 
 /** Die 18 A-Dateien: sie schreiben in die DSH-Installation. */

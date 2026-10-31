@@ -56,9 +56,9 @@
  * Protokoll:      ~/.dsh/logs/stille-nachrichten.log
  */
 
-import { appendFileSync } from "node:fs";
+import { appendFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
@@ -69,8 +69,8 @@ export const inject = ["tools", "agents", "agentTeams", "systemPrompt"];
 
 /** Marke auf der umgebogenen Ausfuehrung: verhindert Stapeln nach einem Neuladen. */
 const MARKE = Symbol.for("stille-nachrichten.umgebogen");
-/** Dieselbe Marke auf `spawn_teammate`, damit ein Neuladen nicht stapelt. */
-const MARKE_SPAWN = Symbol.for("stille-nachrichten.spawn-umgebogen");
+// Die fruehere Marke auf `spawn_teammate` entfaellt mit dem Spawn-Anhang (siehe
+// `kaskadenRegelTraeger`): es gibt nichts mehr umzubiegen.
 
 /** Das Werkzeug, um das es geht. */
 export const WERKZEUG = "send_message";
@@ -90,10 +90,56 @@ const DROSSEL_JE_SEKUNDE = 20;
 let drosselFenster = 0;
 let drosselZaehler = 0;
 let drosselUnterdrueckt = 0;
+/**
+ * Wartet auf Ruhe und schreibt dann die Summenzeile.
+ *
+ * Ohne ihn ging die Summe verloren, sobald der Sturm aufhoerte: sie wurde nur
+ * beim NAECHSTEN Aufruf geschrieben, und wenn keiner mehr kam, nie. Red-Team-
+ * Befund N1, gemessen: 25 Agenten → 20 Zeilen, nach 1,2 s Ruhe keine Summe.
+ * `unref()` sorgt dafuer, dass der Timer den Prozess nicht am Leben haelt.
+ */
+let drosselTimer = null;
 
-/** Der Pfad des Protokolls. Ueber DSH_STILLE_NACHRICHTEN_LOG umlenkbar (Tests). */
+/**
+ * Der Pfad des Protokolls: `~/.dsh/.tm/teams-plus/logs/stille-nachrichten.log`.
+ *
+ * E1 des Pakets: alle eigenen Daten eines Plugins liegen unter `~/.dsh/.tm/<plugin>`,
+ * damit ein Paket-Update sie nie ueberschreibt und der Mensch sie an EINER Stelle
+ * findet. Bis 2026-10-31 schrieb dieses Modul nach `~/.dsh/logs/` und
+ * widersprach damit der eigenen README (Red-Team-Befund M3).
+ *
+ * `DSH_STILLE_NACHRICHTEN_LOG` lenkt um (Tests).
+ */
 function protokollPfad() {
-	return process.env.DSH_STILLE_NACHRICHTEN_LOG ?? join(homedir(), ".dsh", "logs", "stille-nachrichten.log");
+	if (typeof process.env.DSH_STILLE_NACHRICHTEN_LOG === "string" && process.env.DSH_STILLE_NACHRICHTEN_LOG.length > 0) {
+		return process.env.DSH_STILLE_NACHRICHTEN_LOG;
+	}
+	const heim = process.env.DSH_HOME ?? join(homedir(), ".dsh");
+	return join(heim, ".tm", "teams-plus", "logs", "stille-nachrichten.log");
+}
+
+/**
+ * Legt den Ordner des Protokolls an.
+ *
+ * Warum das noetig ist: `appendFileSync` wirft, wenn der Ordner fehlt — und das
+ * `catch` unten verschluckt es. Unter `~/.dsh/logs/` fiel das nie auf, weil den
+ * Ordner die Installation selbst anlegt; unter `~/.dsh/.tm/teams-plus/logs/`
+ * legt ihn niemand ausser uns. Ohne diese Zeile waere das Protokoll nach dem
+ * Umzug still verschwunden.
+ */
+function sorgeFuerOrdner(pfad) {
+	try { mkdirSync(dirname(pfad), { recursive: true }); } catch { /* das append scheitert dann sichtbar-laut im catch */ }
+}
+
+/** Schreibt die aufgelaufene Summenzeile, falls es eine gibt. */
+function schreibeDrosselSumme() {
+	if (drosselUnterdrueckt <= 0) return;
+	try {
+		const pfad = protokollPfad();
+		sorgeFuerOrdner(pfad);
+		appendFileSync(pfad, `${new Date().toISOString()} [Drossel] ${drosselUnterdrueckt} Zeile(n) unterdrueckt.\n`);
+	} catch { /* Das Protokoll ist Beigabe, nie Bedingung. */ }
+	drosselUnterdrueckt = 0;
 }
 
 /** Schreibt eine Zeile ins Protokoll; ein Fehler dabei stoert nie. */
@@ -101,19 +147,26 @@ function protokolliere(text) {
 	try {
 		const jetzt = Math.floor(Date.now() / 1000);
 		if (jetzt !== drosselFenster) {
-			if (drosselUnterdrueckt > 0) {
-				appendFileSync(protokollPfad(), `${new Date().toISOString()} [Drossel] ${drosselUnterdrueckt} Zeile(n) unterdrueckt.\n`);
-				drosselUnterdrueckt = 0;
-			}
+			schreibeDrosselSumme();
 			drosselFenster = jetzt;
 			drosselZaehler = 0;
 		}
 		if (drosselZaehler >= DROSSEL_JE_SEKUNDE) {
 			drosselUnterdrueckt += 1;
+			// Nach einer Sekunde Ruhe die Summe schreiben, auch wenn kein Aufruf mehr kommt.
+			if (drosselTimer === null && typeof setTimeout === "function") {
+				drosselTimer = setTimeout(() => {
+					drosselTimer = null;
+					schreibeDrosselSumme();
+				}, 1000);
+				if (typeof drosselTimer?.unref === "function") drosselTimer.unref();
+			}
 			return;
 		}
 		drosselZaehler += 1;
-		appendFileSync(protokollPfad(), `${new Date().toISOString()} ${text}\n`);
+		const pfad = protokollPfad();
+		sorgeFuerOrdner(pfad);
+		appendFileSync(pfad, `${new Date().toISOString()} ${text}\n`);
 	} catch { /* Das Protokoll ist Beigabe, nie Bedingung. */ }
 }
 
@@ -262,22 +315,31 @@ export function kaskadenRegel() {
 }
 
 /**
- * Erweitert eine `spawn_teammate`-Definition, damit jedes neue Teammitglied die
- * Kaskaden-Regel im Prompt bekommt.
+ * Warum es diese Funktion NICHT MEHR gibt — und was die Regel jetzt traegt.
  *
- * @param {object} definition - die aufgelöste Werkzeug-Definition.
- * @returns {{stand: "fertig"|"aufgeben", zurueck?: () => void}}
+ * Bis 2026-10-31 haengte dieses Modul die Kaskaden-Regel an ZWEI Stellen an: als
+ * Anhang des Spawn-Prompts (`spawn_teammate`, hier) und als System-Sektion im
+ * Agenten-Scope (`regelFuer`). Ein Teammitglied trug sie damit zweimal im
+ * Modell-Input — Red-Team-Befund M5, Token-Verschwendung bei JEDEM neuen Mitglied.
+ *
+ * Die Sektion allein traegt sie zuverlaessig; das ist gemessen, nicht gehofft:
+ *   1. Das Roster schreibt ein Mitglied als `provisioning` fest, BEVOR es startet,
+ *      und `tryMembership` erkennt schon `provisioning` als `teammate`
+ *      (`dsh-experimental-agent-team/lib/types/roster.js:87-89`).
+ *   2. `agent/created` feuert danach, `regelFuer` traegt die Sektion ein — und
+ *      eine Test-Sitzung (`team-probe`, 2026-10-31) hat die Regel in ihrem
+ *      System-Prompt tatsaechlich vorgefunden.
+ *   3. Die Sektion bleibt ueber eine Kompaktierung hinweg stehen, der Spawn-Prompt
+ *      nicht — fuer eine Verhaltensregel ist die Sektion der bessere Traeger.
+ *
+ * Der Preis dieser Entscheidung, offen gesagt: Faellt die Sektion aus (fehlendes
+ * `systemPrompt` im Scope, unerwartete Rolle), hat das Mitglied die Regel gar
+ * nicht mehr — vorher hatte es sie wenigstens im Prompt. Das ist ein bewusster
+ * Tausch: eine Regel an einer Stelle, die traegt, statt zweimal an einer, die
+ * vielleicht traegt.
  */
-export function erweitereSpawnWerkzeug(definition) {
-	if (definition === undefined || typeof definition.execute !== "function") return { stand: "aufgeben" };
-	if (definition.execute[MARKE_SPAWN] === true) return { stand: "fertig" };
-	const grundExecute = definition.execute;
-	definition.execute = async function (args, exec) {
-		if (typeof args?.prompt !== "string") return grundExecute.call(this, args, exec);
-		return grundExecute.call(this, { ...args, prompt: args.prompt + "\n\n" + kaskadenRegel() }, exec);
-	};
-	definition.execute[MARKE_SPAWN] = true;
-	return { stand: "fertig", zurueck() { definition.execute = grundExecute; } };
+export function kaskadenRegelTraeger() {
+	return "systemPrompt.section (regelFuer)";
 }
 
 /**
@@ -308,7 +370,7 @@ export function apply(ctx) {
 	};
 
 	const ruecknahmen = new WeakMap();
-	const spawnRuecknahmen = new WeakMap();
+
 	/**
 	 * Die eingetragene Regel, nach **Sitzungs-Kennung** geschluesselt.
 	 *
@@ -376,19 +438,6 @@ export function apply(ctx) {
 		return "fertig";
 	};
 
-	/** `spawn_teammate` bekommt die Kaskaden-Regel als Anhang des Auftrags. */
-	const erweitereSpawn = (agent) => {
-		let definition;
-		try {
-			definition = ctx.tools.get("spawn_teammate", agent);
-		} catch { return "spaeter"; }
-		if (definition === undefined) return "spaeter";
-		const ergebnis = erweitereSpawnWerkzeug(definition);
-		if (ergebnis.stand === "aufgeben") return "aufgeben";
-		if (ergebnis.zurueck !== undefined) spawnRuecknahmen.set(definition, ergebnis.zurueck);
-		return "fertig";
-	};
-
 	const durchgang = () => {
 		let erweitert = 0;
 		let aufgegeben = false;
@@ -396,7 +445,6 @@ export function apply(ctx) {
 			const ergebnis = erweitere(agent);
 			if (ergebnis === "fertig") erweitert += 1;
 			if (ergebnis === "aufgeben") aufgegeben = true;
-			erweitereSpawn(agent);
 			regelFuer(agent);
 		}
 		return { erweitert, aufgegeben };
@@ -425,9 +473,6 @@ export function apply(ctx) {
 				let definition;
 				try { definition = ctx.tools.get(WERKZEUG, agent); } catch { definition = undefined; }
 				if (definition !== undefined) ruecknahmen.get(definition)?.();
-				let spawn;
-				try { spawn = ctx.tools.get("spawn_teammate", agent); } catch { spawn = undefined; }
-				if (spawn !== undefined) spawnRuecknahmen.get(spawn)?.();
 			}
 			for (const [sitzung, abmelden] of promptRegistriert) {
 				void sitzung;
@@ -553,23 +598,10 @@ if (alsHauptmodul) {
 		pruefe(zweit.neu, false, "die zweite meldet neu: false — sie hat nichts getan");
 	}
 
-	// --- 3. spawn_teammate haengt die Kaskaden-Regel an den Auftrag ---
-	{
-		const aufrufe = [];
-		const definition = {
-			name: "spawn_teammate",
-			parameters: { type: "object", properties: { name: { type: "string" }, prompt: { type: "string" } }, required: ["name", "prompt"] },
-			execute: async function (args) { aufrufe.push(args); return { member: { target: args.name } }; }
-		};
-		const stand = erweitereSpawnWerkzeug(definition);
-		pruefe(stand.stand, "fertig", "spawn erweitert");
-		definition.execute({ name: "experte", prompt: "Bau das Dach." }, {});
-		pruefe(aufrufe[0].prompt.startsWith("Bau das Dach."), true, "der Auftrag bleibt vorn");
-		pruefe(aufrufe[0].prompt.includes("KEINE MENSCHEN-NACHAHMUNG"), true, "die Kaskaden-Regel ist angehaengt");
-		stand.zurueck();
-		definition.execute({ name: "x", prompt: "Nur das." }, {});
-		pruefe(aufrufe[1].prompt, "Nur das.", "Ruecknahme stellt den rohen Auftrag her");
-	}
+	// --- 3. Die Kaskaden-Regel hat GENAU EINEN Traeger (Red-Team-Befund M5) ---
+	// Frueher hing sie zusaetzlich am Spawn-Prompt und stand damit zweimal im
+	// Modell-Input. Jetzt traegt sie allein die System-Sektion (regelFuer).
+	pruefe(kaskadenRegelTraeger().startsWith("systemPrompt.section"), true, "die Sektion ist der benannte Traeger der Mitglied-Regel");
 
 	// --- 4. Die Regeln verbieten die Bestaetigungskette ---
 	pruefe(kaskadenRegel().includes("ich habe deine Nachricht bekommen"), true, "die Mitglied-Regel nennt die Bestaetigung");
