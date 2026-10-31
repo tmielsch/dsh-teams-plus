@@ -4,6 +4,20 @@
 > (`docs/STOPP-V0.4.0.md`, Bericht `docs/REDTEAM-SEND-TO-SESSION.md`). Grund: `source.kind` ist im
 > Kern eine Berechtigung, nicht ein Etikett. Die letzte saubere Fassung ist **v0.3.1**.
 > Das Werkzeug ist nicht geladen — das Profil lädt nur den Host-Eintrag.
+>
+> **Korrektur (2026-10-31, 03:20) — die Sperre ist im Betrieb NICHT in Kraft.** Die STOPP-Datei
+> prüfte `~/.dsh/profiles/web/cordis.patch.yml` und fand dort 0 Treffer. Das Paket ist aber ein
+> **Bundle**: sein eigener `cordis.patch.yml` lädt alle sieben Zeilen, `send-to-session`
+> eingeschlossen. Live gemessen: `include:send-to-session` steht auf `enabled: true`,
+> `fiberPhase: active`, die Datei im Profil ist byte-gleich der gesperrten
+> (`md5 38683855484768a3a43e9dc49cab899c`), und in den Sitzungsprotokollen stehen **20** Aufrufe.
+> **Die gesperrte Fassung läuft.** Wer das ändern will, baut v0.5.0 ein oder entfernt die Zeile.
+>
+> **v0.5.0 liegt vor, ist aber nicht eingebaut:** `docs/VORLAGE-V0.5.0.md`. Dort sind alle fünf
+> Befunde des Red Teams abgearbeitet — Quellart `plugin` statt `agent-send`, Bremse je Absender
+> **und** je Ziel, Zustand auf der Platte statt nur im Speicher, Kettenbudget (4 Sprünge,
+> 2 Rundläufe je Paar, keine Wortwiederholung), 22 Tests grün, 116 im ganzen Paket. Ohne
+> Red-Team-Freigabe geht sie nicht ins Profil (`AGENTS.md`, Regel 1).
 
 
 Das Paket, das Agent Teams in DeepSeek Harness erst vollständig benutzbar macht: die Unlocks,
