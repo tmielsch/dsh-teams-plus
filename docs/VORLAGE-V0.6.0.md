@@ -76,13 +76,64 @@ Die Tests sind **hermetisch**: `DSH_HOME` wird auf ein `mkdtemp`-Verzeichnis ges
 Modul geladen wird. Ohne das schriebe die Suite in die Ablage des Menschen — dem Red Team ist genau
 das an der Vorgängerfassung aufgefallen.
 
+## Drei Gegenproben, die der Autor selbst gefahren hat
+
+Eine Prüfung ohne Fall, der scheitern kann, ist keine Prüfung (Issue #10 im Verwaltungs-Repo).
+Deshalb hier drei Messungen mit beiden Ausgängen:
+
+**(1) Wird der Encode-Test wirklich rot?** Kopie des Repos unter `/tmp`, `QUELL_ART` zurück auf
+`"plugin"` gesetzt (den Blocker), Suite gegen die Kopie:
+
+```
+not ok 1  - die Quelle kommt durch den ECHTEN v4-Codec (der Blocker aus v0.5.0)
+not ok 2  - die Quelle ist NICHT `plugin` — genau das lehnt der Codec ab
+not ok 3  - die Quelle ist die dokumentierte Erzeuger-Art und oeffnet kein Ziel
+not ok 21 - die Zustellung geht an den naechsten Schritt, nicht in eine neue Runde
+# tests 27   # pass 23   # fail 4
+```
+
+Vier Tests werden rot, darunter der Encode-Test. Mit der richtigen Quelle: 27/27 grün. **Der Test
+kann scheitern.**
+
+**(2) Existiert `session.header.cwd` zur Laufzeit?** Das ist die Frage, an der die alte Fassung
+gescheitert ist (`session.title` gab es nicht). Gemessen an einer echten `Session`:
+
+```
+SESSION_FORMAT_VERSION: 4
+hat header: true
+header.cwd: /tmp/x
+hat title: false
+Header-Schluessel: version, id, createdAt, isSeeded, cwd
+```
+
+`header.cwd` gibt es, `title` nicht. Die Zielsuche liest ein Feld, das existiert.
+
+**(3) Wie viele Prozesse können die Zustandsdatei gleichzeitig schreiben (M1)?**
+
+```
+ps: node /opt/homebrew/bin/dsh web --no-open          (der Web-Host)
+ps: node /opt/homebrew/bin/dsh --profile sicht        (fluechtig, beim zweiten Blick weg)
+Profilaulagen: headless laedt @tmielsch/dsh-teams-plus NICHT, web schon
+```
+
+**Ein** Prozess lädt das Plugin. Der Pfad `~/.dsh/.tm/teams-plus/state/` ist allerdings **nicht
+pro Profil** getrennt: Sobald ein zweites Profil das Paket lädt (oder ein zweiter `dsh web` läuft),
+schreiben zwei Prozesse dieselbe Datei. M1 ist damit heute **theoretisch** und morgen **echt** —
+eine Auflage, kein Blocker.
+
 ## Offene Auflagen vor dem Einbau
 
 1. **H3:** Die gesperrte v0.4.0 läuft. Entweder v0.6.0 einbauen (nach diesem Pass) oder die Zeile
    entfernen. Der jetzige Zustand ist der schlechteste von beiden.
-2. **M1:** Lost Update über zwei Prozesse — Lock oder Read-Merge.
+   Die beiden Wege stehen fertig in `docs/EINBAU-UND-RUECKNAHME.md`.
+2. **M1:** Lost Update über zwei Prozesse — Lock oder Read-Merge. Schwere gemessen: nur **ein**
+   Prozess lädt das Paket, der Pfad ist aber nicht profilgetrennt. Heute theoretisch.
 3. **H2:** Die Zustandsdatei ist keine Sicherheitsgrenze. Entweder in einen geschützten Store legen
    oder im Kopf ausdrücklich als Höflichkeitsbremse führen (letzteres ist getan).
-4. **M3:** `stille-nachrichten.mjs` schreibt weiter nach `~/.dsh/logs/`. Derselbe Umzug fehlt dort.
-5. **M5:** Die Kaskaden-Regel steht beim Teammitglied zweimal im Modell-Input (Spawn-Prompt **und**
-   System-Sektion). Token-Verschwendung, kein Fehler.
+4. ~~**M3:** `stille-nachrichten.mjs` schreibt nach `~/.dsh/logs/`.~~ **erledigt** in `cb5c7db`:
+   jetzt `~/.dsh/.tm/teams-plus/logs/`, samt `mkdirSync` — ohne den hätte der Umzug das Protokoll
+   still verschluckt.
+5. ~~**M5:** Die Kaskaden-Regel steht zweimal im Modell-Input.~~ **erledigt** in `cb5c7db`: der
+   Spawn-Anhang ist entfernt, die System-Sektion trägt sie allein. Gemessen: 25 Agenten → 20
+   Protokollzeilen + 1 Summenzeile nach 1,3 s Ruhe (vorher ging die Summe bei Ruhe verloren, N1).
+
