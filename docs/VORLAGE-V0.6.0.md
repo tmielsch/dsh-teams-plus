@@ -48,12 +48,14 @@ Test gedeckt, der rot werden kann. Zwei HOCH-Befunde standen davor:
 | **MITTEL-3** Hermetik-Nachweis maß am alten Logpfad | Der Code schreibt dort nicht mehr — die Messung konnte nicht scheitern | Positiv- und Negativkontrolle am neuen Pfad: neuer Pfad wächst, alter nicht |
 | **MITTEL-4** Fehlendes `roots()` fiel still aus | Ohne den Dienst ging `followup` durch, ohne Meldung | `roots()` steht in `try`, ein Ausfall wird gemeldet; ein werfendes `roots()` verhindert die Zustellung nicht |
 | **NIEDRIG-1** Skalare in der Zustandsdatei still akzeptiert | `null`, `42`, `"x"` galten als frischer Anfang | Sie gelten als `kaputt` und werden gemeldet |
+| **NIEDRIG-2** Der Berechtigungs-Test bestätigte sich selbst | Er verglich `quelle.kind` mit der eigenen Konstante und die drei `notEqual` gegen hartkodierte Zeichenketten — das konnte nicht fehlschlagen, wenn der Kern seine Meinung ändert | **behoben in `f28d4f8`**: der Test liest die akzeptierten Arten jetzt aus `hasDirectHumanInput` **selbst**. Gegenprobe: `QUELL_ART = "user"` macht ihn rot |
 | **NIEDRIG-3** Parameterbeschreibung versprach eine Titelsuche | Es gibt keinen Titel; die Suche liest `header.cwd` | Beschreibung korrigiert |
+| **NIEDRIG-5** Der Codec-Pfad im Test war absolut | `/opt/homebrew/…` band den Test an diesen Rechner und an die Formatgeneration | **behoben in `f28d4f8`**: Codec und Kern werden über die Modulauflösung und bekannte Installationsorte gesucht; findet sich keiner, **scheitert** der Test laut statt still |
 
-**Nicht abgearbeitet, mit Absicht:** NIEDRIG-2 (Test 2 prüft teilweise sich selbst), NIEDRIG-4 (der
-Client zeigt `plugin:…` als menschliche Anfrage — die Herkunft trägt nur der Text), NIEDRIG-5
-(absoluter Codec-Pfad im Test), NIEDRIG-6 (die Policy-Tests der Suite sind nicht hermetisch).
-Alle vier sind benannt und keine davon berührt die Zustellung.
+**Nicht abgearbeitet, mit Absicht:** NIEDRIG-4 (der Client zeigt `plugin:…` als menschliche Anfrage —
+die Herkunft trägt nur der Nachrichtentext) und NIEDRIG-6 (die Installer-/Policy-Tests der Suite sind
+nicht hermetisch; das betrifft nicht dieses Modul, die Vorlage sagt es jetzt eingeschränkt).
+Beide berühren die Zustellung nicht.
 
 ## Drei Gegenproben zu den Reparaturen
 
