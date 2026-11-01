@@ -63,3 +63,40 @@ wartet. Genau dafür ist Issue #14 gedacht (Goal pausiert statt weiterzulaufen).
 
 **Nichts ohne Red Team pass integrieren** (`~/.dsh/AGENTS.md`, Regel 1). Das gilt auch für A-Punkte:
 bauen und messen ja, in ein laufendes Profil einbauen erst nach einem Pass.
+
+## Nachtrag 2026-11-01, 16:55 — Red-Team-STOPP auf die Rollentexte
+
+Der Pass gegen `rollen/abteilungsleiter.md` und `rollen/arbeitsgruppenleiter.md` endete mit **STOPP**.
+Vollständiger Bericht beim Auftraggeber; die Befunde sind in `tmielsch/DSH-Verwaltung` als Issues
+#18 (Teamlead-Rolle), #19 (Sub-Agent-Löschung) und #20 (Rollentext hält nicht vom Selbstarbeiten ab)
+festgehalten.
+
+**Vollzogen und heute erledigt:**
+
+- **B1 — die Texte waren live, ohne Pass.** Zurückgezogen: umbenannt zu
+  `rollen/_ZURUECKGEZOGEN-abteilungsleiter.md` und `_ZURUECKGEZOGEN-arbeitsgruppenleiter.md`.
+  Die Werkzeuge filtern Dateien mit führendem Unterstrich aus — gemessen: vorher 8 abrufbare Rollen,
+  nachher 6. Die Arbeit ist erhalten, nichts gelöscht.
+- **B4 — der Arbeitsgruppenleiter-Text erlaubte eigenmächtige Neueinstellungen.** Widersprach der
+  ausdrücklichen Anordnung des Menschen vom 2026-10-26 (`~/.dsh/AGENTS.md` 571–591, wörtlich
+  „Das ist ein Befehl"). `docs/ROLLEN.md` korrigiert in `5a2540b`: neue Facharbeiter nur mit
+  Erlaubnis des Abteilungsleiters, bestehende weiterbenutzen.
+- **Wächter gebaut** (`a02c548`): ein Test prüft, dass die zwei Rollen **nicht** ausgeliefert werden.
+  Gegenprobe gefahren — Rolle zurückbenannt, Test rot, mit der Meldung
+  *„der Patch liefert abteilungsleiter aus, obwohl die Rolle zurueckgezogen ist"*.
+  Der Test prüft die echte Auslieferung über `subagentRollenListe`/`rollenListe`, nicht seine
+  eigene Erwartung. **138 Tests grün.**
+
+**Offen — braucht Entscheidung oder Bau, keine Doku:**
+
+| Befund | Was fehlt |
+|---|---|
+| **B2** Der Arbeitsgruppenleiter (Teammate) bekommt seinen Rollentext **nie** — `spawn_teammate` hat kein `rolle`-Feld | Ein `rolle`-Feld an `spawn_teammate` (Muster wie `patches/teammate-model.mjs`) + Test der ersten Nachricht |
+| **B3** Die Session mit dem Menschen bekommt ihn auch nicht — kein Mechanismus für die Wurzelsitzung | Preset- oder System-Prompt-Abschnitt, oder eine ausdrückliche Unterabteilungs-Fassung |
+| **H2** Ein Rollentext hält nicht vom Selbstarbeiten ab (beide Proben haben `echo hallo` selbst ausgeführt) | Harte Grenze: Werkzeugfilter für die Leitungsrolle + Abbruchzweig + Test, der rot werden kann → Issue #20 |
+| **H9** `~/.dsh/AGENTS.md` ist 77 078 Bytes, Budget 65 536 — wird in neuen Sitzungen **ganz weggelassen** | Datei unter das Budget bringen (der ProjectOS-Block wiederholt den TEAMSPLUS-Block fast wörtlich) |
+| **H10** Zwei Rollenordnungen stehen gleichzeitig in den Anweisungsdateien | Entscheidung des Menschen: 2026-10-25 oder die neue |
+
+**Was das für den Backlog bedeutet:** Die Rollentexte sind **kein erledigter Punkt**, sondern
+zurückgezogen. Sie werden erst wieder ausgeliefert, wenn B2 und B3 einen Weg haben und H2 eine
+durchsetzbare Grenze. Ein Text allein reicht nicht — das ist die Lehre dieses Passes.
