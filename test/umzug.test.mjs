@@ -124,8 +124,14 @@ const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 
 /** Die Werkzeuge mit eigener Bedienung (--status, --revert). */
 const WERKZEUGE = A_DATEIEN.filter((name) => name.startsWith('allow-'))
 
-/** Die Rollen, die mit umgezogen sind. */
-const ROLLEN = ['research.md', 'redteam.md', 'implementer.md', 'draft.md', 'rag.md', 'projektmanager.md', '_ENTWURF-team-profile.md']
+/**
+ * Die Dateien in rollen/, jede einzeln beim Namen genannt — nicht nur gezaehlt.
+ * Seit e41e482 sind es neun: acht Rollen (research, redteam, implementer, draft, rag,
+ * projektmanager, abteilungsleiter, arbeitsgruppenleiter) und der Entwurf des Team-Profils.
+ * `_ENTWURF-team-profile.md` ist keine Rolle; `rollenListe()` der Patches filtert sie ueber
+ * den fuehrenden Unterstrich aus, deshalb steht sie in der Rollenliste des Patches nicht.
+ */
+const ROLLEN = ['research.md', 'redteam.md', 'implementer.md', 'draft.md', 'rag.md', 'projektmanager.md', 'abteilungsleiter.md', 'arbeitsgruppenleiter.md', '_ENTWURF-team-profile.md']
 
 /**
  * Bekannte Meldungen, mit denen ein Werkzeug ehrlich aufhoert, wenn es nichts findet.
@@ -204,10 +210,12 @@ test('die zwei geaenderten Rollen-Patches weichen nur in der Ordneraufloesung un
 	}
 })
 
-test('die sieben Rollen sind vorhanden', () => {
+test('die neun Dateien in rollen/ sind vorhanden, keine fehlt, keine ist unerwartet', () => {
 	const fehlend = ROLLEN.filter((name) => !existsSync(join(PAKET, 'rollen', name)))
-	assert.deepEqual(fehlend, [])
-	assert.equal(readdirSync(join(PAKET, 'rollen')).length, ROLLEN.length)
+	assert.deepEqual(fehlend, [], 'in rollen/ fehlt eine Rollendatei')
+	// Namen gegen Namen, nicht Anzahl gegen Anzahl: so faellt auch eine umbenannte oder
+	// zusaetzliche Datei auf, die die Anzahl gleich liesse.
+	assert.deepEqual(readdirSync(join(PAKET, 'rollen')).sort(), [...ROLLEN].sort(), 'in rollen/ liegt eine andere Dateiliste als erwartet')
 })
 
 test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches', () => {
@@ -274,7 +282,8 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
 		// 23 Patch-Dateien; dazu kommt patches/package.json als Paketgrenze fuer den Client-Modul-Regler.
 		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 24)
-		assert.equal(readdirSync(join(ziel, 'rollen')).length, ROLLEN.length)
+		// Der Verweis muss jede Rollendatei erreichbar machen — Namen, nicht nur die Anzahl.
+		assert.deepEqual(readdirSync(join(ziel, 'rollen')).sort(), [...ROLLEN].sort(), 'der Verweis auf rollen/ erreicht nicht jede Rollendatei')
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))
 
 		// Der Rueckweg ersetzt die Verweise durch byte-gleiche Kopien.
@@ -393,7 +402,9 @@ test('beide Rollen-Patches finden den Ordner: Datenordner, Rueckfall, DSH_ROLLEN
 
 		// Die Rollen, die mit dem Paket kamen, sind in beiden Listen wirklich lesbar.
 		const paketRollen = frage(zuhause('leer', {}), join(PAKET, 'rollen'))
-		assert.deepEqual(paketRollen.listeA, ['draft', 'implementer', 'projektmanager', 'rag', 'redteam', 'research'], 'A-Patch liest die Paketrollen nicht')
+		// Die acht Rollen alphabetisch, wie `rollenListe()` sie liefert; `_ENTWURF-team-profile.md`
+		// fehlt hier absichtlich — die Patches filtern den Entwurf ueber den Unterstrich aus.
+		assert.deepEqual(paketRollen.listeA, ['abteilungsleiter', 'arbeitsgruppenleiter', 'draft', 'implementer', 'projektmanager', 'rag', 'redteam', 'research'], 'A-Patch liest die Paketrollen nicht')
 		assert.deepEqual(paketRollen.listeB, paketRollen.listeA, 'A- und B-Patch sehen verschiedene Rollenlisten')
 	} finally {
 		rmSync(werkstatt, { recursive: true, force: true })
