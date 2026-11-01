@@ -1,7 +1,7 @@
 /**
  * umzug.test.mjs — Selbstpruefung fuer den Umzug aus dsh-projectOS.
  *
- * Der Test belegt sechs Dinge:
+ * Der Test belegt sieben Dinge:
  *   1. alle 23 Patch-Dateien liegen im Paket; 21 davon sind byte-gleich zum Original (sha256),
  *      die zwei Rollen-Patches tragen die neue Fassung (Begruendung bei SHA256_ABWEICHEND),
  *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches,
@@ -10,7 +10,9 @@
  *   5. `link` haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus (geprueft in einem
  *      Temp-Zuhause, nicht im echten ~/.dsh),
  *   6. beide Rollen-Patches finden den Rollenordner: Datenordner des Pakets, Rueckfall auf
- *      ~/.dsh/rollen, und DSH_ROLLEN_DIR als Uebersteuerung.
+ *      ~/.dsh/rollen, und DSH_ROLLEN_DIR als Uebersteuerung,
+ *   7. die zwei zurueckgezogenen Rollen (Red-Team-STOPP) liegen noch im Paket, kommen aber in
+ *      der Auslieferungsliste nicht vor.
  *
  * Kein Netz, keine Schreibe in die echte DSH-Installation: die Werkzeuge laufen ausschliesslich
  * mit --status, und der Test vergleicht vorher/nachher Groesse und mtime der Zieldateien.
@@ -126,12 +128,26 @@ const WERKZEUGE = A_DATEIEN.filter((name) => name.startsWith('allow-'))
 
 /**
  * Die Dateien in rollen/, jede einzeln beim Namen genannt — nicht nur gezaehlt.
- * Seit e41e482 sind es neun: acht Rollen (research, redteam, implementer, draft, rag,
- * projektmanager, abteilungsleiter, arbeitsgruppenleiter) und der Entwurf des Team-Profils.
- * `_ENTWURF-team-profile.md` ist keine Rolle; `rollenListe()` der Patches filtert sie ueber
- * den fuehrenden Unterstrich aus, deshalb steht sie in der Rollenliste des Patches nicht.
+ * Seit dem Red-Team-STOPP sind es neun: sechs ausgelieferte Rollen (research, redteam,
+ * implementer, draft, rag, projektmanager), zwei ZURUECKGEZOGENE Rollen (abteilungsleiter,
+ * arbeitsgruppenleiter — aufbewahrt, aber nicht mehr ausgeliefert) und der Entwurf des
+ * Team-Profils. Die zwei zurueckgezogenen und der Entwurf beginnen mit einem Unterstrich;
+ * die Patches filtern genau solche Dateien aus, deshalb stehen sie in der Auslieferungsliste
+ * nicht (eigener Test unten).
  */
-const ROLLEN = ['research.md', 'redteam.md', 'implementer.md', 'draft.md', 'rag.md', 'projektmanager.md', 'abteilungsleiter.md', 'arbeitsgruppenleiter.md', '_ENTWURF-team-profile.md']
+const ROLLEN = [
+	'research.md', 'redteam.md', 'implementer.md', 'draft.md', 'rag.md', 'projektmanager.md',
+	'_ZURUECKGEZOGEN-abteilungsleiter.md', '_ZURUECKGEZOGEN-arbeitsgruppenleiter.md',
+	'_ENTWURF-team-profile.md'
+]
+
+/**
+ * Die Rollen, die das Paket ausliefert: sechs, alphabetisch — so, wie `rollenListe()` und
+ * `subagentRollenListe()` sie zurueckgeben. Festgeschrieben und NICHT aus dem Ordner abgeleitet:
+ * eine zurueckgezogene Rolle, die wieder ohne Unterstrich in rollen/ liegt, soll auffallen und
+ * nicht die Erwartung mitverschieben.
+ */
+const AUSGELIEFERTE_ROLLEN = ['draft', 'implementer', 'projektmanager', 'rag', 'redteam', 'research']
 
 /**
  * Bekannte Meldungen, mit denen ein Werkzeug ehrlich aufhoert, wenn es nichts findet.
@@ -216,6 +232,79 @@ test('die neun Dateien in rollen/ sind vorhanden, keine fehlt, keine ist unerwar
 	// Namen gegen Namen, nicht Anzahl gegen Anzahl: so faellt auch eine umbenannte oder
 	// zusaetzliche Datei auf, die die Anzahl gleich liesse.
 	assert.deepEqual(readdirSync(join(PAKET, 'rollen')).sort(), [...ROLLEN].sort(), 'in rollen/ liegt eine andere Dateiliste als erwartet')
+})
+
+/**
+ * Der Red-Team-STOPP als Test: `abteilungsleiter.md` und `arbeitsgruppenleiter.md` sind aus dem
+ * Auslieferungspfad zurueckgezogen (Red-Team-Pass mit STOPP; der Bericht liegt beim
+ * Auftraggeber) und tragen seither `_ZURUECKGEZOGEN-` vor dem Namen. Der Rollenordner ist der
+ * Auslieferungspfad: was dort ohne Unterstrich liegt, steht in `rollenListe()` und ist ueber
+ * `delegate_task` mit dem Feld `rolle` abrufbar. Deshalb haelt dieser Test BEIDES fest — die
+ * zwei Dateien sind noch da (die Arbeit ist nicht verloren), und ihre Namen kommen in keiner
+ * Auslieferungsliste mehr vor. Rot werden soll er, sobald eine der beiden wieder ohne
+ * Unterstrich in rollen/ liegt; genau so wurde die Gegenprobe gefahren.
+ */
+test('die zwei zurueckgezogenen Rollen bleiben im Paket, werden aber nicht ausgeliefert', () => {
+	// Die Erwartung steht fest und wird nicht aus dem Ordner abgeleitet: sonst wuerde eine wieder
+	// ausgelieferte Rolle die Erwartung mitverschieben, und der Test bliebe gruen.
+	const zurueckgezogen = ['abteilungsleiter', 'arbeitsgruppenleiter']
+	const werkstatt = mkdtempSync(join(tmpdir(), 'teams-plus-zurueckgezogen-'))
+	try {
+		// Derselbe Hilfsmodul-Bau wie im Rollenaufloesungs-Test: der Text, der eingespielt wird,
+		// wird als Modul geladen. Geprueft wird also der Patch, nicht eine Nachbildung.
+		const hilfeText = HILFE.nachher.split('\n').filter((zeile) => !zeile.startsWith('import z ')).join('\n')
+		const hilfePfad = join(werkstatt, 'hilfe.mjs')
+		writeFileSync(hilfePfad, `${hilfeText}\nexport { subagentRollenListe };\n`)
+		const laufPfad = join(werkstatt, 'lauf.mjs')
+		writeFileSync(laufPfad, [
+			'const [hilfePfad, titelPfad] = process.argv.slice(2)',
+			'const hilfe = await import(hilfePfad)',
+			'const titel = await import(titelPfad)',
+			'console.log(JSON.stringify({ listeA: hilfe.subagentRollenListe(), listeB: titel.rollenListe() }))',
+			''
+		].join('\n'))
+
+		// DSH_ROLLEN_DIR zeigt auf den Rollenordner des Pakets — denselben Ordner, auf den
+		// `teams-plus link` in ~/.dsh/.tm/teams-plus/rollen verweist. Ein eigenes HOME haelt das
+		// echte ~/.dsh aus dem Spiel.
+		const heim = join(werkstatt, 'heim')
+		mkdirSync(heim, { recursive: true })
+		const lauf = spawnSync(process.execPath, [laufPfad, hilfePfad, ROLLE_TITEL], {
+			encoding: 'utf8',
+			env: { ...process.env, HOME: heim, DSH_ROLLEN_DIR: join(PAKET, 'rollen') }
+		})
+		assert.equal(lauf.status, 0, `Kindprozess endet mit ${lauf.status}:\n${lauf.stdout}${lauf.stderr}`)
+		const stand = JSON.parse(lauf.stdout)
+		assert.deepEqual(stand.listeA, stand.listeB, 'A- und B-Patch liefern verschiedene Rollenlisten')
+
+		// (1) Keine der beiden wird ausgeliefert. Einzeln geprueft, damit die Fehlermeldung die
+		// Rolle nennt, statt nur zwei Listen gegeneinanderzustellen.
+		for (const rolle of zurueckgezogen) {
+			assert.ok(!stand.listeA.includes(rolle), `der Patch liefert ${rolle} aus, obwohl die Rolle zurueckgezogen ist`)
+		}
+
+		// (2) Die Arbeit ist nicht verloren: beide Dateien liegen weiterhin im Paket. Rot wird
+		// dieser Teil, wenn jemand sie loescht oder umbenennt, statt sie aufzubewahren.
+		for (const rolle of zurueckgezogen) {
+			const pfad = join(PAKET, 'rollen', `_ZURUECKGEZOGEN-${rolle}.md`)
+			assert.ok(existsSync(pfad), `${pfad} fehlt — die zurueckgezogene Rolle wurde geloescht statt aufbewahrt`)
+		}
+
+		// (3) Die uebrigen sechs Rollen sind weiterhin vollstaendig da. Eine leere oder halbe
+		// Liste wuerde (1) sonst bestehen, ohne irgendetwas zu belegen.
+		assert.deepEqual(stand.listeA, AUSGELIEFERTE_ROLLEN, 'die Auslieferungsliste ist nicht die der sechs Rollen')
+
+		// (4) Die Regel haengt am Unterstrich, nicht an diesen zwei Namen: JEDE Datei mit
+		// fuehrendem Unterstrich in rollen/ muss aus der Auslieferung verschwinden. So faellt auch
+		// eine kuenftig zurueckgezogene Rolle auf.
+		const gesperrt = readdirSync(join(PAKET, 'rollen')).filter((name) => name.startsWith('_') && name.endsWith('.md'))
+		assert.ok(gesperrt.length > 0, 'in rollen/ liegt keine Datei mit fuehrendem Unterstrich mehr — dann prueft (4) nichts')
+		for (const name of gesperrt) {
+			assert.ok(!stand.listeA.includes(name.slice(0, -3)), `${name} liegt in rollen/, wird aber ausgeliefert`)
+		}
+	} finally {
+		rmSync(werkstatt, { recursive: true, force: true })
+	}
 })
 
 test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches', () => {
@@ -402,9 +491,10 @@ test('beide Rollen-Patches finden den Ordner: Datenordner, Rueckfall, DSH_ROLLEN
 
 		// Die Rollen, die mit dem Paket kamen, sind in beiden Listen wirklich lesbar.
 		const paketRollen = frage(zuhause('leer', {}), join(PAKET, 'rollen'))
-		// Die acht Rollen alphabetisch, wie `rollenListe()` sie liefert; `_ENTWURF-team-profile.md`
-		// fehlt hier absichtlich — die Patches filtern den Entwurf ueber den Unterstrich aus.
-		assert.deepEqual(paketRollen.listeA, ['abteilungsleiter', 'arbeitsgruppenleiter', 'draft', 'implementer', 'projektmanager', 'rag', 'redteam', 'research'], 'A-Patch liest die Paketrollen nicht')
+		// Die sechs ausgelieferten Rollen alphabetisch, wie `rollenListe()` sie liefert. Die beiden
+		// zurueckgezogenen Rollen und `_ENTWURF-team-profile.md` fehlen hier absichtlich — die
+		// Patches filtern Dateien mit fuehrendem Unterstrich aus (eigener Test unten).
+		assert.deepEqual(paketRollen.listeA, AUSGELIEFERTE_ROLLEN, 'A-Patch liest die Paketrollen nicht')
 		assert.deepEqual(paketRollen.listeB, paketRollen.listeA, 'A- und B-Patch sehen verschiedene Rollenlisten')
 	} finally {
 		rmSync(werkstatt, { recursive: true, force: true })
