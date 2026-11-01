@@ -53,9 +53,17 @@ Test gedeckt, der rot werden kann. Zwei HOCH-Befunde standen davor:
 | **NIEDRIG-5** Der Codec-Pfad im Test war absolut | `/opt/homebrew/…` band den Test an diesen Rechner und an die Formatgeneration | **behoben in `f28d4f8`**: Codec und Kern werden über die Modulauflösung und bekannte Installationsorte gesucht; findet sich keiner, **scheitert** der Test laut statt still |
 
 **Nicht abgearbeitet, mit Absicht:** NIEDRIG-4 (der Client zeigt `plugin:…` als menschliche Anfrage —
-die Herkunft trägt nur der Nachrichtentext) und NIEDRIG-6 (die Installer-/Policy-Tests der Suite sind
-nicht hermetisch; das betrifft nicht dieses Modul, die Vorlage sagt es jetzt eingeschränkt).
-Beide berühren die Zustellung nicht.
+die Herkunft trägt nur der Nachrichtentext). Er berührt die Zustellung nicht.
+
+**NIEDRIG-6 ist erledigt — und die Zuordnung war falsch** (`737a9a4`, nachgetragen am 2026-11-01).
+Schuldig waren nicht die Installer-Tests, sondern `test/policy-host.test.mjs`: zwei Tests (Zeilen 343
+und 368 vor der Reparatur) riefen `apply()` ohne eigene Wurzel auf. Der Policy-Store kennt **kein**
+`DSH_HOME` (`src/policy/store.ts:43` → `datenOrdner(home = homedir())`); die Leitungen in die Ablage
+sind `TEAMS_PLUS_DATA_DIR` oder `homedir()`. Repariert über **beide** Haken — `HOME` und
+`TEAMS_PLUS_DATA_DIR`, beide gesetzt, **bevor** der Projektcode geladen wird — plus einem
+Wächter-Test, der genau diese beiden Zeilen festhält. Gemessen danach: die ganze Suite unter
+gefälschtem `HOME` hinterlässt **0** Einträge unter `<HOME>/.dsh` (2026-11-01 nachgemessen:
+137/137 grün, kein `.dsh` im Testzuhause).
 
 ## Drei Gegenproben zu den Reparaturen
 
@@ -97,11 +105,11 @@ die Abstammung mitzugeben.
 - `ctx.tools.get` liefert die gespeicherte Definition; `neu` verhindert die 38k-Zeilen-Schleife.
 - Selbstsperre, nur lebende Ziele, `send_message` unberührt.
 
-## Nachweis (von der Leitung gemessen)
+## Nachweis (von der Leitung gemessen, Testzahl am 2026-11-01 nachgezogen)
 
 ```
 $ npm test
-# tests 121   # pass 121   # fail 0
+# tests 137   # pass 137   # fail 0
 
 $ node patches/stille-nachrichten.mjs
 Selbstpruefung: alles in Ordnung.
@@ -110,9 +118,14 @@ $ # Testlauf schreibt nicht mehr ins echte Protokoll:
 Zuwachs ~/.dsh/logs/send-to-session.log: 0 Bytes
 ```
 
-Die Tests sind **hermetisch**: `DSH_HOME` wird auf ein `mkdtemp`-Verzeichnis gesetzt, **bevor** das
-Modul geladen wird. Ohne das schriebe die Suite in die Ablage des Menschen — dem Red Team ist genau
-das an der Vorgängerfassung aufgefallen.
+Die Tests sind **hermetisch**, und zwar die ganze Suite: ein Lauf unter gefälschtem `HOME`
+hinterlässt **0** Einträge unter `<HOME>/.dsh` (gemessen am 2026-11-01, siehe NIEDRIG-6 oben). Zwei
+Wege führen in die Ablage des Menschen, und beide sind umgelenkt, **bevor** der Projektcode geladen
+wird: die Module, die `DSH_HOME` lesen (`send-to-session`, `stille-nachrichten`, der Kern-id-Test),
+bekommen es auf ein `mkdtemp`-Verzeichnis gesetzt; `policy-host` geht über `TEAMS_PLUS_DATA_DIR`
+**und** `HOME`, weil der Policy-Store `DSH_HOME` nicht kennt. Ohne das schriebe die Suite in die
+Ablage des Menschen — dem Red Team ist genau das an der Vorgängerfassung aufgefallen (NIEDRIG-6,
+erledigt in `737a9a4`).
 
 ## Drei Gegenproben, die der Autor selbst gefahren hat
 

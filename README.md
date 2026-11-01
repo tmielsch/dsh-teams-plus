@@ -44,9 +44,13 @@ der erste, der ihn benutzt.
   Ebene, Dateien mitschicken, Ziele für Unteragenten, Warten ohne Rundenverbrauch, stille
   Direktnachrichten. Zwei Arten: `allow-*` schreibt in die DSH-Installation (nach jedem DSH-Update
   neu einspielen), die Plugin-Patches laden beim Start.
-- **Rollen** — Recherche, Red-Team, Implementer, Draft, RAG, Projektmanager. Der Rollentext steht
-  byte-gleich vor jedem Auftrag, damit alle Facharbeiter einer Rolle denselben Prompt-Anfang teilen
-  und der Cache greift.
+- **Rollen** — acht Rollentexte: **research** (Recherche), **redteam**, **implementer**, **draft**,
+  **rag**, **projektmanager** sowie **abteilungsleiter** und **arbeitsgruppenleiter**. Der
+  Abteilungsleiter koordiniert und produziert nicht; der Arbeitsgruppenleiter (auch Experte genannt)
+  führt ein Team aus Facharbeitern und produziert ebenfalls nicht. Dazu liegt
+  `rollen/_ENTWURF-team-profile.md` im Ordner — der Entwurf eines Team-Profils, kein Rollentext.
+  Der Rollentext steht byte-gleich vor jedem Auftrag, damit alle Facharbeiter einer Rolle denselben
+  Prompt-Anfang teilen und der Cache greift.
 - **Policies** — Prompt-Bausteine mit Tags, pro Workspace an- und abschaltbar. Eine Datei je Policy
   unter `~/.dsh/.tm/teams-plus/policies/`, oben ein Kopfblock, darunter der Text.
 - **Der Vertrag** — ein Dienst `teamsPlus`, über den jede Ansicht liest und schreibt. Kein View
@@ -112,7 +116,7 @@ das ist der wichtigste Test in `test/einbau.test.mjs`. Vor jeder Änderung siche
 ```bash
 npm install        # esbuild, typescript, zod
 npm run build      # schreibt lib/client.js (Browser) und lib/index.js (Host)
-npm test           # 94 Tests, ohne laufendes DSH
+npm test           # 137 Tests, ohne laufendes DSH
 npm pack           # der prepack-Haken baut vorher neu
 ```
 
