@@ -55,11 +55,27 @@ Der Grund: Ein Arbeitsgruppenleiter ist ein Spezialist für einen Fachbereich un
 Team. Wer ihn für eine Aufgabe erzeugt, hat keinen Spezialisten eingestellt, sondern eine Aufgabe
 verkleidet. Die Struktur verwässert, und nach zehn Aufgaben gibt es zehn „Abteilungen", die keine sind.
 
-**Was ohne Erlaubnis geht:** Ein Arbeitsgruppenleiter legt **Facharbeiter in seiner eigenen Gruppe** an
-und wieder ab. Das ist seine Aufgabe — er ist der Chef. Und Einmal-Helfer für One-Shot-Aufgaben sind
-frei, solange sie nicht als Struktur missverstanden werden.
-
 **Was der Mensch bestätigen muss:** jede neue **Arbeitsgruppe**. Also jede neue Spezialisierung.
+
+**Was der Arbeitsgruppenleiter NICHT ohne Erlaubnis darf — Korrektur vom 2026-11-01:**
+Hier stand, er lege Facharbeiter „in seiner eigenen Gruppe selbst an und nimmt sie wieder heraus; dafür
+brauchst du keine Erlaubnis". **Das war falsch** und widersprach einer ausdrücklichen Anordnung des
+Menschen (`~/.dsh/AGENTS.md` 571–591, 2026-10-26, wörtlich: *„Der Experte darf keinen neuen Subagenten
+mehr eigenmächtig einstellen. Bevor er glaubt, ein neuer Facharbeiter sei nötig, holt er beim Teamlead
+die Erlaubnis ein, ob ein neuer eingestellt werden darf — immer."* … *„Das ist ein Befehl."*).
+
+Richtig ist:
+
+- **Neue Facharbeiter nur mit Erlaubnis des Abteilungsleiters.** Immer. Auch wenn der Arbeitsgruppenleiter
+  glaubt, es sei offensichtlich nötig.
+- **Bestehende Facharbeiter weiterbenutzen** ist der Normalfall: dieselbe Session über `send_message`
+  mit dem nächsten Auftrag ansprechen, statt eine neue zu erzeugen.
+- **Einmal-Helfer** (Wegwerf-Sub-Agents) bleiben für echte One-Shot-Aufgaben frei — aber sie sind
+  kein Ersatz für einen Facharbeiter und keine Struktur.
+
+Der Grund ist derselbe in beiden Regeln: Sub-Agents lassen sich **nicht löschen** (siehe unten). Jede
+Neueinstellung ist eine Entscheidung, die man nicht zurücknehmen kann. Deshalb ist die Erlaubnispflicht
+die einzige Bremse gegen das Zuwachsen.
 
 ## Die Lücke: Sub-Agents lassen sich nicht löschen
 
