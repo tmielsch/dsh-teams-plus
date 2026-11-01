@@ -1,6 +1,7 @@
 # Einbau und Rücknahme — `send_to_session`
 
-Stand: 2026-10-31, 06:48 (Europe/Berlin).
+Stand: 2026-10-31, 06:48 (Europe/Berlin). Der Warnhinweis zur Reihenfolge wurde am 2026-11-01
+nach Backlog A4 verschärft.
 
 ## JETZT: 0.6.0 liegt auf der Platte, ist aber noch nicht live
 
@@ -23,10 +24,29 @@ Speicher — ein Neustart ist der einzige Weg.
 heraus. Ohne ihn wäre nach dem Einbau wieder die alte, gesperrte Fassung aktiv — genau der
 Zustand, den der STOPP beseitigen wollte.
 
-## Der Neustart — zwei Schritte, in dieser Reihenfolge
+## Der Neustart — die Reihenfolge ist der ganze Punkt
+
+> ⚠️ **WARNUNG AN DER STELLE, WO DER BLOCK ENTFERNT WIRD.**
+> Das Entfernen des Eintrags `- id: send-to-session` / `disabled: true` schaltet die
+> **laufende** Fassung **sofort** wieder ein — **ohne Neustart**. Beim 0.6.0-Einbau ist genau
+> das passiert; abgelesen an der Plugin-Liste (`enabled: true, fiberPhase: active`), während im
+> Prozessspeicher noch der alte Code lag. Wer den Block entfernt und dann weiterarbeitet, hat
+> die gesperrte Fassung live.
+
+**Zwei Reihenfolgen sind erlaubt — beide enden im selben Zustand:**
+
+1. **Neustart planen, DANN den Block entfernen:** `dsh web` beenden, Block entfernen, starten.
+   Kein Fenster, in dem die gesperrte Fassung wieder aktiv wird.
+2. **Block entfernen und SOFORT neu starten:** kein weiterer Agentenlauf dazwischen, keine
+   Nutzung von `send_to_session`, kein „mache ich gleich". Das Fenster ist so lang wie der
+   Neustart.
+
+**Verboten ist der dritte Weg:** Block entfernen, weiterarbeiten, Neustart später. Genau so kam
+die laufende v0.4.0 wieder hoch — beim 0.6.0-Einbau fast falsch herum.
 
 ```bash
-# 1. den Sperrblock entfernen (er steht am Ende der Datei)
+# Reihenfolge 2, Schritt 1: Sperrblock entfernen (er steht am Ende der Datei).
+# ⚠️ AB HIER ist die laufende Fassung wieder aktiv — nur weiter, wenn Schritt 2 SOFORT folgt.
 python3 - <<'PY'
 p = "/Users/tmielsch/.dsh/profiles/web/cordis.patch.yml"
 s = open(p).read()
@@ -35,11 +55,13 @@ open(p, "w").write(s[:i].rstrip() + "\n")
 print("Sperrblock entfernt")
 PY
 
-# 2. dsh web neu starten  ->  0.6.0 ist live
+# Reihenfolge 2, Schritt 2: SOFORT neu starten  ->  0.6.0 ist live
+# (Bei Reihenfolge 1 steht dieser Befehl VOR dem Entfernen.)
 ```
 
-**Wer Schritt 1 vergisst**, schaltet auch 0.6.0 ab. Das ist kein Schaden — das Werkzeug fehlt
-dann nur in der Liste. Deshalb steht die Reihenfolge hier.
+**Wer den Block stehen lässt und nur neu startet**, schaltet auch 0.6.0 ab. Das ist kein
+Schaden — das Werkzeug fehlt dann nur in der Liste —, aber der Neustart war umsonst. Deshalb
+steht die Reihenfolge hier.
 
 ## Woran man erkennt, dass 0.6.0 wirklich läuft
 
@@ -78,3 +100,7 @@ Zusätzlich liegt die Sicherung vom 06:13 unter
 Wenn 0.6.0 zurückgenommen werden soll und die alte Fassung **nicht** wieder laufen darf: den Block
 aus dem Abschnitt oben wieder anhängen. Er wirkt ohne Neustart, weil der Profil-Patch live
 nachgezogen wird.
+
+**Das gilt in beide Richtungen:** auch das **Entfernen** des Blocks wirkt ohne Neustart — die
+laufende Fassung ist dann sofort wieder aktiv. Deshalb steht die Warnung im Abschnitt „Der
+Neustart" direkt an dem Befehl, der den Block entfernt.

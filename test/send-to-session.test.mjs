@@ -25,8 +25,8 @@
  */
 import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, existsSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { homedir, tmpdir } from 'node:os'
+import { isAbsolute, join } from 'node:path'
 import { test } from 'node:test'
 
 // Hermetisch machen, BEVOR irgendetwas aus dem Patch geladen wird.
@@ -71,6 +71,8 @@ const {
 	ladeZustand,
 	loeseModus,
 	mitSperre,
+	neuesEreignis,
+	protokollPfad,
 	pruefeKette,
 	speichereZustand,
 	verbucheKette,
@@ -386,6 +388,86 @@ test('Paar-Buch vergisst alte Paare, damit die Datei nicht waechst', () => {
 	assert.equal(kante('a', 'b'), 'a b')
 })
 
+test('Paar-Buch loescht nach ALTER, nicht nach Einfuegereihenfolge (A1)', () => {
+	// GEMESSEN am 2026-11-01 (Probe in /tmp, gegen die alte Fassung):
+	// Mit `Object.keys(...).slice(0, …)` verschwand ein Paar nach genau
+	// GRENZEN.paareGedaeschtnis fremden Paaren aus dem Buch, obwohl es
+	// zwischenzeitlich wieder benutzt worden war — seine dritte Nachricht ging
+	// danach durch, weil der Zaehler bei null begann. Die Ursache: ein
+	// Objektschluessel behaelt seine Position, wenn er neu beschrieben wird.
+	// "Zuerst eingefuegt" heisst also nicht "am laengsten unbenutzt".
+	//
+	// Der Aufbau trifft genau diese Grenze: das heisse Paar steht an Position 1
+	// des Buches, wird aber ZULETZT benutzt. Sein juengstes Ereignis ist damit
+	// das juengste von allen — nach Alter darf es nicht rausfliegen.
+	const t0 = 1_000_000_000_000
+	const zustand = leererZustand()
+
+	verbucheKette(zustand, 'HOT', 'ZIEL', 'erste', t0) // Buch angelegt, Position 1
+	for (let i = 0; i < GRENZEN.paareGedaeschtnis - 1; i += 1) {
+		verbucheKette(zustand, 'fremd', `ziel-${i}`, `text ${i}`, t0 + 1_000 + i)
+	}
+	// Genau an der Grenze: 200 Paare, noch keine Verdraengung.
+	assert.equal(Object.keys(zustand.paare).length, GRENZEN.paareGedaeschtnis)
+
+	// Das heisse Paar wird jetzt benutzt — es ist das JUENGSTE Ereignis im Buch,
+	// obwohl es an erster Stelle steht.
+	verbucheKette(zustand, 'HOT', 'ZIEL', 'zweite', t0 + 300_000)
+	assert.equal(Object.keys(zustand.paare).length, GRENZEN.paareGedaeschtnis, 'ein vorhandenes Paar darf das Buch nicht wachsen lassen')
+
+	// Das 201. Paar erzwingt die Verdraengung.
+	verbucheKette(zustand, 'fremd', `ziel-${GRENZEN.paareGedaeschtnis - 1}`, 'text', t0 + 400_000)
+	assert.equal(Object.keys(zustand.paare).length, GRENZEN.paareGedaeschtnis)
+	assert.ok(zustand.paare[kante('HOT', 'ZIEL')], 'das heisse Paar wurde verdrängt — es war das JUENGSTE, nicht das aelteste')
+	assert.equal(zustand.paare[kante('HOT', 'ZIEL')].zeiten.length, 2, 'der Zaehler des heissen Paares ging verloren')
+	// Getroffen hat es das am laengsten unbenutzte Paar — nicht irgendeines.
+	assert.equal(zustand.paare[kante('fremd', 'ziel-0')], undefined, 'es muss das aelteste letzte Ereignis treffen')
+	assert.ok(zustand.paare[kante('fremd', 'ziel-1')], 'nur EIN Paar faellt je Buchung')
+
+	// Und der eigentliche Zweck: die dritte Nachricht bleibt gesperrt.
+	const dritte = pruefeKette(zustand, 'HOT', 'ZIEL', 'dritte', t0 + 400_000)
+	assert.equal(dritte.ok, false, 'der Zaehler des heissen Paares begann bei null — die Bremse ist umgangen')
+	assert.equal(dritte.befund, 'PING_PONG')
+})
+
+/**
+ * Die ALTE Buchung — Verdraengung nach Einfuegereihenfolge. Nur fuer die
+ * Gegenprobe; der Patch selbst benutzt sie nicht mehr. Die Ereignisse liegen
+ * hier schon im Format `{ t, id }`, deshalb genuegt das Filtern nach `t`.
+ */
+function verbucheKetteWieAlt(zustand, von, an, text, jetzt, grenzen = GRENZEN) {
+	const schluessel = kante(von, an)
+	const alt = zustand.paare?.[schluessel]
+	const zeiten = (Array.isArray(alt?.zeiten) ? alt.zeiten : []).filter((e) => jetzt - e.t < grenzen.fensterMs)
+	zeiten.push(neuesEreignis(jetzt))
+	zustand.paare = zustand.paare ?? {}
+	zustand.paare[schluessel] = { zeiten, letzterText: text }
+	const alle = Object.keys(zustand.paare)
+	if (alle.length > grenzen.paareGedaeschtnis) {
+		for (const altes of alle.slice(0, alle.length - grenzen.paareGedaeschtnis)) delete zustand.paare[altes]
+	}
+	return zustand
+}
+
+test('die Gegenprobe greift: nach EINFUEGEREIHENFOLGE geht das heisse Paar verloren (A1)', () => {
+	// Beweis, dass der Test darüber die Reparatur prueft und nicht nur sich
+	// selbst: derselbe Ablauf mit der ALTEN Loeschung. Bliebe der Verlust aus,
+	// waere die Alters-Loeschung nicht die Ursache des gruenen Tests oben.
+	const t0 = 1_000_000_000_000
+	const zustand = leererZustand()
+
+	verbucheKetteWieAlt(zustand, 'HOT', 'ZIEL', 'erste', t0)
+	for (let i = 0; i < GRENZEN.paareGedaeschtnis - 1; i += 1) {
+		verbucheKetteWieAlt(zustand, 'fremd', `ziel-${i}`, `text ${i}`, t0 + 1_000 + i)
+	}
+	verbucheKetteWieAlt(zustand, 'HOT', 'ZIEL', 'zweite', t0 + 300_000) // bleibt Position 1
+	verbucheKetteWieAlt(zustand, 'fremd', `ziel-${GRENZEN.paareGedaeschtnis - 1}`, 'text', t0 + 400_000)
+
+	assert.equal(zustand.paare[kante('HOT', 'ZIEL')], undefined, 'mit der alten Loeschung MUSS das heisse Paar verdrängt werden — sonst prueft der Test oben nichts')
+	const dritte = pruefeKette(zustand, 'HOT', 'ZIEL', 'dritte', t0 + 400_000)
+	assert.equal(dritte.ok, true, 'mit der alten Loeschung beginnt der Zaehler bei null — genau der gemessene Fehler')
+})
+
 // ---------------------------------------------------------------------------
 // 6. Zustand: er ueberlebt den Neustart, und ein altes Modell wird verworfen
 // ---------------------------------------------------------------------------
@@ -615,6 +697,41 @@ test('der Zustandspfad liegt unter .tm/teams-plus (E1)', () => {
 	assert.match(zustandPfad(), /\/\.tm\/teams-plus\/state\/send-to-session\.json$/u)
 	// Und er folgt DSH_HOME, damit ein Test nie in die echte Ablage schreibt.
 	assert.ok(zustandPfad().startsWith(process.env.DSH_HOME ?? ''), 'der Pfad ignoriert DSH_HOME')
+})
+
+test('DSH_HOME="" faellt auf das echte Home zurueck, nicht auf einen relativen Pfad (A2)', () => {
+	// GEMESSEN am 2026-11-01: mit `??` fiel die leere Zeichenkette durch, und
+	// `join("", ".tm", …)` ergab ".tm/teams-plus/state/send-to-session.json" —
+	// einen Pfad RELATIV zum Arbeitsverzeichnis. Protokoll und Zustand waeren
+	// im Projektordner gelandet. Hier wird nur GERECHNET, nicht geschrieben;
+	// die echte Ablage des Menschen bleibt unberuehrt.
+	const vorher = process.env.DSH_HOME
+	const erwartet = join(homedir(), '.dsh', '.tm', 'teams-plus')
+	try {
+		// "nicht gesetzt" und "leer" muessen dasselbe ergeben.
+		delete process.env.DSH_HOME
+		const ohneVariable = zustandPfad()
+		process.env.DSH_HOME = ''
+		const leer = zustandPfad()
+		assert.equal(leer, ohneVariable, 'DSH_HOME="" ist "nicht gesetzt", nicht "das Arbeitsverzeichnis"')
+		assert.ok(isAbsolute(leer), `der Zustandspfad ist relativ: ${leer}`)
+		assert.equal(leer, join(erwartet, 'state', 'send-to-session.json'))
+
+		// Der Protokollpfad hat dieselbe Falle — und wird genauso abgefangen.
+		assert.equal(protokollPfad(), join(erwartet, 'logs', 'send-to-session.log'))
+		assert.ok(isAbsolute(protokollPfad()), `der Protokollpfad ist relativ: ${protokollPfad()}`)
+
+		// Reiner Leerraum zaehlt ebenfalls als nicht gesetzt (DSH_HOME aus einem
+		// Here-Dokument mit Zeilenumbruch).
+		process.env.DSH_HOME = '  \n'
+		assert.equal(zustandPfad(), join(erwartet, 'state', 'send-to-session.json'))
+
+		// Ein ECHTER Wert gewinnt weiterhin — die Suite bleibt hermetisch.
+		process.env.DSH_HOME = HEIM
+		assert.equal(zustandPfad(), join(HEIM, '.tm', 'teams-plus', 'state', 'send-to-session.json'))
+	} finally {
+		process.env.DSH_HOME = vorher ?? HEIM
+	}
 })
 
 // ---------------------------------------------------------------------------

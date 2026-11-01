@@ -181,23 +181,39 @@ export const KETTEN_BEFUNDE = Object.freeze({
 });
 
 /**
- * Wo das Protokoll liegt: `~/.dsh/.tm/teams-plus/logs/`.
+ * Das Harness-Zuhause: `~/.dsh`, oder das, was `DSH_HOME` sagt.
+ *
+ * **`DSH_HOME=""` heisst "nicht gesetzt", nicht "das Arbeitsverzeichnis".**
+ * Mit `??` fiel die leere Zeichenkette durch, und `join("", ".tm", …)` ergab
+ * einen RELATIVEN Pfad im Arbeitsverzeichnis — Protokoll und Zustand waeren im
+ * Projektordner gelandet (Backlog A2; am 2026-11-01 mit leerem `DSH_HOME`
+ * gemessen: `zustandPfad()` war relativ). Deshalb `||`-Verhalten statt `??`,
+ * und zusaetzlich zaehlt reiner Leerraum als nicht gesetzt, damit ein
+ * `DSH_HOME` aus einem Here-Dokument mit Zeilenumbruch nicht zum Pfad wird.
+ */
+function dshHeim() {
+	const gesetzt = process.env.DSH_HOME?.trim();
+	return gesetzt === undefined || gesetzt === "" ? join(homedir(), ".dsh") : gesetzt;
+}
+
+/**
+ * Der Protokollpfad: `~/.dsh/.tm/teams-plus/logs/send-to-session.log`.
  *
  * E1 des Pakets (siehe `docs/ENTSCHEIDUNGEN.md`): alle eigenen Daten eines
  * Plugins liegen unter `~/.dsh/.tm/<plugin>`, damit ein Update des Pakets sie
  * nie ueberschreibt und der Mensch sie an EINER Stelle findet. v0.5.0 schrieb
  * nach `~/.dsh/logs/` und widersprach damit der eigenen README. Ueber
  * `DSH_HOME` umlenkbar, damit Tests hermetisch bleiben.
+ *
+ * Exportiert, damit der Test IHN pruefen kann, ohne ins echte `~/.dsh` zu schreiben.
  */
-function protokollPfad() {
-	const heim = process.env.DSH_HOME ?? join(homedir(), ".dsh");
-	return join(heim, ".tm", "teams-plus", "logs", "send-to-session.log");
+export function protokollPfad() {
+	return join(dshHeim(), ".tm", "teams-plus", "logs", "send-to-session.log");
 }
 
 /** Wo der Zustand liegt (Zaehler, Ketten). Gleiche Umlenkung wie das Protokoll. */
 export function zustandPfad() {
-	const heim = process.env.DSH_HOME ?? join(homedir(), ".dsh");
-	return join(heim, ".tm", "teams-plus", "state", "send-to-session.json");
+	return join(dshHeim(), ".tm", "teams-plus", "state", "send-to-session.json");
 }
 
 /** Eine Zeile ins Protokoll. Ein fehlendes Verzeichnis oder Recht darf nie werfen. */
@@ -690,9 +706,32 @@ export function verbucheKette(zustand, von, an, text, jetzt = Date.now(), grenze
 	zustand.paare[schluessel] = { zeiten, letzterText: text };
 
 	// Alte Paare fallen weg, damit die Datei nicht unbegrenzt waechst.
+	//
+	// **Nach ALTER, nicht nach Einfuegereihenfolge** (Backlog A1, gemessen am
+	// 2026-11-01). Ein Objektschluessel behaelt seine Position, wenn er neu
+	// beschrieben wird: "zuerst eingefuegt" heisst also NICHT "am laengsten
+	// unbenutzt". Mit `Object.keys(...).slice(0, …)` verschwand ein Paar nach
+	// genau 200 fremden Paaren aus dem Buch, obwohl es zwischenzeitlich wieder
+	// benutzt worden war — seine dritte Nachricht ging danach durch, weil der
+	// Zaehler bei null begann. (Gemessen: Kontrolle ohne fremde Paare weist die
+	// dritte Nachricht mit PING_PONG ab; mit 200 fremden Paaren war sie erlaubt.)
+	//
+	// Schluessel ist der Zeitstempel des JUENGSTEN Ereignisses je Paar: was am
+	// laengsten nicht mehr sprach, faellt zuerst raus. Bei gleichem Zeitstempel
+	// entscheidet die Einfuegereihenfolge; das GERADE gebuchte Paar verliert
+	// diesen Gleichstand nie, weil es zuletzt sortiert wird. (Zwei Zustellungen
+	// koennen in derselben Millisekunde liegen.)
 	const alle = Object.keys(zustand.paare);
 	if (alle.length > grenzen.paareGedaeschtnis) {
-		for (const altes of alle.slice(0, alle.length - grenzen.paareGedaeschtnis)) delete zustand.paare[altes];
+		const juengstesEreignis = (paar) => ereignisse(zustand.paare[paar]?.zeiten)
+			.reduce((juengstes, e) => (e.t > juengstes ? e.t : juengstes), -Infinity);
+		const nachAlter = alle
+			.map((paar) => ({ paar, zuletzt: juengstesEreignis(paar) }))
+			.sort((a, b) => a.zuletzt - b.zuletzt
+				|| Number(a.paar === schluessel) - Number(b.paar === schluessel));
+		for (const altes of nachAlter.slice(0, alle.length - grenzen.paareGedaeschtnis)) {
+			delete zustand.paare[altes.paar];
+		}
 	}
 	return zustand;
 }
