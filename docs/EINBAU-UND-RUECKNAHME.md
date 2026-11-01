@@ -11,7 +11,7 @@ nach Backlog A4 verschärft.
 | Quellart | `plugin:@tmielsch/dsh-teams-plus` |
 | `package.json` dependency | `file:/Users/tmielsch/dsh-teams-plus/tmielsch-dsh-teams-plus-0.6.0.tgz` |
 | in `dsh.profile.bundles` | ja |
-| Testsuite | 129 grün, Selbstprüfung grün |
+| Testsuite | 137 grün, Selbstprüfung grün |
 
 **Im laufenden `dsh web` (PID 38856, gestartet 03:44) steckt weiter v0.4.0.** Gemessen, nicht
 vermutet: nach dem Einbau hat der Prozess den **alten** Protokollpfad

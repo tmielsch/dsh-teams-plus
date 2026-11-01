@@ -1,23 +1,24 @@
 # Agent Teams Plus (`@tmielsch/dsh-teams-plus`)
 
-> **⛔ v0.4.0 NICHT EINBAUEN.** `send_to_session` ist vom Red-Team gesperrt
-> (`docs/STOPP-V0.4.0.md`, Bericht `docs/REDTEAM-SEND-TO-SESSION.md`). Grund: `source.kind` ist im
-> Kern eine Berechtigung, nicht ein Etikett. Die letzte saubere Fassung ist **v0.3.1**.
-> Das Werkzeug ist nicht geladen — das Profil lädt nur den Host-Eintrag.
+> **Stand 2026-11-01: 0.6.0 ist eingebaut und läuft** (seit 2026-10-31, nach der zweiten
+> Red-Team-Runde). Die Quellart ist jetzt `plugin:@tmielsch/dsh-teams-plus` — die vom Codec
+> erzeugte Produzenten-Art, kein frei gewählter Wert. Dazu: Bremse je Absender **und** je Ziel,
+> Zustand auf der Platte statt nur im Speicher, Paar-Budget statt Kettenbudget. Prüfbar an zwei
+> Dingen: `mode.enum` kennt `auto`, `steer` und `followup`, und
+> `~/.dsh/.tm/teams-plus/logs/send-to-session.log` wird beschrieben.
+> Freigabevorlage: `docs/VORLAGE-V0.6.0.md`.
 >
-> **Korrektur (2026-10-31, 03:20) — die Sperre ist im Betrieb NICHT in Kraft.** Die STOPP-Datei
-> prüfte `~/.dsh/profiles/web/cordis.patch.yml` und fand dort 0 Treffer. Das Paket ist aber ein
-> **Bundle**: sein eigener `cordis.patch.yml` lädt alle sieben Zeilen, `send-to-session`
-> eingeschlossen. Live gemessen: `include:send-to-session` steht auf `enabled: true`,
-> `fiberPhase: active`, die Datei im Profil ist byte-gleich der gesperrten
-> (`md5 38683855484768a3a43e9dc49cab899c`), und in den Sitzungsprotokollen stehen **20** Aufrufe.
-> **Die gesperrte Fassung läuft.** Wer das ändern will, baut v0.5.0 ein oder entfernt die Zeile.
+> **Offen: die Korrekturen der letzten Runde sind im Repo, aber nicht geladen.** Die Commits
+> `78c7832` (A1 Paar-Gedächtnis nach Alter, A2 leeres `DSH_HOME`, A4 Neustart-Warnung) und
+> `48a6c4a` (Härtung in `baueNachricht`) stehen im Repo; im Profil liegt
+> `patches/send-to-session.mjs` noch auf dem Stand davor
+> (`md5 3a67fabc07cbdf2edf4f46a1ac5cd88e`, Repo `1d2c79f809d45c2065dcd7291508e687`). Geladen wird
+> das erst mit einem neuen Einbau und einem Neustart — der laufende Prozess hat die alte Fassung
+> im Speicher.
 >
-> **v0.5.0 liegt vor, ist aber nicht eingebaut:** `docs/VORLAGE-V0.5.0.md`. Dort sind alle fünf
-> Befunde des Red Teams abgearbeitet — Quellart `plugin` statt `agent-send`, Bremse je Absender
-> **und** je Ziel, Zustand auf der Platte statt nur im Speicher, Kettenbudget (4 Sprünge,
-> 2 Rundläufe je Paar, keine Wortwiederholung), 22 Tests grün, 116 im ganzen Paket. Ohne
-> Red-Team-Freigabe geht sie nicht ins Profil (`AGENTS.md`, Regel 1).
+> **Historie:** `docs/STOPP-V0.4.0.md` sperrte v0.4.0, weil `source.kind` im Kern eine
+> **Berechtigung** ist und kein Etikett. Mit 0.6.0 ist die Sperre abgelöst; die Datei bleibt als
+> Begründung stehen. Bericht des ersten Durchgangs: `docs/REDTEAM-SEND-TO-SESSION.md`.
 
 
 Das Paket, das Agent Teams in DeepSeek Harness erst vollständig benutzbar macht: die Unlocks,
