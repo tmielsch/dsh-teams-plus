@@ -151,6 +151,86 @@ test('die Nachricht hat IMMER eine id (Red-Team HOCH-1)', () => {
 	assert.equal(mitKern.id, 'aus-dem-kern', 'die Kennung des Kerns muss uebernommen werden')
 })
 
+/** Der Posteingang des Ziels, nachgebaut nach dsh-agent-loop/lib/index.js:191-192. */
+function posteingang(nachrichten) {
+	const ids = new Set()
+	for (const nachricht of nachrichten) {
+		if (ids.has(nachricht.id)) throw new Error(`message "${nachricht.id}" is already pending`)
+		ids.add(nachricht.id)
+	}
+}
+
+test('die Kennung des Kernaufrufs wird GEPRUEFT, nicht angenommen (Nachtrag HOCH-1)', () => {
+	// Vorher stand hier nur `typeof baustein?.createUserMessage === 'function'` — WAS
+	// die Funktion liefert, war gleichgueltig. Ein Kern, der die Funktion weiter
+	// exportiert, aber keine id mehr setzt, kaeme damit durch, und der Posteingang
+	// des Ziels wuerfe bei der zweiten ausstehenden Nachricht.
+	const quelle = baueQuelle('a', 'b')
+	const inhalt = baueInhalt('hallo', 'a', undefined)
+
+	// (a) Baustein exportiert createUserMessage, liefert aber KEINE id.
+	const ohneId = { createUserMessage: (input) => ({ ...input, role: 'user' }) }
+	const n1 = baueNachricht(inhalt, quelle, ohneId)
+	assert.equal(typeof n1.id, 'string', 'die Kennung fehlt — der Kernaufruf wurde ungeprueft durchgereicht')
+	assert.ok(n1.id.length > 0, 'die Kennung ist leer')
+	assert.equal(n1.role, 'user', 'der Kern liefert role — sie darf nicht durch den Fallback ersetzt werden')
+	assert.deepEqual(n1.content, inhalt, 'der Inhalt muss der des Kernaufrufs bleiben')
+	assert.deepEqual(n1.source, quelle, 'die Quelle muss die des Kernaufrufs bleiben')
+
+	// (b) Zwei solche Nachrichten brauchen VERSCHIEDENE Kennungen — sonst genau der Wurf.
+	const n2 = baueNachricht(inhalt, quelle, ohneId)
+	assert.notEqual(n1.id, n2.id, 'zwei Nachrichten tragen dieselbe Kennung und kollidieren im Posteingang')
+	assert.doesNotThrow(() => posteingang([n1, n2]), 'der Posteingang des Ziels wuerde werfen')
+
+	// (c) Leere und nicht-textuelle Kennungen zaehlen als "fehlt".
+	for (const kaputt of ['', '   ', undefined, null, 42, {}]) {
+		const baustein = { createUserMessage: (input) => ({ ...input, role: 'user', id: kaputt }) }
+		const nachricht = baueNachricht(inhalt, quelle, baustein)
+		assert.equal(typeof nachricht.id, 'string', `id ${JSON.stringify(kaputt)} wurde als brauchbar durchgereicht`)
+		assert.ok(nachricht.id.trim().length > 0, `id ${JSON.stringify(kaputt)} wurde als brauchbar durchgereicht`)
+	}
+
+	// (d) Liefert der Kern gar kein Objekt, wird die Nachricht vollstaendig gebaut.
+	for (const nichts of [undefined, null, 'kaputt', 7]) {
+		const baustein = { createUserMessage: () => nichts }
+		const nachricht = baueNachricht(inhalt, quelle, baustein)
+		assert.equal(typeof nachricht.id, 'string', `Rueckgabe ${JSON.stringify(nichts)}: keine Kennung`)
+		assert.equal(nachricht.role, 'user')
+		assert.deepEqual(nachricht.source, quelle)
+	}
+})
+
+/**
+ * Die ALTE Fassung von `baueNachricht` — woertlich die Bedingung aus v0.6.0
+ * (`typeof baustein?.createUserMessage === "function"` und sonst nichts).
+ * Nur fuer die Gegenprobe; der Patch selbst prueft jetzt das Ergebnis.
+ */
+function baueNachrichtWieAlt(inhalt, quelle, baustein) {
+	if (typeof baustein?.createUserMessage === 'function') {
+		return baustein.createUserMessage({ content: inhalt, source: quelle })
+	}
+	return { id: `s2s-${Date.now().toString(36)}-alt`, role: 'user', content: inhalt, source: quelle }
+}
+
+test('die Gegenprobe greift: ohne die Pruefung geht eine id-lose Nachricht durch (Nachtrag HOCH-1)', () => {
+	// Beweis, dass der Test darueber die Haertung prueft und nicht nur sich
+	// selbst: derselbe Baustein durch die ALTE Bedingung. Bliebe die Nachricht
+	// hier ebenfalls mit Kennung, waere die Pruefung nicht die Ursache des
+	// gruenen Tests oben.
+	const quelle = baueQuelle('a', 'b')
+	const inhalt = baueInhalt('hallo', 'a', undefined)
+	const ohneId = { createUserMessage: (input) => ({ ...input, role: 'user' }) }
+
+	const alt1 = baueNachrichtWieAlt(inhalt, quelle, ohneId)
+	const alt2 = baueNachrichtWieAlt(inhalt, quelle, ohneId)
+	assert.equal(alt1.id, undefined, 'die alte Fassung MUSS die id-lose Nachricht durchreichen — sonst prueft der Test oben nichts')
+	assert.equal(alt2.id, undefined)
+
+	// Und das ist der Schaden, nicht nur ein fehlendes Feld: der Posteingang des
+	// Ziels wirft bei der zweiten ausstehenden Nachricht (beide ids sind `undefined`).
+	assert.throws(() => posteingang([alt1, alt2]), /is already pending/u, 'ohne die Pruefung muss der Posteingang werfen')
+})
+
 test('die Quelle oeffnet kein Ziel — geprueft gegen den KERN, nicht gegen eine eigene Liste', async () => {
 	// RED-TEAM NIEDRIG-2: Die erste Fassung dieses Tests verglich den Wert mit sich
 	// selbst (assert.equal(quelle.kind, QUELL_ART)) und die drei notEqual gegen

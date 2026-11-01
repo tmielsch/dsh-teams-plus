@@ -603,6 +603,16 @@ export async function mitSperre(pfad, aktion) {
 	return aktion();
 }
 
+/** Die Notkennung dieses Moduls. Sie beginnt mit `s2s-`, daran ist sie zu erkennen. */
+function notkennung() {
+	return `s2s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Traegt diese Nachricht eine BRAUCHBARE Kennung? Nicht nur vorhanden, sondern nicht leer. */
+function hatKennung(nachricht) {
+	return istObjekt(nachricht) && typeof nachricht.id === "string" && nachricht.id.trim() !== "";
+}
+
 /**
  * Baut die Nachricht — **mit Kennung**.
  *
@@ -610,14 +620,32 @@ export async function mitSperre(pfad, aktion) {
  * `PAKET_NACHRICHTEN`) und vergibt ueber `createMessage` eine `id`
  * (`dsh-llm/lib/index.js:37-42`). Ist es nicht ladbar, wird eine eigene Kennung
  * erzeugt: eine Nachricht OHNE `id` laesst den Posteingang des Ziels werfen,
- * sobald zwei ausstehen (`dsh-agent-loop/lib/index.js:191-192`).
+ * sobald zwei ausstehen (`dsh-agent-loop/lib/index.js:191-192`):
+ *
+ *     if (ids.has(message.id)) throw new Error(`message "${message.id}" is already pending`)
+ *
+ * **Die Kennung wird GEPRUEFT, nicht angenommen** (Nachtrag zu HOCH-1, gemessen
+ * am 2026-11-01 in `test/nachricht-kern-id.test.mjs` und hier). Vorher lautete
+ * die Bedingung nur „`createUserMessage` IST eine Funktion" — was sie liefert,
+ * war gleichgueltig. Ein Kern, der die Funktion weiter exportiert, aber keine
+ * `id` mehr setzt (oder eine leere), kaeme damit ungeprueft durch, und der
+ * Posteingang des Ziels wuerfe bei der zweiten ausstehenden Nachricht. Die
+ * Frage, die hier zaehlt, ist nicht „gibt es die Funktion", sondern „traegt das
+ * Ergebnis eine Kennung". Fehlt sie, bekommt die Nachricht die Notkennung —
+ * ergaenzt am Ergebnis des Kernaufrufs, nicht an seiner Stelle: `role`,
+ * `content` und `source` bleiben die des Kerns.
+ *
+ * Liefert der Kern gar kein Objekt (kaputter Baustein), wird die Nachricht
+ * vollstaendig selbst gebaut — sonst fehlten auch `role` und `source`.
  */
 export function baueNachricht(inhalt, quelle, baustein = nachrichtenBaustein) {
 	if (typeof baustein?.createUserMessage === "function") {
-		return baustein.createUserMessage({ content: inhalt, source: quelle });
+		const gebaut = baustein.createUserMessage({ content: inhalt, source: quelle });
+		if (hatKennung(gebaut)) return gebaut;
+		if (istObjekt(gebaut)) return { ...gebaut, id: notkennung() };
 	}
 	return {
-		id: `s2s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+		id: notkennung(),
 		role: "user",
 		content: inhalt,
 		source: quelle
