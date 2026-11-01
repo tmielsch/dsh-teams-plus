@@ -1,7 +1,7 @@
 /**
  * policy-host.test.mjs — der Vertrag `teamsPlus` und die Prompt-Injektion.
  *
- * Der Test belegt sieben Dinge:
+ * Der Test belegt acht Dinge:
  *   1. der Dienst hat genau die sechs Methoden des Vertrags,
  *   2. jede Methode nimmt auf der Leitung genau ein schlichtes Parameterwort (`request`),
  *   3. der Typert-Marker auf dem Prototyp ist byte-gleich die Form, die das Gateway liest,
@@ -10,19 +10,51 @@
  *   6. der Textaufbau der Prompt-Injektion ist unveraendert der aus dsh-projectOS
  *      (eine Policy: Titel in der Ueberschrift; mehrere: `## <Titel>`-Abschnitte),
  *   7. `apply` ist ausfallsicher: ein fehlender Dienst oder ein nicht anlegbarer Ordner
- *      protokolliert einmal und verhindert DSH nicht am Starten.
+ *      protokolliert einmal und verhindert DSH nicht am Starten,
+ *   8. die ganze Datei ist HERMETISCH: `HOME` und `TEAMS_PLUS_DATA_DIR` zeigen auf ein
+ *      `mkdtemp`-Verzeichnis, bevor der Projektcode geladen wird; ein Waechter-Test haelt das
+ *      fest. Ohne die Umlenkung schrieb `apply()` die Startdatei ins echte
+ *      `~/.dsh/.tm/teams-plus` (Red-Team NIEDRIG-6, Backlog A3).
  */
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import {
+
+// ---------------------------------------------------------------------------
+// HERMETISCH (Red-Team-Befund NIEDRIG-6, Backlog A3).
+//
+// `apply()` legt ohne eigene Wurzel `~/.dsh/.tm/teams-plus` an und schreibt die Startdatei
+// `policies/lokalmodus.md` hinein. In einem Test ist das ein Schreibzugriff in das Zuhause des
+// Menschen: die Suite mit gefaelschtem HOME legte genau diesen Baum an (gemessen 2026-10-31,
+// `policies/lokalmodus.md`, 884 Bytes).
+//
+// Deshalb wird die Umgebung gesetzt, BEVOR der Projektcode geladen wird — dasselbe Muster wie in
+// `send-to-session.test.mjs`. Zwei Umlenkungen, weil es zwei Wege in die Ablage gibt:
+//   - `TEAMS_PLUS_DATA_DIR` ist die dokumentierte Wurzel aus der Umgebung
+//     (`src/host/index.js`, Abschnitt "Anmeldung"); sie faengt jeden `apply()`-Aufruf ab.
+//   - `HOME` lenkt den Rueckfall `datenOrdner()` -> `homedir()` um, falls die Variable einmal
+//     fehlt oder geleert wird (POSIX: `os.homedir()` folgt `$HOME`, gemessen).
+//
+// Der Waechter-Test im Abschnitt `apply()` haelt beide Zeilen fest: nimmt jemand eine heraus, wird
+// er rot. Aufgeraeumt wird das temporaere Zuhause im `after`-Haken.
+// ---------------------------------------------------------------------------
+const ECHTES_HEIM = homedir()
+const TEST_HEIM = mkdtempSync(join(tmpdir(), 'teams-plus-host-home-'))
+const TEST_DATEN = join(TEST_HEIM, '.dsh', '.tm', 'teams-plus')
+process.env.HOME = TEST_HEIM
+process.env.TEAMS_PLUS_DATA_DIR = TEST_DATEN
+after(() => rmSync(TEST_HEIM, { recursive: true, force: true }))
+
+// ERST JETZT den Projektcode laden. Er liest die Ablage zwar erst beim Aufruf, aber die
+// Reihenfolge soll nicht davon abhaengen — und ein spaeterer Import-Zeit-Leser bleibt gedeckt.
+const {
   METHODEN, TeamsPlusController, apply, findWorkspace, markRemote, policyPromptText,
-} from '../src/host/index.js'
-import { createStore } from '../src/policy/store.ts'
-import { bauen } from '../src/policy/schema.ts'
+} = await import('../src/host/index.js')
+const { createStore, datenOrdner } = await import('../src/policy/store.ts')
+const { bauen } = await import('../src/policy/schema.ts')
 
 const PAKET = join(dirname(fileURLToPath(import.meta.url)), '..')
 const START = join(PAKET, 'policies')
@@ -346,6 +378,8 @@ test('apply ist ausfallsicher: fehlende Prompt-Seite und nicht anlegbarer Ordner
 	await apply(ohnePrompt.ctx)
 	assert.equal(ohnePrompt.calls.provided.length, 1)
 	assert.equal(ohnePrompt.calls.contexts.length, 0)
+	// Die Wurzel kommt aus der Umgebung, nicht aus ~: die Startdatei liegt im Test-Datenordner.
+	assert.ok(existsSync(join(TEST_DATEN, 'policies', 'lokalmodus.md')), 'apply hat die Startdatei nicht im Test-Datenordner angelegt')
 	assert.ok(ohnePrompt.calls.warns.some((meldung) => meldung.includes('keine Prompt-Seite')), ohnePrompt.calls.warns.join(' | '))
 
 	// b) ein Datenordner, der nicht angelegt werden kann: eine Meldung, kein Dienst, kein Absturz.
@@ -370,6 +404,16 @@ test('apply ohne agents/workspaceRegistry meldet die fehlende Prompt-Seite, stat
 	await assert.doesNotReject(() => apply(ctx))
 	assert.equal(calls.provided.length, 1)
 	assert.ok(calls.warns.some((meldung) => meldung.includes('keine Prompt-Seite')))
+})
+
+test('Waechter: HOME und TEAMS_PLUS_DATA_DIR halten die ganze Datei hermetisch', () => {
+	// Nimmt jemand eine der beiden Umlenkungen oben heraus, wird dieser Test rot — ohne selbst
+	// etwas zu schreiben. Er ist die Gegenprobe zu NIEDRIG-6: vor der Umlenkung legte die Suite
+	// mit gefaelschtem HOME `<HOME>/.dsh/.tm/teams-plus/policies/lokalmodus.md` an.
+	assert.equal(homedir(), TEST_HEIM, 'HOME ist nicht umgelenkt: der Rueckfall datenOrdner() -> homedir() zeigt ins echte Zuhause')
+	assert.equal(datenOrdner(), TEST_DATEN, 'datenOrdner() zeigt nicht auf den Test-Datenordner')
+	assert.equal(process.env.TEAMS_PLUS_DATA_DIR, TEST_DATEN, 'TEAMS_PLUS_DATA_DIR ist nicht gesetzt: apply() schriebe ins echte Zuhause')
+	assert.ok(!TEST_DATEN.startsWith(join(ECHTES_HEIM, '.dsh')), `der Test-Datenordner liegt im echten Zuhause: ${TEST_DATEN}`)
 })
 
 // ---------------------------------------------------------------------------
