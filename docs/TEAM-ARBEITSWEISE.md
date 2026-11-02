@@ -239,7 +239,17 @@ Werkzeuge die Leitungsrolle genau nicht bekommt (Frage 7).
 
 ## 8. Die geteilten Ablagen
 
-Der Mensch will zwei Dateien, die jeder liest:
+**Drei Ablagen, drei Zwecke — nicht eine.** Das ist die wichtigste Unterscheidung dieses Abschnitts,
+und sie ist erst durch einen Bauversuch klargeworden (2026-11-02): Ein Facharbeiter sollte das fehlende
+`team_board` nachbauen, las § 8a („Zeilen, nicht JSON, anfügbar ohne Sperre") und meldete einen
+Widerspruch zu seinem Auftrag (`board.json`, unter Sperre). Es war keiner — es sind zwei verschiedene
+Dinge, und die Spec kannte bis dahin nur zwei von dreien.
+
+| Ablage | Form | Frage, die sie beantwortet | Wann gelesen |
+|---|---|---|---|
+| **Team-Log** (§ 8a) | Zeilen, anfügend | „Was ist passiert?" | beim Start, bei Bedarf |
+| **Team-Wide-Warnings** (§ 8b) | Datei, meist leer | „Betrifft mich gerade etwas?" | **bei jedem Turn** |
+| **Board** (§ 8c) | Schlüssel-Wert, JSON | „Was wissen wir?" | beim Nachschlagen |
 
 **Vorab eine Klarstellung zur Verwandtschaft (gemessen, Red-Team-Pass 2026-11-02):** Es gibt bereits
 ein `team_board` — allerdings im **fremden Paket `dsh-team` 0.2.11** (huxint), nicht in Agent Teams
@@ -277,6 +287,33 @@ Steht etwas drin, betrifft es das ganze Team.
 Turn** gelesen. Deshalb muss sie kurz und leer sein können.
 
 **Offen** (Frage 6): Wie kommt die Warnung technisch in jeden Turn? Ein Patch, der sie in den
+Modell-Input einhängt, ist der wahrscheinliche Weg — an derselben Stelle, an der
+`stille-nachrichten` arbeitet.
+
+### 8c. Das Board — Wissen, nicht Verlauf
+
+Das ist die Ablage, die mit `dsh-team` verschwindet und die die Spec bis 2026-11-02 gar nicht nannte.
+Sie ersetzt `team_board`, `team_note` und `team_workspace` des Fremdpakets — aber auf **nativer**
+Grundlage: Die Identität kommt aus `ctx.agentTeams.membership(agent)`, nicht aus einer eigenen
+Team-Verwaltung. Damit bleibt das Werkzeug bestehen, wenn der Kern seine Team-Verwaltung umbaut.
+
+**Das Datenmodell** (aus `dsh-team` 0.2.11 übernommen, damit die Umstellung unsichtbar ist):
+`{ leaderId, area, key, text, authorId, authorName, updatedAt }`. `area` ist `shared` — oder die
+Session-Id des Mitglieds, dessen **privater** Block es ist.
+
+- **Zwei Werkzeuge:** `team_board` (lesen) und `team_note` (schreiben, ersetzen, löschen).
+- **Schreiben ist Ersetzen:** ein vorhandener `key` wird **ganz** überschrieben. Kein Anhängen.
+- **Löschen ohne Text:** `text` fehlt oder ist leer → der Eintrag verschwindet.
+- **Privater Block:** jeder hat einen eigenen Bereich, den nur er sieht. `shared` sieht jeder.
+- **Ort:** `~/.dsh/.tm/teams-plus/state/board.json` — E1, wie alle eigenen Daten.
+- **Unter der Sperre:** Schreiben läuft unter `mitSperre` (dieselbe wie `send-to-session.mjs`),
+  weil zwei Prozesse denselben Schlüssel schreiben können. Ein Log kann man anfügen; ein
+  Schlüssel-Wert-Brett nicht.
+- **Pro Team getrennt:** Zwei Teams sehen sich nicht. Das ist der wichtigste Test dieses Werkzeugs.
+
+**Der Unterschied zum Log, in einem Satz:** Das Log sagt *„ich habe X fertig"*. Das Board sagt
+*„X funktioniert so und so"*. Wer eine Erkenntnis festhalten will, schreibt sie ins Board; wer eine
+Tatsache meldet, ins Log.
 Modell-Input einhängt, ist der wahrscheinliche Weg.
 
 ---
