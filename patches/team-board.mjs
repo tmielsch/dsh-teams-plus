@@ -3,11 +3,24 @@
  * ===========================================================================
  *
  * WAS DER MENSCH WOLLTE
- * `dsh-team` 0.2.11 soll aus dem Profil verschwinden. Es liefert neun `team_*`-
- * Werkzeuge; acht davon hat das native Plugin schon. Es fehlen genau drei:
- * `team_board`, `team_note` und `team_workspace` (das dritte ist die Ablage, die
- * die zwei Werkzeuge benutzen — hier eine Datei, siehe unten). Dieses Modul baut
- * die fehlenden zwei nach.
+ * `dsh-team` 0.2.11 soll aus dem Profil verschwinden. Es liefert **acht**
+ * `team_*`-Werkzeuge. Vier davon hat das native Plugin schon oder gleichwertig
+ * (`team_spawn`→`spawn_teammate`, `team_send`→`send_message`, `team_list`→
+ * `list_agents`, `team_task`→`team_task_*`). Es fehlen drei: `team_note`,
+ * `team_board` — die baut dieses Modul — und `team_relation`.
+ *
+ * **`team_relation` wird NICHT ersetzt.** Das native Agent-Team-Plugin kennt
+ * keine `managed`/`peer`-Unterscheidung. Wer `dsh-team` entfernt, verliert
+ * diese Fähigkeit. Ebenso verliert `team_dismiss` ohne Ziel („ganzes Team
+ * entlassen") sein Gegenstück: `retire_teammate` verlangt ein Ziel. Beides ist
+ * bewusst hingenommen — es steht hier, damit es nicht als Versehen durchgeht.
+ *
+ * `team_workspace` ist KEIN Werkzeug, sondern der `storageDomain`-Name der
+ * Ablage in `dsh-team`. Die Ablage baut dieses Modul als Datei nach.
+ *
+ * (Korrektur 2026-11-02: hier stand „neun Werkzeuge, acht davon nativ, genau
+ * drei fehlen". Das war falsch — 9−8=1, und es waren die falschen drei. Der
+ * Red-Team-Pass hat es aufgedeckt, siehe NIEDRIG-1 im Bericht.)
  *
  * WARUM NICHT ALS KOPIE VON `dsh-team`
  * `dsh-team` ist ein toter Fork. Er kennt eine eigene Team-Identität (eine
