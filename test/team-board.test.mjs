@@ -57,6 +57,20 @@ if (werkzeugPfad === undefined) {
 }
 const { defineTool } = await import(werkzeugPfad)
 
+const MODUL = new URL('../patches/team-board.mjs', import.meta.url).pathname
+const SEND_TO_SESSION = new URL('../patches/send-to-session.mjs', import.meta.url).pathname
+const REPO = new URL('..', import.meta.url).pathname
+
+/**
+ * Das zu pruefende Modul ist umlenkbar.
+ *
+ * Test 6 (Gegenprobe am Code) faehrt DIESELBEN Fork-Tests gegen eine Kopie unter
+ * /tmp, in der die Fork-Erkennung ausgebaut ist. Ohne diese Umlenkung pruefte die
+ * Gegenprobe eine Nachbildung statt den Test, der den Patch prueft. Ohne die
+ * Variable gilt das Modul des Repos — der normale Lauf merkt von alldem nichts.
+ */
+const MODUL_DATEI = process.env.TEAM_BOARD_MODUL ?? MODUL
+
 const {
 	GRENZEN,
 	aendereBoard,
@@ -64,6 +78,7 @@ const {
 	baueWerkzeuge,
 	boardPfad,
 	identitaetVon,
+	istEigenesTeam,
 	ladeBoard,
 	leererBoard,
 	protokollPfad,
@@ -71,10 +86,7 @@ const {
 	speichereBoard,
 	vorschau,
 	zuLoeschen
-} = await import('../patches/team-board.mjs')
-
-const MODUL = new URL('../patches/team-board.mjs', import.meta.url).pathname
-const SEND_TO_SESSION = new URL('../patches/send-to-session.mjs', import.meta.url).pathname
+} = await import(MODUL_DATEI)
 
 /** Eine frische Ablage je Test. */
 function frischeAblage() {
@@ -93,6 +105,21 @@ const BOB = { id: 'sess-bob', session: {} }
 const LEAD_B = { id: 'sess-lead-b', session: {} }
 const CEM = { id: 'sess-cem', session: {} }
 
+/**
+ * Ein FORK: ein Kind ohne Roster-Eintrag. `parentSession` ist der einzige
+ * Unterschied zur Wurzel-Sitzung — gemessen an `SessionHeader.parentSession`
+ * (dsh-session/lib/types/types.d.ts:71).
+ */
+const FORK = { id: 'sess-fork', session: { header: { parentSession: 'sess-anna' } } }
+const FORK2 = { id: 'sess-fork-2', session: { header: { parentSession: 'sess-bob' } } }
+
+/**
+ * Die Wurzel-Sitzung des Menschen: ein `header` IST da, `parentSession` nicht.
+ * Sie ist ihre eigene Wurzel und SOLL ihr eigenes Team sein — hier darf nichts
+ * gemeldet werden. Der Test prueft damit, dass nicht jedes `header` reicht.
+ */
+const WURZEL = { id: 'sess-wurzel', session: { header: { id: 'sess-wurzel', isSeeded: false } } }
+
 /** Team A: ein Lead, zwei Teammates. `id` ist bei beiden Teammates `root.id` — gemessen. */
 const TEAM_A = {
 	'sess-lead-a': { root: LEAD_A, id: 'sess-lead-a', role: 'lead', name: 'lead' },
@@ -104,6 +131,18 @@ const TEAM_A = {
 const TEAM_B = {
 	'sess-lead-b': { root: LEAD_B, id: 'sess-lead-b', role: 'lead', name: 'lead' },
 	'sess-cem': { root: LEAD_B, id: 'sess-lead-b', role: 'teammate', name: 'cem' }
+}
+
+/**
+ * Die Attrappen des Fork-Falls: der Dienst macht Fork UND Wurzel zu ihrer
+ * EIGENEN Wurzel (`root` zeigt auf sie selbst) — genau das liefert `TeamRoster`
+ * fuer einen direkten Nachkommen ohne Roster-Eintrag (roster.js:85-105) und fuer
+ * die Wurzel-Sitzung. Der Unterschied ist allein `parentSession`.
+ */
+const SELBST = {
+	'sess-fork': { root: FORK, id: 'sess-fork', role: 'lead', name: 'lead' },
+	'sess-fork-2': { root: FORK2, id: 'sess-fork-2', role: 'lead', name: 'lead' },
+	'sess-wurzel': { root: WURZEL, id: 'sess-wurzel', role: 'lead', name: 'lead' }
 }
 
 /** Der native Dienst, so weit ihn das Brett benutzt. */
@@ -124,7 +163,7 @@ function baueAgentTeams(zuordnung) {
  */
 function anmelden(optionen = {}) {
 	const pfad = optionen.pfad ?? frischeAblage()
-	const teams = { ...TEAM_A, ...TEAM_B, ...(optionen.teams ?? {}) }
+	const teams = { ...TEAM_A, ...TEAM_B, ...SELBST, ...(optionen.teams ?? {}) }
 	const dienst = optionen.ohneDienst === true ? () => undefined : () => baueAgentTeams(teams)
 	const [board, notiz] = baueWerkzeuge({ defineTool, pfad, dienst })
 	return { board, notiz, pfad }
@@ -633,4 +672,162 @@ test('die Werkzeuge werden angemeldet und tragen die echten Parameterschemata', 
 	assert.deepEqual(notiz.parameters.required, ['key'])
 	assert.deepEqual(Object.keys(notiz.parameters.properties).sort(), ['key', 'private', 'text'])
 	assert.equal(notiz.parameters.properties.text.type, 'string')
+})
+
+// ---------------------------------------------------------------------------
+// 10. Der Fork-Fall — die Antwort sagt die Wahrheit, die Ablage bleibt
+// ---------------------------------------------------------------------------
+
+test('ein Fork erfaehrt beim Schreiben, dass das Brett ihm allein gehoert', async () => {
+	const { notiz, pfad } = anmelden()
+
+	// Die Erkennung selbst: der Dienst nennt den Fork seine EIGENE Wurzel, UND er
+	// ist ein Kind — nur beides zusammen ist der Fall.
+	assert.equal(istEigenesTeam(SELBST['sess-fork'], FORK), true, 'der Fork wird nicht als eigener Fall erkannt')
+
+	const antwort = await notiz.execute({ key: 'fund', text: 'der Fork hat etwas herausgefunden' }, exec(FORK))
+
+	assert.equal(antwort.action, 'written', 'die Notiz wird gespeichert — nicht verboten und nicht abgelehnt')
+	assert.equal(antwort.allein, true, 'die Antwort sagt dem Fork nicht, dass das Brett ihm allein gehoert')
+	assert.match(antwort.hinweis, /belongs to you alone/u, 'der Hinweis sagt nicht, dass das Brett ihm allein gehoert')
+	assert.match(antwort.hinweis, /own session/u, 'der Hinweis nennt den Grund nicht: seine Wurzel ist er selbst')
+	assert.match(antwort.hinweis, /send_to_session/u, 'der Hinweis nennt den Ausweg nicht')
+
+	// Die Kennzeichnung aendert die ABLAGE nicht: die Notiz steht ganz normal da.
+	const gespeichert = ladeBoard(pfad).entries
+	assert.equal(gespeichert.length, 1, 'die Notiz des Forks wurde verworfen, statt gespeichert')
+	assert.equal(gespeichert[0].text, 'der Fork hat etwas herausgefunden')
+	assert.equal(gespeichert[0].leaderId, 'sess-fork', 'der Fork schreibt nicht unter seiner eigenen Wurzel-Id')
+})
+
+test('ein Fork erfaehrt beim Lesen dieselbe Wahrheit', async () => {
+	const { board, notiz } = anmelden()
+	const geschrieben = await notiz.execute({ key: 'fund', text: 'x' }, exec(FORK))
+
+	const gelesen = await board.execute({}, exec(FORK))
+	assert.equal(gelesen.allein, true, 'das Lesen verschweigt dem Fork, dass es sein eigenes Brett ist')
+	assert.equal(gelesen.hinweis, geschrieben.hinweis, 'team_board und team_note tragen nicht denselben Hinweis')
+	assert.equal(gelesen.entries.length, 1)
+	assert.equal(gelesen.entries[0].key, 'fund')
+
+	// Auch der private Block gehoert dem Fork allein — dieselbe Kennzeichnung.
+	const privat = await board.execute({ private: true }, exec(FORK))
+	assert.equal(privat.allein, true, 'der private Block des Forks traegt die Kennzeichnung nicht')
+})
+
+test('ein Teammate bekommt KEINEN Allein-Hinweis (Gegenprobe zu Test 1)', async () => {
+	// Ohne diesen Fall wuerde ein Patch, der IMMER `allein` setzt, die zwei
+	// Fork-Tests auch bestehen.
+	const { notiz } = anmelden()
+	const antwort = await notiz.execute({ key: 'x', text: 'y' }, exec(ANNA))
+
+	assert.equal(antwort.allein, undefined, 'ein Teammate wird gewarnt, obwohl sein root der Lead ist')
+	assert.equal(antwort.hinweis, undefined, 'ein Teammate bekommt den Fork-Hinweis')
+	// Der Grund ist der FREMDE root, nicht ein fehlendes header: der Dienst nennt
+	// den Lead die Wurzel, also ist Anna kein eigener Fall.
+	assert.equal(istEigenesTeam(TEAM_A['sess-anna'], ANNA), false)
+})
+
+test('eine Wurzel-Sitzung ohne parentSession bekommt KEINEN Allein-Hinweis (Gegenprobe zu Test 2)', async () => {
+	// Die Wurzel-Sitzung des Menschen ist ihre eigene Wurzel und SOLL ihr eigenes
+	// Team sein. Ohne diesen Fall wuerde jede Sitzung gewarnt.
+	const { board, notiz } = anmelden()
+	const geschrieben = await notiz.execute({ key: 'x', text: 'y' }, exec(WURZEL))
+	const gelesen = await board.execute({}, exec(WURZEL))
+
+	assert.equal(geschrieben.allein, undefined, 'die Wurzel-Sitzung wird gewarnt, obwohl sie ihr eigenes Team IST')
+	assert.equal(gelesen.allein, undefined, 'das Lesen warnt die Wurzel-Sitzung')
+	assert.equal(geschrieben.hinweis, undefined)
+	// Der Unterschied ist wirklich nur `parentSession`: header ist da, Elternfeld
+	// nicht — und die Wurzel ist sie selbst.
+	assert.equal(SELBST['sess-wurzel'].root.id, WURZEL.id)
+	assert.equal(WURZEL.session.header.parentSession, undefined)
+	assert.equal(istEigenesTeam(SELBST['sess-wurzel'], WURZEL), false)
+})
+
+test('die Notiz eines Forks liegt in seinem eigenen Brett: ein anderes Team sieht sie nicht', async () => {
+	const { board, notiz, pfad } = anmelden()
+
+	await notiz.execute({ key: 'nur fuer mich', text: 'gilt nur in meinem Kopf' }, exec(FORK))
+
+	// In der Datei steht der Fork unter SEINER Id als leaderId — er ist seine
+	// eigene Wurzel, deshalb ist sein "geteiltes" Brett von jedem Team getrennt.
+	assert.equal(ladeBoard(pfad).entries[0].leaderId, 'sess-fork')
+
+	// Ein Teammate mit anderem root liest die Notiz nicht ...
+	const bob = await board.execute({}, exec(BOB))
+	assert.equal(bob.entries.length, 0, 'Team A sieht die Notiz des Forks — dann waere die Warnung falsch')
+	// ... und ein zweiter Fork auch nicht. Gegenprobe: der Fork selbst sieht sie.
+	const zweiterFork = await board.execute({}, exec(FORK2))
+	assert.equal(zweiterFork.entries.length, 0, 'zwei Forks teilen ein Brett — der Hinweis waere falsch')
+	const eigen = await board.execute({}, exec(FORK))
+	assert.deepEqual(eigen.entries.map((e) => e.key), ['nur fuer mich'], 'der Fork selbst sieht seine eigene Notiz nicht')
+})
+
+/**
+ * Legt eine Kopie des Moduls unter /tmp an, in der `istEigenesTeam` IMMER
+ * `false` liefert.
+ *
+ * Die Kopie entsteht aus DER Datei des Repos, nicht aus einer Nachbildung: genau
+ * eine Zeile wird ersetzt, der Import zeigt auf das echte send-to-session.mjs.
+ * Greift die Ersetzung nicht, wirft die Funktion — sonst maesse die Gegenprobe
+ * die Erkennung mit und waere keine.
+ */
+function kopieOhneForkErkennung() {
+	const quelle = readFileSync(MODUL, 'utf8')
+	const angepasst = quelle
+		.replace('from "./send-to-session.mjs"', `from ${JSON.stringify(SEND_TO_SESSION)}`)
+		.replace('return ichBinDieWurzel && binEinKind;', 'return false;')
+	if (angepasst.includes('return ichBinDieWurzel && binEinKind;')) {
+		throw new Error('die Fork-Erkennung wurde in der Kopie nicht ersetzt — die Gegenprobe wuerde sonst die Erkennung mitmessen')
+	}
+	if (!angepasst.includes('return false;')) {
+		throw new Error('die Kopie ohne Fork-Erkennung traegt die Ersetzung nicht — die Gegenprobe waere keine')
+	}
+	const ordner = mkdtempSync(join(tmpdir(), 'team-board-ohne-fork-'))
+	const ziel = join(ordner, 'team-board-ohne-fork.mjs')
+	writeFileSync(ziel, angepasst)
+	return ziel
+}
+
+/**
+ * Faehrt DIESE Testdatei erneut — nur mit den zwei Tests, deren Name mit
+ * „ein Fork" beginnt (Test 1 und 2), und gegen `modulPfad` statt gegen das
+ * Modul des Repos.
+ *
+ * @returns `{ code, ausgabe }` des Kindprozesses.
+ */
+function laufeForkTests(modulPfad) {
+	return new Promise((fertig, fehler) => {
+		// `NODE_TEST_CONTEXT` erbt der Kindprozess vom laufenden Test-Runner; mit ihr
+		// haelt sich `node --test` fuer einen rekursiven Lauf und startet gar nichts
+		// ("skipping running files"). Ein eigener Lauf braucht sie nicht.
+		const umgebung = { ...process.env, TEAM_BOARD_MODUL: modulPfad }
+		delete umgebung.NODE_TEST_CONTEXT
+		const prozess = spawn(process.execPath, ['--test', '--test-name-pattern', '^ein Fork', 'test/team-board.test.mjs'], {
+			cwd: REPO,
+			env: umgebung,
+			stdio: ['ignore', 'pipe', 'pipe']
+		})
+		let ausgabe = ''
+		prozess.stdout.on('data', (teil) => { ausgabe += teil })
+		prozess.stderr.on('data', (teil) => { ausgabe += teil })
+		prozess.on('error', fehler)
+		prozess.on('close', (code) => fertig({ code, ausgabe }))
+	})
+}
+
+test('Gegenprobe am Code: ohne die Fork-Erkennung werden die zwei Fork-Tests rot', async () => {
+	// Erst die Probe auf dem ECHTEN Modul: dieselben zwei Tests muessen hier gruen
+	// sein, sonst misst der Vergleich nur, dass irgendetwas kaputt ist.
+	const echt = await laufeForkTests(MODUL)
+	assert.equal(echt.code, 0, `die zwei Fork-Tests sind auf dem echten Modul rot:\n${echt.ausgabe}`)
+	assert.match(echt.ausgabe, /# pass 2/u, `es liefen nicht genau die zwei Fork-Tests:\n${echt.ausgabe}`)
+
+	// Jetzt dieselben zwei Tests gegen die Kopie, in der die Erkennung immer false
+	// liefert: BEIDE muessen rot werden. Blieben sie gruen, prueften sie nichts.
+	const ohne = kopieOhneForkErkennung()
+	const kaputt = await laufeForkTests(ohne)
+	assert.notEqual(kaputt.code, 0, `die zwei Fork-Tests blieben ohne Fork-Erkennung gruen — sie pruefen die Erkennung nicht:\n${kaputt.ausgabe}`)
+	assert.match(kaputt.ausgabe, /# fail 2/u, `ohne Erkennung wurde nicht GENAU die zwei Fork-Tests rot:\n${kaputt.ausgabe}`)
 })

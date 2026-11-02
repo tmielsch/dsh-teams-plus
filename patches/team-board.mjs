@@ -113,6 +113,29 @@
  * bedeutungslos: der Auftrag sagt für beide Fälle dasselbe. Beide Wege gehen
  * durch dieselbe Prüfung (`zuLoeschen`), und der Test fährt beide.
  *
+ * DER FORK-FALL — WARUM EIN FORK EIN EIGENES TEAM IST
+ * Ein Fork ist ein Kind, das NICHT im Roster steht. Der native Dienst macht es
+ * zu seiner eigenen Wurzel (roster.js:85-105, wörtlich: *„A direct child outside
+ * the durable roster is not a teammate. Ordinary host forks are independent
+ * roots; subagent descriptors distinguish provider-owned workers that must not
+ * receive a nested Team identity."*). Sein „geteiltes Brett" ist damit ein Brett
+ * für EINE Person — er liest nur, was er selbst schreibt —, und ohne Kennzeichnung
+ * fiele das nicht auf, weil das Schreiben mit `action: "written"` gelingt.
+ *
+ * **Wir verbieten es nicht, wir sagen es.** Der Mensch hat Variante B gewählt:
+ * die Antwort trägt `allein: true` und den Hinweis, der den Ausweg nennt
+ * (`send_to_session`). Variante C — den Fork ins Eltern-Team schreiben — ist
+ * ausdrücklich verworfen: der Fork bleibt, was der Dienst sagt, und dieses Modul
+ * erfindet keine Team-Zugehörigkeit. Den Unterschied zwischen Fork und Wurzel
+ * macht allein `parentSession` (`dsh-session/lib/types/types.d.ts:71`): die
+ * Wurzel-Sitzung des Menschen hat keine und IST ihr eigenes Team; nur das Kind
+ * ist der Fork. Deshalb melden wir nur, wenn BEIDES gilt: der Dienst nennt den
+ * Aufrufer seine eigene Wurzel, UND er ist ein Kind.
+ *
+ * **Der Preis, offen gesagt:** ein Fork, der den Hinweis überliest, vergräbt
+ * seine Erkenntnis weiterhin in einem Brett, das niemand sonst liest. Die
+ * Antwort macht das sichtbar, sie verhindert es nicht.
+ *
  * WAS DIESES MODUL NICHT TUT
  *   - Es fängt keine Team-Mitgliedschaft ab und erfindet keine: ohne
  *     `agentTeams` gibt es keine Notiz, sondern einen lauten Fehler.
@@ -378,6 +401,34 @@ export function findeEintrag(board, leaderId, area, key) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Ist dieser Aufrufer ein FORK — also ein Kind ohne Roster-Eintrag?
+ *
+ * Der native Dienst macht einen Fork zu seiner eigenen Wurzel (roster.js:85-105,
+ * siehe Dateikopf). Dann ist sein „geteiltes Brett" ein Privatbrett, das nur er
+ * liest. Zwei Dinge müssen zusammenkommen, damit das ein Fork ist und nicht die
+ * Wurzel-Sitzung des Menschen:
+ *
+ *   1. `membership.root.id === agent.id` — der Dienst sagt: du bist deine eigene Wurzel.
+ *   2. `agent.session.header.parentSession` ist gesetzt — du bist ein Kind.
+ *
+ * Fehlt (2), ist es die Wurzel-Sitzung: die IST ihr eigenes Team, dort ist nichts
+ * zu melden. Beide Bedingungen sind nötig; keine allein genügt.
+ *
+ * @param mitgliedschaft - was `dienst.membership(agent)` geliefert hat.
+ * @param agent - der aufrufende Agent aus `exec.agent`.
+ * @returns `true` nur für den Fork.
+ */
+export function istEigenesTeam(mitgliedschaft, agent) {
+	const wurzel = istObjekt(mitgliedschaft) === true && istObjekt(mitgliedschaft.root) === true
+		? mitgliedschaft.root.id
+		: undefined;
+	const ichBinDieWurzel = typeof wurzel === "string" && typeof agent?.id === "string" && wurzel === agent.id;
+	const eltern = agent?.session?.header?.parentSession;
+	const binEinKind = typeof eltern === "string" && eltern.length > 0;
+	return ichBinDieWurzel && binEinKind;
+}
+
+/**
  * Wer schreibt, und in welches Team?
  *
  * **Der einzige Weg zur Identität ist `ctx.agentTeams.membership(agent)`.**
@@ -415,13 +466,31 @@ export function identitaetVon(dienst, agent) {
 		role: typeof mitgliedschaft.role === "string" ? mitgliedschaft.role : "member",
 		// Die Sitzungs-Id des Schreibers. Sie ist je Mitglied verschieden und deshalb
 		// der einzige taugliche Schlüssel eines privaten Bereichs.
-		sitzung: String(agent.id)
+		sitzung: String(agent.id),
+		// Ein Fork ist seine eigene Wurzel UND ein Kind — dann ist sein „geteiltes"
+		// Brett ein Privatbrett. Die Antwort sagt das (siehe `alleinFelder`).
+		allein: istEigenesTeam(mitgliedschaft, agent)
 	};
 }
 
 /** Welcher Bereich ist gemeint: das geteilte Brett oder der eigene Block? */
 export function bereichVon(identitaet, privat) {
 	return privat === true ? identitaet.sitzung : GETEILT;
+}
+
+/**
+ * Der Hinweis, den ein Fork in JEDER Antwort trägt.
+ *
+ * Inhalt (der Mensch hat Variante B gewählt): das Brett gehört ihm allein, er ist
+ * kein Mitglied eines Teams, niemand sonst liest es — und der Weg für etwas, das
+ * ein anderes Team braucht, ist `send_to_session` an die Sitzung, die es braucht.
+ * Kein Verbot, keine Ablehnung: die Notiz wird ganz normal gespeichert.
+ */
+const HINWEIS_ALLEIN = "This board belongs to you alone: you are not a member of a team — the team service resolves your root to your own session, so nobody else reads it. If something is meant for another team, send it with send_to_session to the session that needs it.";
+
+/** Die zwei Felder, die eine Antwort trägt, wenn der Aufrufer ein Fork ist. */
+function alleinFelder(identitaet) {
+	return identitaet.allein === true ? { allein: true, hinweis: HINWEIS_ALLEIN } : {};
 }
 
 // ---------------------------------------------------------------------------
@@ -530,7 +599,11 @@ function boardWerkzeug({ defineTool, pfad, dienst }) {
 				properties: {
 					area: { type: "string", required: true, enum: [GETEILT, "private"] },
 					entries: { type: "array", required: true, items: { type: "object", additionalProperties: false, properties: VOLLTEXT_FELDER } },
-					note: { type: "string", required: true }
+					note: { type: "string", required: true },
+					// Nur beim Fork gesetzt: die Antwort sagt, dass das „geteilte" Brett
+					// ein Privatbrett ist. Bei Teammate und Wurzel fehlen beide Felder.
+					allein: { type: "boolean" },
+					hinweis: { type: "string" }
 				}
 			},
 			render: (_args, wert) => [{ type: "text", text: JSON.stringify(wert) }]
@@ -562,7 +635,7 @@ function boardWerkzeug({ defineTool, pfad, dienst }) {
 					? `${wie} is empty`
 					: `no note named ${JSON.stringify(pruefeSchluessel(args.key))} in ${wie}`;
 			protokolliere(`read team=${identitaet.leaderId} bereich=${args.private === true ? "private" : GETEILT} key=${args.key === undefined ? "-" : kurz(args.key, 40)} n=${entries.length}`);
-			return { area: args.private === true ? "private" : GETEILT, entries, note };
+			return { area: args.private === true ? "private" : GETEILT, entries, note, ...alleinFelder(identitaet) };
 		}
 	});
 }
@@ -611,7 +684,12 @@ function notizWerkzeug({ defineTool, pfad, dienst }) {
 					action: { type: "string", required: true, enum: ["written", "deleted"] },
 					existed: { type: "boolean", required: true },
 					entry: { type: "object", additionalProperties: false, properties: INDEX_FELDER },
-					index: { type: "array", required: true, items: { type: "object", additionalProperties: false, properties: INDEX_FELDER } }
+					index: { type: "array", required: true, items: { type: "object", additionalProperties: false, properties: INDEX_FELDER } },
+					// Nur beim Fork gesetzt: die Notiz wird gespeichert, aber die Antwort
+					// sagt, dass niemand sonst sie lesen wird. Bei Teammate und Wurzel fehlen
+					// beide Felder.
+					allein: { type: "boolean" },
+					hinweis: { type: "string" }
 				}
 			},
 			render: (_args, wert) => [{ type: "text", text: JSON.stringify(wert) }]
@@ -668,7 +746,8 @@ function notizWerkzeug({ defineTool, pfad, dienst }) {
 					action,
 					existed: vorhanden !== undefined,
 					...(action === "written" && neu !== undefined ? { entry: alsIndexZeile(neu) } : {}),
-					index
+					index,
+					...alleinFelder(identitaet)
 				};
 			});
 		}
