@@ -100,6 +100,37 @@ neuen Facharbeiter eigenmächtig an. Das widersprach der ausdrücklichen Anordnu
 Der Grund ist bei beiden Regeln derselbe: Sub-Agents lassen sich **nicht löschen**. Jede
 Neueinstellung ist eine Entscheidung, die man nicht zurücknehmen kann.
 
+### Die ausdrückliche Ausnahme: das Red Team
+
+Die Gelockt-Regel hat **eine** Ausnahme: das Red Team. Sie ist ausdrücklich und gilt nur hier.
+
+Der Grund ist fachlich, nicht technisch: Ein Red Team soll mit **frischen, unkontaminierten Augen**
+prüfen. Ein dauerhafter Red-Team-Experte, der schon jede Entscheidung mitgetragen hat, ist kein Red
+Team mehr — er verteidigt, was er selbst beschlossen hat. Darum wird ein Red-Team-Lauf als **frische,
+wegwerfbare Session** gefahren.
+
+Technisch ist das gedeckt (gemessen): `roster.js:337` erlaubt Namens-Recycling nach `retire`
+(`phase !== 'retired'`), und das Sitz-Limit zählt nur Nicht-Retired (`roster.js:340`). Wegwerfen geht
+also. **Aber** — und das korrigiert eine frühere Vermutung, die hier als Befund steht:
+
+**Ein Red-Team-Lauf ist ein Sub-Agent mit `rolle`, kein Teammate.** Drei gemessene Gründe:
+
+1. **Retired ist nicht gelöscht.** Ein entlassener Teammate bleibt als dauerhafter Eintrag im Journal
+   — mitsamt Aufgaben und Nachrichten. Die Lücke in der Sub-Agent-Liste wird nur in die
+   Teammate-Liste **verschoben**, nicht geschlossen. Wer Teammates wegwirft, erzeugt denselben
+   Datenmüll, nur an anderer Stelle.
+2. **Ein Teammate ist für einen Einmal-Auftrag überdimensioniert.** Er ist ein `startContinuable`-
+   Kind mit eigener Session, eigener Inbox, durablem Journal-Eintrag und Provisioning-Handshake.
+   All das braucht ein Prüflauf nicht.
+3. **Es widerspräche der eigenen Ordnung.** Teammate heißt: dauerhafter Experte. Wer einen
+   Teammate für einen Auftrag erzeugt und danach entlässt, hat genau die Regel verletzt, die weiter
+   oben steht: *„Wer einen Spezialisten für eine Aufgabe erzeugt, hat eine Aufgabe verkleidet."*
+
+Die zwei Wünsche, die hinter der Wegwerf-Idee stehen, sind getrennt zu lösen: **Frische Augen**
+bekommt man mit einer frischen Sub-Agent-Session. **Kein Datenmüll** bekommt man nur durch echte
+Löschbarkeit — ein Purge- oder Archiv-Verfahren für beendete Sub-Agents **und** retired Teammates.
+Das ist eine eigene Baustelle, nicht Teil dieser Regel.
+
 ---
 
 ## 5. Das Onboarding — der Moment, in dem das Team entsteht
@@ -140,7 +171,7 @@ Was daraus folgt — drei Möglichkeiten:
 |---|---|---|
 | **A — Nachricht statt Fork** | Der Facharbeiter schickt seine Meldung an die Abteilungsleiter-Session (`send_to_session`). Die entscheidet, ob sie einen eigenen Fork öffnet. | Die Abteilungsleiter-Session wird kurz belastet; das ist der Punkt, den der Mensch vermeiden wollte |
 | **B — der Abteilungsleiter forkt selbst** | Die Session, die die Nachricht empfängt, öffnet einen Fork von **sich** und klärt es dort. Das Ergebnis kommt als Zusammenfassung zurück. | Genau das gewünschte Verhalten — nur mit einem Schritt dazwischen |
-| **C — Fork im Harness nachrüsten** | Ein Fork, dessen Wurzel eine fremde Session ist. | Eingriff in den Kern; technisch unklar, ob die Sitzungslogik das trägt |
+| **C — Fork im Harness nachrüsten** | Ein Fork, dessen Wurzel eine fremde Session ist. | Das Werkzeug nimmt den Parent aus `exec.agent` (`dsh-tool-subagent/lib/index.js`: `const parent = exec.agent`) und bietet keinen Parameter für eine fremde Session — ein Eingriff müsste am Tool-Contract ansetzen, nicht an einer unklaren Sitzungslogik |
 
 **B ist die Variante, die die Absicht erfüllt, ohne den Kern anzufassen.** Der Unterschied zu A ist
 klein, aber wichtig: Nicht der Facharbeiter forkt, sondern der Empfänger. Der Facharbeiter schickt nur
@@ -200,14 +231,24 @@ Ein Text kann eine Grenze **beschreiben**, aber nicht **durchsetzen**. Das ist g
 Rollentext, der sagt „Du arbeitest nicht selbst", wurde von beiden getesteten Rollen mit der eigenen
 Ausnahmeklausel überstimmt (*„running echo is cheaper"*).
 
-**Wahrscheinlich braucht es eine technische Grenze** — der Leitungsrolle die schreibenden Werkzeuge
-gar nicht geben. Das ist eine offene Frage (Frage 7).
+**Daraus folgt: Die harte Grenze ist nötig.** Solange sie fehlt, ist die Netiquette wegerklärbar —
+jede Session findet ihre Ausnahme. Offen ist nur noch, **wie** sie aussieht: welche schreibenden
+Werkzeuge die Leitungsrolle genau nicht bekommt (Frage 7).
 
 ---
 
 ## 8. Die geteilten Ablagen
 
 Der Mensch will zwei Dateien, die jeder liest:
+
+**Vorab eine Klarstellung zur Verwandtschaft (gemessen, Red-Team-Pass 2026-11-02):** Es gibt bereits
+ein `team_board` — allerdings im **fremden Paket `dsh-team` 0.2.11** (huxint), nicht in Agent Teams
+Plus und nicht im Kern. Teams Plus kann sich nicht darauf verlassen: Wer nur dieses Paket installiert,
+hat `dsh-team` nicht, und ein Plugin darf nicht voraussetzen, dass ein anderes Fremdplugin da ist.
+Auch das Kern-Paket `@deepseek-ai/dsh-experimental-tool-agent-team` mit seinen Werkzeugen
+`team_task_create`/`team_task_get`/`team_task_list`/`team_task_update` ersetzt die Ablagen nicht:
+`team_task_*` ist eine **Aufgabenliste** (Status, Revision, Abhängigkeiten) — weder ein schwarzes
+Brett noch eine Turn-Warnung. Der Bau eigener Ablagen ist darum nicht redundant.
 
 ### 8a. Das Team-Log (schwarzes Brett)
 
@@ -250,7 +291,7 @@ Modell-Input einhängt, ist der wahrscheinliche Weg.
 | **4** | **Fork-Kommunikation: A, B oder C?** (siehe § 6) | Ein Fork ist immer ein Kind der eigenen Session — die gewünschte Fremd-Fork-Variante gibt es nicht | **B**: der Empfänger forkt selbst. Erfüllt die Absicht ohne Kerneingriff |
 | **5** | **Wer darf mit wem sprechen?** | Flaschenhals gegen Chaos — beides ist real | Gestufte Öffnung (§ 6): innerhalb der Abteilung frei, abteilungsübergreifend erst mit Verzeichnis |
 | **6** | **Wie kommt die Warnung in jeden Turn?** | Ohne erzwungenes Einlesen ist sie wirkungslos | Ein Patch, der die Datei in den Modell-Input hängt — an derselben Stelle wie `stille-nachrichten` |
-| **7** | **Wird die Rolle technisch durchgesetzt oder nur beschrieben?** | Gemessen: ein Text hält nicht vom Selbstarbeiten ab | **Technisch**: der Leitungsrolle `write`/`edit`/`bash` nicht geben |
+| **7** | **Wie sieht die harte Grenze genau aus?** Dass sie nötig ist, steht nicht mehr zur Debatte (§ 7: ein Text hält nicht vom Selbstarbeiten ab) — offen ist nur ihre Form | Ohne Werkzeugfilter ist die Netiquette wegerklärbar | **Technisch durchsetzen**: der Leitungsrolle `write`/`edit`/`bash` nicht geben; zu entscheiden ist die genaue Werkzeugliste |
 | **8** | **Team-Log und Warnung: eine Datei oder zwei?** | Der Mensch will zwei; das ist mehr Bau, aber richtig | Zwei. Sie werden unterschiedlich gelesen — das ist der ganze Unterschied |
 | **9** | **Was passiert mit den zwei zurückgezogenen Rollentexten?** | Sie sind live-untauglich (Red-Team-STOPP) und liegen als `_ZURUECKGEZOGEN-*` | Neu bauen, wenn die Fragen 4, 5 und 7 beantwortet sind |
 | **10** | **Soll `~/.dsh/AGENTS.md` gekürzt werden?** | 77 078 Bytes bei 65 536 Budget — sie wird in neuen Sitzungen **ganz weggelassen** | Ja. Sonst kommen alle Rollenregeln in neuen Sitzungen nicht an |
@@ -263,9 +304,9 @@ Modell-Input einhängt, ist der wahrscheinliche Weg.
 |---|---|
 | `send_to_session` | **live**, 0.6.0. Jede Session kann jede lebende Session anschreiben; Wurzelsitzungen bekommen `inject` und werden nie geweckt; Sperre gegen Lost Update |
 | `stille-nachrichten` | **live**. Drosselt die Team-Nachrichten (20/s + Summenzeile) |
-| `teammate-modell` | **live**. Modellwahl für Teammates |
-| `goal-await` | **live**. Ein Ziel wartet, ohne Runden zu verbrauchen |
-| `rolle-titel` | **live**. Setzt den Sitzungstitel für `delegate_task` |
+| `teammate-modell` | **live**. Modellwahl für Teammates. *Nicht eigenständig nachgemessen (Red-Team-Pass 2026-11-02): Eintrag in `cordis.patch.yml` vorhanden, Funktion nicht erneut geprüft* |
+| `goal-await` | **live**. Ein Ziel wartet, ohne Runden zu verbrauchen. *Nicht eigenständig nachgemessen (Red-Team-Pass 2026-11-02): Eintrag in `cordis.patch.yml` vorhanden, Funktion nicht erneut geprüft* |
+| `rolle-titel` | **live**. Setzt den Sitzungstitel für `delegate_task`. *Nicht eigenständig nachgemessen (Red-Team-Pass 2026-11-02): Eintrag in `cordis.patch.yml` vorhanden, Funktion nicht erneut geprüft* |
 | Rollentexte `abteilungsleiter`, `arbeitsgruppenleiter` | **zurückgezogen** — Red-Team-STOPP. Die Arbeit liegt als `_ZURUECKGEZOGEN-*` im Repo |
 | Team-Log, Team-Wide-Warnings | **nicht gebaut** |
 
