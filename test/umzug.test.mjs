@@ -91,9 +91,14 @@ const SHA256_ABWEICHEND = {
 	//      weckt) und ein zweiter Wecker auf `team/task`/`completed`; ohne `von`, ohne Team und bei
 	//      Frist-Ablauf bleibt alles wie vorher. Belege: test/goal-await.test.mjs, samt Gegenprobe in
 	//      einer /tmp-Kopie, in der der Filter ausgebaut ist.
+	//  (3) 2026-11-02 (spaeter am selben Tag): die Zeile unter SELBSTPRUEFUNG zeigte auf
+	//      `node ~/.dsh/patches/goal-await.mjs --test` — ein Selbsttest, den diese Datei nie
+	//      hatte. Der Befehl endet mit exit 0 und tut nichts; er sieht aus wie eine Pruefung und
+	//      ist keine. Ersetzt durch `node --test test/goal-await.test.mjs`, und die Zeile nennt
+	//      jetzt, dass der alte Verweis ins Leere ging.
 	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
 	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
-	'goal-await.mjs': '9158ffe8aa0c16a0b2a1df64680c0d008c34c1793f57cb6cb366b774ddf11983',
+	'goal-await.mjs': '383de9ebeb4d5b4afd21b60c40bfa3b551059cffc9a2b6dfb9e23b88ff884665',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:

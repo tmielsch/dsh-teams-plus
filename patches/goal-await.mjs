@@ -120,7 +120,10 @@
  * guten Fall wartet es ohne Kontingentverbrauch.
  *
  * SELBSTPRÜFUNG
- *   node ~/.dsh/patches/goal-await.mjs --test
+ *   node --test test/goal-await.test.mjs
+ *   (13 Faelle plus drei Gegenproben am Code. Die frueher hier genannte Zeile
+ *   `node ~/.dsh/patches/goal-await.mjs --test` war falsch: ein Selbsttest in
+ *   dieser Datei hat nie existiert — der Verweis zeigte auf nichts.)
  * NACHSEHEN
  *   ~/.dsh/logs/goal-await.log
  * ZURÜCK
