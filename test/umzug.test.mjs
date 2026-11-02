@@ -387,8 +387,13 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 	}
 })
 
-test('der Anweisungstext traegt den neuen Namen und keinen alten', () => {
-	const text = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.md'), 'utf8')
+test('der Anweisungstext ist ein Zeiger, die volle Fassung traegt den neuen Namen', () => {
+	// Die Quelle ist seit dem Zeiger-Umbau die kurze Anweisung, nicht mehr der volle Text.
+	// Sie muss die volle Fassung nennen und darf den alten Namen nicht tragen.
+	const zeiger = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.md'), 'utf8')
+	assert.ok(zeiger.includes('teams-plus-agents.voll.md'), 'der Zeiger nennt die volle Fassung nicht')
+	assert.ok(!/projectOS|Projekt-Manager/u.test(zeiger), 'der Zeiger nennt noch dsh-projectOS oder Projekt-Manager')
+	const text = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.voll.md'), 'utf8')
 	assert.ok(text.startsWith('## Teams Plus: Namen und Aufträge (dsh-teams-plus)'), 'Titelzeile ist nicht umgestellt')
 	assert.ok(!/projectOS|Projekt-Manager/u.test(text), 'der Text nennt noch dsh-projectOS oder Projekt-Manager')
 	assert.ok(text.includes('tmielsch/dsh-teams-plus'), 'der Repo-Name fehlt')

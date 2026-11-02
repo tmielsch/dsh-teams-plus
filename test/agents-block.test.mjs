@@ -95,7 +95,10 @@ test('install setzt den Block vor den alten PROJECTOS-Block, status meldet aktue
 		const mitBlock = installiert.text
 		assert.ok(mitBlock.includes(BEGIN), 'Anfangsmarke fehlt')
 		assert.ok(mitBlock.includes(END), 'Endmarke fehlt')
-		assert.ok(mitBlock.includes('Teams Plus: Namen und Aufträge (dsh-teams-plus)'), 'der Anweisungstext fehlt')
+		// Der Block ist seit dem Zeiger-Umbau die kurze Anweisung, nicht mehr der volle Text.
+		// Sie muss die volle Fassung beim Namen nennen — sonst findet kein Agent sie je.
+		assert.ok(mitBlock.includes('teams-plus-agents.voll.md'), 'der Zeiger nennt die volle Fassung nicht')
+		assert.ok(mitBlock.length < 2000, 'der Block ist wieder der volle Text statt des Zeigers')
 		const stelleNeu = mitBlock.indexOf(BEGIN)
 		const stelleAlt = mitBlock.indexOf(ALT_ANFANG)
 		assert.ok(stelleNeu >= 0 && stelleAlt >= 0, 'beide Bloecke muessen dastehen')
@@ -181,9 +184,10 @@ test('ein veralteter Block wird an seiner Stelle aktualisiert, nicht verdoppelt'
 		writeFileSync(ort.target, vorlage())
 		assert.equal(rufe(ort, '--install').status, 0)
 
-		// Den Block kuenstlich veralten: eine Zeile im Inneren ersetzen.
+		// Den Block kuenstlich veralten: eine Zeile im Inneren ersetzen. Der Zeiger ist kurz,
+		// deshalb wird hier ein Satz aus IHM getauscht, nicht einer aus der vollen Fassung.
 		const mit = readFileSync(ort.target, 'utf8')
-		const veraltet = mit.replace('Wo frühere Anweisungen regeln', 'Wo frueher Anweisungen regelten')
+		const veraltet = mit.replace('statt zu delegieren', 'statt zu arbeiten')
 		assert.notEqual(veraltet, mit, 'die Veraltung hat nicht gegriffen')
 		writeFileSync(ort.target, veraltet)
 
@@ -263,10 +267,21 @@ test('bin/teams-plus.mjs agents reicht an das Skript durch', () => {
 	}
 })
 
-test('die Quelle ist der umbenannte Anweisungstext, nicht der alte aus dsh-projectOS', () => {
+test('die Quelle ist ein Zeiger auf die volle Fassung, die den neuen Namen traegt', () => {
 	const text = readFileSync(QUELLE, 'utf8')
-	assert.ok(text.startsWith('## Teams Plus: Namen und Aufträge (dsh-teams-plus)'), 'die Quelle ist nicht der Teams-Plus-Text')
+
+	// Die Quelle ist seit dem Zeiger-Umbau kurz und nennt die volle Fassung beim Namen.
+	assert.ok(text.includes('teams-plus-agents.voll.md'), 'die Quelle nennt die volle Fassung nicht')
+	assert.ok(text.length < 2000, 'die Quelle ist wieder der volle Text statt des Zeigers')
 	assert.ok(!/projectOS|Projekt-Manager/u.test(text), 'die Quelle nennt noch den alten Namen')
+
+	// Ein Zeiger, der ins Leere zeigt, waere schlimmer als kein Zeiger: die Datei muss es geben.
+	const voll = join(dirname(QUELLE), 'teams-plus-agents.voll.md')
+	assert.ok(existsSync(voll), 'die volle Fassung fehlt — der Zeiger zeigt ins Leere')
+	const vollText = readFileSync(voll, 'utf8')
+	assert.ok(vollText.startsWith('## Teams Plus: Namen und Aufträge (dsh-teams-plus)'), 'die volle Fassung ist nicht der Teams-Plus-Text')
+	assert.ok(vollText.includes('Wo frühere Anweisungen regeln'), 'der Vorrang-Satz fehlt in der vollen Fassung')
+
 	// Die Marke traegt denselben Namen wie der Text, sonst finden sich Block und Datei nie.
 	assert.ok(BEGIN.includes('teams-plus-agents.md'), 'die Anfangsmarke nennt nicht die Datei')
 	assert.ok(BEGIN.startsWith('<!-- TEAMSPLUS:ANFANG'), 'die Anfangsmarke heisst nicht TEAMSPLUS')
