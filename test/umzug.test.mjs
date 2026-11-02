@@ -119,9 +119,9 @@ const A_DATEIEN = [
 ]
 
 /** Die B-Patches: Cordis-Plugins aus cordis.patch.yml.
- *  Fuenf sind umgezogen; `send-to-session.mjs` entsteht in diesem Paket und ist
- *  deshalb ohne sha256-Anker gegen projectOS. */
-const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs']
+ *  Fuenf sind umgezogen; `send-to-session.mjs` und `team-board.mjs` entstehen in
+ *  diesem Paket und sind deshalb ohne sha256-Anker gegen projectOS. */
+const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs', 'team-board.mjs']
 
 /** Die Werkzeuge mit eigener Bedienung (--status, --revert). */
 const WERKZEUGE = A_DATEIEN.filter((name) => name.startsWith('allow-'))
@@ -204,9 +204,9 @@ test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen 
 	assert.deepEqual(abweichend, [], 'Dateien weichen von ihrer festgehaltenen Fassung ab')
 	// patches/package.json ist die Paketgrenze fuer den Client-Modul-Regler (siehe test/bundle.test.mjs);
 	// sie ist kein Patch und steht deshalb nicht in den sha256-Listen.
-	// `send-to-session.mjs` ist ein EIGENES Werkzeug dieses Pakets, kein umgezogener Patch:
-	// es entsteht hier und hat deshalb keinen sha256-Anker gegen projectOS.
-	const erwartet = [...Object.keys(alle), 'package.json', 'send-to-session.mjs'].sort()
+	// `send-to-session.mjs` und `team-board.mjs` sind EIGENE Werkzeuge dieses Pakets, keine
+	// umgezogenen Patches: sie entstehen hier und haben deshalb keinen sha256-Anker gegen projectOS.
+	const erwartet = [...Object.keys(alle), 'package.json', 'send-to-session.mjs', 'team-board.mjs'].sort()
 	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
@@ -369,8 +369,10 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(lstatSync(join(ziel, 'patches')).isSymbolicLink(), 'patches ist kein Verweis')
 		assert.ok(lstatSync(join(ziel, 'rollen')).isSymbolicLink(), 'rollen ist kein Verweis')
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
-		// 23 Patch-Dateien; dazu kommt patches/package.json als Paketgrenze fuer den Client-Modul-Regler.
-		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 24)
+		// 23 umgezogene Patch-Dateien, dazu send-to-session.mjs und team-board.mjs als eigene
+		// Werkzeuge dieses Pakets; patches/package.json ist die Paketgrenze fuer den
+		// Client-Modul-Regler und zaehlt nicht mit (.mjs-Filter).
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 25)
 		// Der Verweis muss jede Rollendatei erreichbar machen — Namen, nicht nur die Anzahl.
 		assert.deepEqual(readdirSync(join(ziel, 'rollen')).sort(), [...ROLLEN].sort(), 'der Verweis auf rollen/ erreicht nicht jede Rollendatei')
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))

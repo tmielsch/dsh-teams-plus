@@ -33,3 +33,5 @@
       name: '@tmielsch/dsh-teams-plus/patches/rolle-titel.mjs'
     - id: send-to-session
       name: '@tmielsch/dsh-teams-plus/patches/send-to-session.mjs'
+    - id: team-board
+      name: '@tmielsch/dsh-teams-plus/patches/team-board.mjs'

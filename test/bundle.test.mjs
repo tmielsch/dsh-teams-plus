@@ -146,13 +146,16 @@ test('lib/client.js traegt den Lader-Kopf mit Paketnamen und factory', () => {
 	}
 })
 
-test('cordis.patch.yml nennt das Paket selbst zuerst und danach die sechs Patch-Module', () => {
+test('cordis.patch.yml nennt das Paket selbst zuerst und danach die sieben Patch-Module', () => {
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const eintraege = [...yml.matchAll(/-\s*id:\s*([\w.-]+)/gu)].map((treffer) => treffer[1])
 	assert.equal(eintraege[0], 'teams-plus', `der Paket-Eintrag steht nicht zuerst: ${eintraege.join(', ')}`)
 	assert.ok(yml.includes("name: '@tmielsch/dsh-teams-plus'"), 'der Paketname fehlt im cordis-Eintrag')
 	const patches = eintraege.slice(1)
-	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session'])
+	// Sieben statt sechs: `team-board` bringt `team_board` und `team_note` zurueck, die mit dem
+	// Fremdpaket `dsh-team` aus dem Profil verschwinden (Spec § 8c). Die Zahl ist Buchhaltung
+	// ueber die Registrierung, keine Aussage ueber das Verhalten der anderen sechs.
+	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board'])
 	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session']) {
 		assert.ok(yml.includes(`@tmielsch/dsh-teams-plus/patches/${name}.mjs`), `patches/${name}.mjs fehlt in cordis.patch.yml`)
 	}
