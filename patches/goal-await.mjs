@@ -47,20 +47,71 @@
  *
  * Das Modul legt also ein Werkzeug `await_goal_dependency` an. Ruft ein Agent
  * es auf, wird sein Ziel entwaffnet und die Wartebedingung festgehalten. Kommt
- * die Zutat an — eine Nachricht im Posteingang, ein fertiger Hintergrundjob —,
- * wird das Ziel wieder scharf geschaltet, und der Rundentreiber schiebt die
- * nächste Runde nach. Der Agent muss nichts tun, sich an nichts erinnern und
- * keine Schleife fahren.
+ * die Zutat an — eine Nachricht im Posteingang, eine fertig gewordene
+ * Team-Aufgabe —, wird das Ziel wieder scharf geschaltet, und der
+ * Rundentreiber schiebt die nächste Runde nach. Der Agent muss nichts tun, sich
+ * an nichts erinnern und keine Schleife fahren.
  *
  * WAS ALS "ZUTAT ANGEKOMMEN" GILT
- *   1. `agent/inbox/inserted` für diesen Agenten — jede Nachricht, ausdrücklich
- *      NICHT die Zielrunde selbst (`source.kind === "goal"` wird übersprungen,
- *      sonst weckt sich das Modul gegenseitig auf).
- *   2. Ein Hintergrundjob dieses Agenten wechselt auf fertig, wenn der Dienst
- *      `jobs` eine Abfrage dafür anbietet (`angekommen` prüft das defensiv).
+ *   1. `agent/inbox/inserted` für diesen Agenten — aber nicht mehr jede
+ *      Nachricht. Nennt der Aufruf den erwarteten Absender (`von`), weckt nur
+ *      noch eine Nachricht VON DIESEM Absender; die Zielrunde selbst
+ *      (`source.kind === "goal"`) weckt nie, sonst weckt sich das Modul
+ *      gegenseitig auf. Ohne `von` bleibt es beim bisherigen Verhalten.
+ *   2. `session/event` mit `team/task` und `task.status === "completed"` — eine
+ *      fertige Aufgabe ist auch eine Zutat, ganz ohne Nachricht. Nur für
+ *      Agenten, die zu DIESEM Team gehören (siehe (C) unten).
  *   3. Ablauf der Frist (`max_wait_seconds`, Vorgabe 900 s = 15 min). Dann wird
  *      ebenfalls wieder scharf geschaltet, mit einem Hinweis im Protokoll: ein
  *      vergessener Wartezustand darf ein Ziel nie dauerhaft stilllegen.
+ *
+ * WARUM VERENGEN (A) UND KEIN ZWEITER WECKER AUF `activity.wait` (B)
+ * Das Warten selbst war richtig; falsch war der WECKRUF. Die erste Fassung ließ
+ * jede Nachricht durch, ein Gruß eines Teammates weckte also ein Ziel, das auf
+ * einen Messbericht wartete. Dagegen hilft genau eine Angabe: WER die Zutat
+ * bringt (`von`). Ohne Angabe bleibt alles wie vorher — das ist die
+ * Rückwärtsverträglichkeit, und sie hat einen eigenen Test.
+ *
+ * Der naheliegende zweite Wecker — `activity.wait(teamId, …)` aus
+ * `dsh-experimental-agent-team` — ist ABSICHTLICH nicht gebaut, und der Grund
+ * ist gemessen, nicht geschätzt. Das Journal ruft `activity.notify` bei JEDER
+ * Transaktion (`index.js` um Zeile 1834: `this.journal = new TeamJournal(ctx,
+ * (root) => { this.activity.notify(TeamId(root.id)); })`), und `mailbox.send`
+ * schreibt `team/message/queued` als Transaktion (`mailbox.js` Zeile 124). Ein
+ * `activity.wait` weckt damit auch bei JEDER Teammate-Nachricht — genau der
+ * Fehler, den (A) behebt. (B) und (A) widersprechen sich für Teammitglieder;
+ * gebaut ist stattdessen der genauere Weg (C).
+ *
+ * (C) DER AUFGABEN-WECKER — und seine zwei Grenzen
+ * `team/task` ist ein typisiertes Sitzungs-Ereignis: `TeamJournal.appendAndFlush`
+ * hängt es an die Session der Team-Wurzel (`journal.js` Zeile 53-59), und der
+ * Kern verteilt jeden Sitzungs-Eintrag als `session/event` (`session.js` Zeile
+ * 1468). Aufgabe fertig, Ereignis da. Dieses Modul hört darauf, gefiltert auf
+ * `team/task` und `status === "completed"`; eine Aufgabe, die auf
+ * `in_progress` geht, weckt NICHT — sonst wäre der Wecker wieder „alles
+ * weckt", nur auf einem anderen Kanal.
+ * WER geweckt wird, entscheidet die Mitgliedschaft, nicht die Sitzung des
+ * Ereignisses: `membership(agent)` gegen die Team-Kennung aus dem Ereignis.
+ * Damit wird auch ein WARTENDES TEAMMITGLIED geweckt, obwohl das Ereignis auf
+ * der Sitzung der Team-Wurzel liegt — das ist der Fall, für den der Mensch den
+ * Wecker wollte ("sobald der Task fertig ist, muss die Dependency gelöst
+ * werden").
+ * Zwei Grenzen, offen gesagt:
+ *   - Ein Agent OHNE Team (ein gewöhnlicher Sub-Agent) wird so nie geweckt. Für
+ *     ihn bleibt es bei der Nachricht — richtig, weil er kein Team hat, an dem
+ *     sich etwas ändern könnte.
+ *   - Der Wecker fragt NICHT, WELCHE Aufgabe fertig wurde. Jede fertige Aufgabe
+ *     des eigenen Teams ist ein Anlass nachzusehen. Das ist Absicht: welcher
+ *     Task die Zutat ist, weiß das Modul nicht — `waiting_for` ist Prosa für
+ *     den Menschen, kein Filter. Ein Filter auf Task-Kennungen wäre eine zweite
+ *     Angabe, die ein Modell falsch ausfüllen kann; die Rückfrage kostet eine
+ *     Runde, eine falsch gefilterte Aufgabe kostet den ganzen Wartezustand.
+ *
+ * Selbstwecken ist ausgeschlossen: dieses Modul schreibt kein `team/task`, und
+ * nach dem Wecken ist der Wartezustand gelöscht — ein zweites Ereignis findet
+ * nichts mehr. Geweckt wird außerdem nur, wer TATSAECHLICH wartet (`zustaende`
+ * führt nur wartende Agenten); ein laufendes Ziel, das nicht über
+ * `await_goal_dependency` wartet, fasst ein Task-Ereignis nicht an.
  *
  * WARUM DIE FRIST WICHTIG IST
  * Ein Agent, der auf etwas wartet, das nie kommt, wäre sonst für immer still.
@@ -95,6 +146,9 @@ export const FRIST_MAX = 7200;
 
 /** Obergrenze der Wartebedingung im Text (Schutz gegen riesige Prompts). */
 const BEDINGUNG_MAX_ZEICHEN = 400;
+
+/** Obergrenze der Absenderangabe (`von`): ein Name oder eine Sitzungs-Kennung. */
+const ABSENDER_MAX_ZEICHEN = 200;
 
 /**
  * Die Basis-Ordner der dsh-Installation, in der Reihenfolge der Wahrscheinlichkeit.
@@ -162,6 +216,24 @@ export function bedingungText(wert) {
 }
 
 /**
+ * Normalisiert die Absenderangabe `von`.
+ *
+ * Anders als die Wartebedingung wird sie NICHT in einen Satz verwandelt: sie
+ * wird gegen `senderSessionId`, `senderId` und `senderName` verglichen, und
+ * jede Umschreibung (Kürzen, Zeilenumbrüche) würde den Vergleich kaputtmachen,
+ * der genau diese Zeichenkette sucht.
+ *
+ * @param wert - der rohe Wert des Aufrufs, darf fehlen oder unsinnig sein.
+ * @returns der erwartete Absender; `""` bedeutet "kein Absender verlangt".
+ */
+export function absenderText(wert) {
+	const roh = typeof wert === "string" ? wert : "";
+	const einzeilig = roh.replace(/\s+/g, " ").trim();
+	if (einzeilig.length <= ABSENDER_MAX_ZEICHEN) return einzeilig;
+	return einzeilig.slice(0, ABSENDER_MAX_ZEICHEN);
+}
+
+/**
  * Rechnet die gewünschte Frist in Millisekunden und hält sie in den Grenzen.
  *
  * @param sekunden - Wert aus dem Aufruf, darf fehlen oder unsinnig sein.
@@ -174,19 +246,100 @@ export function fristMs(sekunden) {
 }
 
 /**
+ * Wer eine Nachricht geschickt hat, soweit die Quelle es hergibt.
+ *
+ * Es gibt im Kern DREI Formen mit Absender (gemessen an den Typen in
+ * `dsh-llm/lib/types/message.d.ts` und den erzeugenden Stellen):
+ *   - `agent-message` (`send_message` an ein Kind, Fortsetzung): `senderSessionId`
+ *   - `team-message` (Team-Mailbox): `senderId` (die Sitzung) und `senderName`
+ *   - `subagent-settled` (Kind fertig): `senderSessionId` = das Kind
+ * `send_to_session` aus diesem Paket schreibt `senderSessionId` ebenfalls.
+ * Alles andere (Mensch, Systemhinweis, Snapshots) trägt keinen Absender — dann
+ * gibt es nichts zu vergleichen, und die Nachricht zählt wie bisher.
+ *
+ * @param quelle - die `source` einer Nachricht.
+ * @returns `{ kennung, name }`, sobald die Quelle einen Absender nennt, sonst undefined.
+ */
+function absenderVon(quelle) {
+	if (quelle === undefined || quelle === null || typeof quelle !== "object") return undefined;
+	const kennung = typeof quelle.senderSessionId === "string" && quelle.senderSessionId.length > 0
+		? quelle.senderSessionId
+		: typeof quelle.senderId === "string" && quelle.senderId.length > 0
+			? quelle.senderId
+			: undefined;
+	const name = typeof quelle.senderName === "string" && quelle.senderName.length > 0
+		? quelle.senderName
+		: undefined;
+	if (kennung === undefined && name === undefined) return undefined;
+	return { kennung, name };
+}
+
+/**
+ * Ob eine Nachricht von dem erwarteten Absender kommt.
+ *
+ * Die Regel ist absichtlich EINSEITIG: `von` nimmt etwas weg, es fügt nichts
+ * hinzu. Ohne Angabe (`""`) zählt jede Nachricht wie vorher. Mit Angabe zählt
+ * eine Nachricht, die einen FREMDEN Absender nennt und nicht zu `von` passt,
+ * nicht mehr — sie weckt das Ziel nicht. Eine Nachricht OHNE Absender (der
+ * Mensch, ein Systemhinweis) zählt weiterhin immer: der Mensch ist nicht die
+ * Zutat, auf die man wartet, sondern der, der jederzeit dazwischenreden darf.
+ *
+ * Verglichen wird ohne Rücksicht auf Groß- und Kleinschreibung gegen die
+ * Sitzungs-Kennung UND den Namen, weil ein Modell beides kennt: "bob" steht so
+ * in der Mitgliederliste, "sess-…" im Protokoll.
+ *
+ * @param quelle - die `source` der eingefügten Nachricht.
+ * @param von - der erwartete Absender (Name oder Sitzungs-Kennung), darf fehlen.
+ * @returns true, wenn die Nachricht den Wartezustand beenden darf.
+ */
+function abgesendetVon(quelle, von) {
+	const absender = absenderVon(quelle);
+	if (absender === undefined) return true;
+	const gesucht = typeof von === "string" ? von.trim().toLowerCase() : "";
+	if (gesucht.length === 0) return true;
+	return [absender.kennung, absender.name].some(
+		(wert) => typeof wert === "string" && wert.trim().toLowerCase() === gesucht
+	);
+}
+
+/**
  * Ob eine Nachricht als "die Zutat ist da" zählt.
  *
  * Die Zielrunde selbst zählt NICHT: sie wird vom Rundentreiber eingefügt, und
  * ein Wecken darauf wäre eine Schleife. Alles andere (Mensch, Elternteil,
- * Geschwister, Unteragent, Systemhinweis) zählt.
+ * Geschwister, Unteragent, Systemhinweis) zählt — außer es wurde ein Absender
+ * erwartet und ein ANDERER schreibt (siehe {@link abgesendetVon}).
  *
  * @param nachricht - die eingefügte Nachricht.
+ * @param von - optional: der erwartete Absender aus dem Wartezustand.
  * @returns true, wenn sie den Wartezustand beenden soll.
  */
-export function istZutat(nachricht) {
+export function istZutat(nachricht, von) {
 	const quelle = nachricht?.source;
 	if (quelle === undefined || quelle === null) return true;
 	if (quelle.kind === "goal") return false;
+	if (!abgesendetVon(quelle, von)) return false;
+	return true;
+}
+
+/**
+ * Ob ein Sitzungs-Ereignis eine FERTIG GEWORDENE Team-Aufgabe meldet.
+ *
+ * Nur `completed` weckt. Eine Aufgabe, die angelegt (`pending`) oder in Arbeit
+ * genommen wird (`in_progress`), ist keine Zutat, auf die jemand wartet; würde
+ * sie wecken, wäre der Wecker wieder „jede Änderung weckt" — derselbe Fehler
+ * wie beim Wecken auf jede Nachricht, nur auf dem Team-Kanal.
+ *
+ * Die Ereignisform ist gemessen: `TeamJournal.appendAndFlush(root, 'team/task',
+ * { version: 2, teamId, task })` (`task-board.js` Zeile 53 und 197), und
+ * `task` trägt den vollständigen Stand samt `status`.
+ *
+ * @param ereignis - der zweite Parameter von `session/event`.
+ * @returns true, wenn das Ereignis ein Warteziel wecken darf.
+ */
+export function istAufgabenWecker(ereignis) {
+	if (ereignis?.type !== "team/task") return false;
+	if (ereignis.data?.task?.status !== "completed") return false;
 	return true;
 }
 
@@ -205,6 +358,8 @@ export function neuerZustand() {
 		revision: undefined,
 		/** Die Wartebedingung im Klartext, für Protokoll und Antwort. */
 		bedingung: "",
+		/** Der erwartete Absender (Name oder Sitzungs-Kennung); leer = jeder. */
+		von: "",
 		/** Wann der Wartezustand begann (ms seit Epoche). */
 		seit: 0,
 		/** Wann er spätestens endet (ms seit Epoche). */
@@ -253,6 +408,7 @@ export function apply(ctx, config = {}) {
 			zielId: zustand.zielId,
 			revision: zustand.revision,
 			bedingung: zustand.bedingung,
+			von: zustand.von,
 			gewartetSekunden: Math.max(0, Math.round((Date.now() - zustand.seit) / 1000)),
 			grund
 		};
@@ -289,12 +445,57 @@ export function apply(ctx, config = {}) {
 		return { ...beendet, scharf, ...fehler === undefined ? {} : { fehler } };
 	}
 
+	/**
+	 * Der native Team-Dienst, falls dieses Profil ihn hat.
+	 *
+	 * `ctx.get` wirft, wenn der Dienst fehlt (cordis: „service not found"). Ein
+	 * Profil ohne `dsh-experimental-agent-team` hat keine Teams — dann gibt es
+	 * auch keinen Aufgaben-Wecker, und dieser Patch bleibt bei der Nachricht.
+	 * Derselbe Zugriffsweg wie in `team-board.mjs`.
+	 *
+	 * @returns der Dienst oder undefined.
+	 */
+	function teamDienst() {
+		try {
+			return ctx.get("agentTeams");
+		} catch {
+			return undefined;
+		}
+	}
+
+	/**
+	 * Ob ein Agent zu dem Team gehört, dessen Aufgabe gerade fertig wurde.
+	 *
+	 * Verglichen wird die Team-Kennung: `membership(agent).id` ist bei Lead UND
+	 * Teammates die Sitzung der Team-Wurzel, und genau die steht im Ereignis.
+	 * `tryMembership` wird bevorzugt, weil es für einen Agenten ohne Team
+	 * `undefined` liefert statt zu werfen; ein Dienst ohne diese Methode wird
+	 * über `membership` im try/catch gefragt.
+	 *
+	 * @param agent - der wartende Agent.
+	 * @param teamId - die Team-Kennung aus dem Ereignis.
+	 * @returns true, wenn das Ereignis diesen Agenten etwas angeht.
+	 */
+	function gehoertZumTeam(agent, teamId) {
+		const dienst = teamDienst();
+		if (dienst === undefined || dienst === null) return false;
+		try {
+			const mitglied = typeof dienst.tryMembership === "function"
+				? dienst.tryMembership(agent)
+				: dienst.membership(agent);
+			return mitglied !== undefined && mitglied !== null && String(mitglied.id) === teamId;
+		} catch {
+			return false;
+		}
+	}
+
 	/** Alle laufenden Wartezustände dieses Moduls (für Prüfung und Antwort). */
 	function offene() {
 		return [...zustaende.entries()].map(([agent, zustand]) => ({
 			agent: agent.id,
 			zielId: zustand.zielId,
 			bedingung: zustand.bedingung,
+			von: zustand.von,
 			restSekunden: Math.max(0, Math.round((zustand.bis - Date.now()) / 1000))
 		}));
 	}
@@ -313,11 +514,13 @@ export function apply(ctx, config = {}) {
 			"",
 			"WHAT IT DOES — measured behaviour, not a promise:",
 			"1. Your goal is disarmed at once: phase stays 'active', but the round driver sees activation != 'armed' and pushes no further rounds.",
-			"2. It re-arms ITSELF. You do nothing, you remember nothing, you run no loop. The trigger is the next incoming message for this session — or the expiry of max_wait_seconds.",
+			"2. It re-arms ITSELF. You do nothing, you remember nothing, you run no loop. The triggers are: a matching incoming message for this session, a team task of your team that reaches 'completed', or the expiry of max_wait_seconds.",
 			"3. When re-armed, the next round continues the work. You will not be asked to explain what you were waiting for.",
 			"You never need to poll, sleep, or re-check. That is the whole point.",
 			"",
-			"WHAT COUNTS AS 'THE DEPENDENCY ARRIVED': an incoming message in this session's inbox (a goal round itself does NOT count) or the expiry of max_wait_seconds. Expiry is deliberate: a forgotten wait must never stall a goal forever.",
+			"WHAT COUNTS AS 'THE DEPENDENCY ARRIVED': an incoming message in this session's inbox (a goal round itself does NOT count), a team task of your team that reaches 'completed', or the expiry of max_wait_seconds. Expiry is deliberate: a forgotten wait must never stall a goal forever.",
+			"",
+			"NAME THE SENDER whenever you wait for ONE specific session or teammate: pass `von`. Without it, a greeting from anyone wakes the goal — that is the bug this field closes. Human input always wakes it either way.",
 			"",
 			"DO NOT use it:",
 			"- to end a turn early, or to avoid work you could do in this turn — do everything you can first;",
@@ -332,6 +535,10 @@ export function apply(ctx, config = {}) {
 				type: "string",
 				required: true,
 				description: "One sentence, in plain words, naming what you are waiting for and from whom — for example 'the P8 measurement numbers from strata-hda-experte'. It is shown to the human and written to the log, so name the thing, not the tool."
+			},
+			von: {
+				type: "string",
+				description: "Optional. WHO brings the dependency: a teammate name, a session id, or your own subagent's agent id (the subagentId from delegate_task). Give it and only a message from that sender wakes the goal — a greeting from anyone else no longer does. Everything else still wakes it: human input, your own subagent finishing, a team task that reaches completed, and the expiry. Omit it and every incoming message wakes the goal, exactly as before."
 			},
 			max_wait_seconds: {
 				type: "number",
@@ -388,6 +595,7 @@ export function apply(ctx, config = {}) {
 				};
 			}
 			const bedingung = bedingungText(args.waiting_for);
+			const von = absenderText(args.von);
 			const frist = fristMs(args.max_wait_seconds === undefined ? fristVorgabe : args.max_wait_seconds);
 			// Ein laufender Wartezustand wird ersetzt, nicht gestapelt.
 			if (zustaende.has(agent)) beendeWarten(agent, "ersetzt");
@@ -396,19 +604,22 @@ export function apply(ctx, config = {}) {
 			zustand.zielId = ziel.id;
 			zustand.revision = ziel.revision;
 			zustand.bedingung = bedingung;
+			zustand.von = von;
 			zustand.seit = Date.now();
 			zustand.bis = zustand.seit + frist;
 			zustand.uhr = setTimeout(() => {
 				wecke(agent, "frist");
 			}, frist);
 			if (typeof zustand.uhr?.unref === "function") zustand.uhr.unref();
-			protokoll(`warten agent=${agent.id} ziel=${ziel.id} frist=${Math.round(frist / 1000)}s bedingung="${bedingung}"`);
+			protokoll(`warten agent=${agent.id} ziel=${ziel.id} frist=${Math.round(frist / 1000)}s bedingung="${bedingung}"${von.length === 0 ? "" : ` von=${von}`}`);
 			return {
 				waiting: true,
 				goal: ziel.objective,
 				wakes_on: "message",
 				max_wait_seconds: Math.round(frist / 1000),
-				note: `The goal is waiting for: ${bedingung}. It continues by itself as soon as a message arrives here, at the latest in ${Math.round(frist / 1000)} seconds. Tell the human in one sentence what you are waiting for and end your turn.`
+				note: `The goal is waiting for: ${bedingung}. It continues by itself as soon as ${
+					von.length === 0 ? "a message arrives here" : `${von} writes here`
+				}, and as soon as a task of your team reaches 'completed', at the latest in ${Math.round(frist / 1000)} seconds. Tell the human in one sentence what you are waiting for and end your turn.`
 			};
 		},
 		presentCall: (args) => ({
@@ -448,10 +659,26 @@ export function apply(ctx, config = {}) {
 			protokoll("start Werkzeug registriert");
 		})();
 
-		// 1. Die Zutat kommt an: jede Nachricht, außer der Zielrunde selbst.
+		// 1. Die Zutat kommt an: eine Nachricht, die zu dem passt, worauf gewartet wird.
+		//    Ohne Absenderangabe ist das jede Nachricht außer der Zielrunde selbst.
 		const abInbox = ctx.on("agent/inbox/inserted", ({ agent, message }) => {
-			if (!istZutat(message)) return;
+			if (!istZutat(message, zustaende.get(agent)?.von)) return;
 			wecke(agent, "nachricht");
+		});
+
+		// 1b. Eine Team-Aufgabe ist fertig: das ist auch eine Zutat, ganz ohne
+		//     Nachricht. Wer geweckt wird, entscheidet die Mitgliedschaft, nicht die
+		//     Sitzung des Ereignisses — das Ereignis liegt auf der Sitzung der
+		//     Team-Wurzel, und ein wartendes Teammitglied soll es trotzdem spüren.
+		const abAufgabe = ctx.on("session/event", (session, event) => {
+			if (!istAufgabenWecker(event)) return;
+			const teamId = String(event.data.teamId ?? "");
+			if (teamId.length === 0) return;
+			// Über eine Kopie laufen: das Wecken löscht aus derselben Map.
+			for (const agent of [...zustaende.keys()]) {
+				if (!gehoertZumTeam(agent, teamId)) continue;
+				wecke(agent, "aufgabe");
+			}
 		});
 
 		// 2. Ein Agent wird abgebaut: Uhr anhalten, nichts mehr wecken.
@@ -467,7 +694,7 @@ export function apply(ctx, config = {}) {
 			order: ctx.systemPrompt.getSectionOrder("TOOL_GOAL") + 1,
 			text: [
 				"## Warten ohne Rundenverbrauch",
-				`Wenn ein Ziel auf eine fremde Zutat wartet (Nachricht einer anderen Sitzung, Hintergrundjob, Messung eines anderen), rufe \`${WERKZEUG}\` auf, statt deinen Zug nur zu beenden. Das Ziel wird dann entwaffnet und verbraucht keine Runden; die nächste eingehende Nachricht schaltet es von selbst wieder scharf. Alles, was du in diesem Zug noch selbst tun kannst, tust du vorher — das Werkzeug ist kein Freifahrtschein zum Abgeben.`
+				`Wenn ein Ziel auf eine fremde Zutat wartet (Messbericht eines Teammates, Antwort des Menschen, fertige Team-Aufgabe), rufe \`${WERKZEUG}\` auf, statt deinen Zug nur zu beenden. Das Ziel wird dann entwaffnet und verbraucht keine Runden; die passende Nachricht — oder eine Team-Aufgabe, die auf \`completed\` geht — schaltet es von selbst wieder scharf. Nenne mit \`von\` den Absender, auf den du wartest, sonst weckt dich jede Nachricht. Alles, was du in diesem Zug noch selbst tun kannst, tust du vorher — das Werkzeug ist kein Freifahrtschein zum Abgeben.`
 			].join("\n")
 		});
 
@@ -476,6 +703,7 @@ export function apply(ctx, config = {}) {
 			if (typeof abRegister === "function") abRegister();
 			if (typeof abDienst === "function") abDienst();
 			abInbox?.();
+			abAufgabe?.();
 			abWeg?.();
 			abAbschnitt?.();
 			for (const zustand of zustaende.values()) {

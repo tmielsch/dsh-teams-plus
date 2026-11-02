@@ -79,11 +79,21 @@ const SHA256_ORIGINAL = {
  * Verweis sonst nichts geprueft haette. Auch diese Abweichung war beabsichtigt.
  */
 const SHA256_ABWEICHEND = {
-	// goal-await.mjs: die Werkzeugbeschreibung wurde am 2026-10-30 ausgeschrieben. Grund gemessen:
-	// die globale AGENTS.md ist 77 078 Bytes gross, das Budget 65 536, und der TEAMSPLUS-Block
-	// beginnt bei Byte 63 387 — von 13 691 Bytes kommen nur 2 149 an. Eine Anleitung dort waere
-	// zu 84 % unsichtbar. Die Beschreibung des Werkzeugs kommt dagegen bei jedem Aufruf an.
-	'goal-await.mjs': '674454d06e3a4acfc1770995f428b85a9bf8a4d5d6537cfa23285c95090426a8',
+	// goal-await.mjs: zwei beabsichtigte Aenderungen.
+	//  (1) 2026-10-30: die Werkzeugbeschreibung wurde ausgeschrieben. Grund gemessen: die globale
+	//      AGENTS.md ist 77 078 Bytes gross, das Budget 65 536, und der TEAMSPLUS-Block beginnt bei
+	//      Byte 63 387 — von 13 691 Bytes kommen nur 2 149 an. Eine Anleitung dort waere zu 84 %
+	//      unsichtbar. Die Beschreibung des Werkzeugs kommt dagegen bei jedem Aufruf an.
+	//  (2) 2026-11-02: der WECKRUF wurde verengt. Gemessen am Quelltext der ersten Fassung: `istZutat`
+	//      liess JEDE Nachricht durch, ein Gruss eines Teammates weckte also ein Ziel, das auf einen
+	//      Messbericht wartete — der Mensch klagte, es werde "eine Runde nach der nächsten getriggert,
+	//      ohne dass irgendwas passiert". Neu: optionales Feld `von` (nur die erwartete Nachricht
+	//      weckt) und ein zweiter Wecker auf `team/task`/`completed`; ohne `von`, ohne Team und bei
+	//      Frist-Ablauf bleibt alles wie vorher. Belege: test/goal-await.test.mjs, samt Gegenprobe in
+	//      einer /tmp-Kopie, in der der Filter ausgebaut ist.
+	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
+	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
+	'goal-await.mjs': '9158ffe8aa0c16a0b2a1df64680c0d008c34c1793f57cb6cb366b774ddf11983',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:
