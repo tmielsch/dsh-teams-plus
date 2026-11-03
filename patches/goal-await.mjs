@@ -761,8 +761,16 @@ export function apply(ctx, config = {}) {
 			const von = absenderText(args.von);
 			const frist = fristMs(args.max_wait_seconds === undefined ? fristVorgabe : args.max_wait_seconds);
 			// Ein laufender Wartezustand wird ersetzt, nicht gestapelt.
-			if (zustaende.has(agent)) beendeWarten(agent, "ersetzt");
+			//
+			// REIHENFOLGE (korrigiert 2026-11-03): `disarm` kommt VOR dem Loeschen.
+			// Vorher stand es umgekehrt: Erst verschwand der alte Wartezustand,
+			// dann wurde entwaffnet. Wirft `disarm`, war der Wartezustand weg,
+			// waehrend das Ziel entschaerft blieb — dieselbe Haengeform, die uns
+			// beim Aufgaben-Wecker zwei Tage gekostet hat (Modulkopf (D)), nur in
+			// einem selteneren Pfad: kein Ereignis, keine Frist, niemand weckt.
+			// Erst entwaffnen, dann ersetzen. Wirft `disarm`, ist nichts kaputt.
 			ctx.goals.disarm(agent);
+			if (zustaende.has(agent)) beendeWarten(agent, "ersetzt");
 			const zustand = zustandFuer(agent);
 			zustand.zielId = ziel.id;
 			zustand.revision = ziel.revision;

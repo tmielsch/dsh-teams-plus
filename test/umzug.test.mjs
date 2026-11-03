@@ -127,9 +127,13 @@ const SHA256_ABWEICHEND = {
 	//      "message", der ueber die anderen beiden log. Belege: test/goal-await.test.mjs,
 	//      17 Faelle mit dem neuen Kerntest und einer Gegenprobe, die die Verschiebung
 	//      ausbaut und den Kerntest rot macht.
+	//  (7) 2026-11-03: dieselbe Haengeform in einem zweiten Pfad geschlossen - 
+//      `disarm` laeuft jetzt VOR dem Loeschen des alten Wartezustands, nicht
+//      danach. Warf `disarm`, war vorher der Wartezustand weg und das Ziel
+//      entschaerft: kein Ereignis, keine Frist, niemand weckt.
 	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
 	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
-	'goal-await.mjs': '490ff05a1acd054ebf23254a06b67f57e191e037f017edda504109d581b094ef',
+	'goal-await.mjs': 'a34dc4d68c8dc3ed4e977bf54b577d0cbaa30c90a481fb35502a187ca3eed758',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:
