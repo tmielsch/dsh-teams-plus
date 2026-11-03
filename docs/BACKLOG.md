@@ -100,3 +100,35 @@ festgehalten.
 **Was das für den Backlog bedeutet:** Die Rollentexte sind **kein erledigter Punkt**, sondern
 zurückgezogen. Sie werden erst wieder ausgeliefert, wenn B2 und B3 einen Weg haben und H2 eine
 durchsetzbare Grenze. Ein Text allein reicht nicht — das ist die Lehre dieses Passes.
+
+## Nachtrag 2026-11-03, 02:30 — die Gegenproben der A-Punkte unabhängig nachgefahren
+
+Anlass: Das Backlog behauptete für A1 bis A5, jeder Punkt habe einen Test **mit
+Gegenprobe**. Ein Teil dieser Gegenproben ist im Repo als *Nachbildung* der alten
+Logik gebaut (verbucheKetteWieAlt, Test 19 in test/send-to-session.test.mjs).
+Eine Nachbildung zeigt, dass die alte Logik falsch war — sie zeigt **nicht**, dass
+die neue Logik die Ursache des grünen Tests ist. Das ist genau die Lehre aus
+Issue #10: ein Prüfer, der die geprüfte Stelle nicht erreicht, ist kein Beweis.
+
+Deshalb wurden drei Gegenproben **am echten Code** nachgefahren: jeweils eine Kopie
+des Moduls unter /tmp, in der genau die reparierte Stelle ausgebaut ist, und
+dieselbe Prüfung gegen beide Fassungen.
+
+| Punkt | Ausgebaut in der Kopie | echtes Modul | Kopie |
+|---|---|---|---|
+| **A1** | Alterslöschung ersetzt durch Einfügereihenfolge (zuletzt 0 für jedes Paar) | heißes Paar **überlebt** | heißes Paar **verloren** |
+| **A2** | dshHeim() benutzt wieder ?? ohne Leerstring-Rückfall | DSH_HOME leer -> **absoluter** Pfad | -> .tm/teams-plus/state/board.json, **relativ** |
+| **A3** | die Zeile process.env.TEAMS_PLUS_DATA_DIR = TEST_DATEN entfernt | Wächter-Test **grün** | Wächter-Test **rot** (AssertionError) |
+
+Alle drei Gegenproben greifen. Damit ist für A1, A2 und A3 nicht nur behauptet,
+sondern gemessen: **die Reparatur ist die Ursache des grünen Tests**, nicht ein
+Zufall des Aufbaus. A5 hat eine echte Gegenprobe im Test selbst
+(test/send-to-session.test.mjs:215).
+
+**Was das nicht sagt:** Es sagt nichts über A6. Die Rollentexte bleiben ohne
+Red-Team-Pass zurückgezogen.
+
+**Nebenbefund zu A2:** Der Test steht in **zwei** Dateien, weil zwei Module
+denselben Fehler hatten — test/send-to-session.test.mjs:782 (Ablage der Paare)
+und test/team-board.test.mjs:537 (Ablage des Bretts). Beide prüfen denselben
+Rückfall; wer eine der beiden Stellen ändert, muss die andere mitprüfen.
