@@ -111,9 +111,25 @@ const SHA256_ABWEICHEND = {
 	//      kein Protokoll-Feuerwerk enthalten. Der Anker wandert damit ein zweites Mal
 	//      an diesem Tag, diesmal weil etwas entfernt wurde. Im Modulkopf steht, wie
 	//      die Zeile fuer eine Wiederholung der Messung wieder eingebaut wird.
+	//  (6) 2026-11-03, zweite Haelfte: Der Aufgaben-Wecker feuerte endlich
+	//      (`grund=aufgabe`), scheiterte aber beim Weiterschalten. Protokoll 22:07:53:
+	//      "scharf=false fehler=session append cannot reenter while another append is
+	//      being published". Ursache 1: `session/event` wird SYNCHRON innerhalb von
+	//      `session.append` zugestellt, und ein `resume` von dort aus schreibt in
+	//      dieselbe Sitzung. Deshalb laeuft das Weiterschalten jetzt in einem eigenen
+	//      Durchlauf (`setImmediate`). Ursache 2, schlimmer: der Wartezustand wurde
+	//      VOR dem Resume geloescht, war nach dem Fehlschlag samt Frist weg, und das
+	//      Ziel hing dauerhaft (gemessen mit get_goal: active/disarmed, keine Uhr).
+	//      Jetzt wird er erst nach gelungenem Scharfschalten geloescht; scheitert es,
+	//      bleibt er stehen (und bekommt ohne Uhr eine Wiederholungs-Uhr), sichtbar an
+	//      `zustand=bleibt versuch=N` im Protokoll. Ausserdem nennt `wakes_on` jetzt
+	//      ALLE Wege als Liste ("message", "task", "timeout") statt des Einzelwerts
+	//      "message", der ueber die anderen beiden log. Belege: test/goal-await.test.mjs,
+	//      17 Faelle mit dem neuen Kerntest und einer Gegenprobe, die die Verschiebung
+	//      ausbaut und den Kerntest rot macht.
 	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
 	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
-	'goal-await.mjs': '94deb487986fbce8476e6bf14255140bfb0ddc752733e3ffa8fb36399d3971eb',
+	'goal-await.mjs': '490ff05a1acd054ebf23254a06b67f57e191e037f017edda504109d581b094ef',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:

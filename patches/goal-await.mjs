@@ -119,11 +119,63 @@
  * Wirkung um: im schlechtesten Fall arbeitet das Ziel weiter wie vorher, im
  * guten Fall wartet es ohne Kontingentverbrauch.
  *
+ * (D) DER WECKRUF SELBST — zwei gemessene Fehler, repariert am 2026-11-03
+ *
+ * Der Horcher feuert seit 0.8.0 richtig (`grund=aufgabe`), aber das
+ * Weiterschalten scheiterte. Protokoll vom 2026-11-03, 22:07:53:
+ *
+ *   wecken agent=session-e40fe6ab… ziel=goal-55cfd638… grund=aufgabe
+ *          gewartet=43s scharf=false
+ *          fehler=session append cannot reenter while another append is being published
+ *
+ * Fehler 1, der Kontext des Aufrufs: `session/event` wird SYNCHRON innerhalb
+ * von `session.append` zugestellt, solange `entry.appending` gesetzt ist
+ * (`dsh-session/lib/index.js`, `append`). Ein `resume` von dort aus schreibt
+ * selbst ein Ereignis in dieselbe Sitzung — genau das verbietet `append` mit
+ * dieser Meldung. Deshalb läuft `resume` nicht mehr im Horcher, sondern in
+ * `schalteScharf`, das über `spaeter()` (ein `setImmediate`) in einen eigenen
+ * Durchlauf gelegt wird. `setImmediate` und nicht `queueMicrotask`, weil beide
+ * erst nach der Rückkehr von `append` laufen (der `finally`-Block löscht
+ * `appending`), `setImmediate` aber zusätzlich garantiert außerhalb JEDES
+ * synchronen Aufrufstapels liegt und nicht nur außerhalb dieses einen `append`.
+ * Ein Wecken ist ein Einzelfall; die eine Event-Loop-Runde kostet nichts, und
+ * die Zusage soll nicht davon abhängen, wer den Horcher sonst noch synchron
+ * aufruft.
+ *
+ * Fehler 2, und der war schlimmer: `wecke()` löschte ZUERST den Wartezustand
+ * samt Frist-Uhr und versuchte DANACH das Scharfschalten. Scheiterte das, war
+ * der Zustand trotzdem weg — gemessen mit `get_goal`: phase `active`,
+ * activation `disarmed`, keine Uhr. Das Ziel hing dauerhaft, und niemand konnte
+ * es holen. Jetzt wird der Wartezustand erst gelöscht, nachdem das
+ * Scharfschalten gelungen ist (oder das Ziel nicht mehr zu ihm passt — dann
+ * gibt es nichts mehr zu wecken). Scheitert es, bleibt der Zustand stehen:
+ * eine laufende Frist-Uhr bleibt unangetastet und holt den nächsten Anlauf,
+ * und hat die Frist gerade selbst geweckt (dann ist keine Uhr mehr da), wird
+ * eine Wiederholungs-Uhr gestellt (1 s, 2 s, 4 s … höchstens 60 s). Der
+ * Fehlschlag ist sichtbar: die Protokollzeile behält `scharf=false fehler=…`
+ * und bekommt `zustand=bleibt versuch=N` dazu.
+ *
+ * (E) DIE ANTWORT `wakes_on` — eine Liste, kein Einzelwert
+ * Das Werkzeug entwaffnet das Ziel und stellt ALLE Wege zugleich scharf:
+ * Nachricht, fertige Team-Aufgabe, Frist. Der alte Einzelwert `"message"`
+ * konnte davon nur einen nennen und gab für die anderen beiden eine falsche
+ * Auskunft — genau der Widerspruch zur Werkzeugbeschreibung, den der Mensch
+ * gemeldet hat. Deshalb ist `wakes_on` jetzt eine Liste aus `"message"`,
+ * `"task"` und `"timeout"`. `"task"` steht nur darin, wenn der Agent überhaupt
+ * in einem Team ist, denn ohne Team kann ihn keine Aufgabe wecken; ein Objekt
+ * `{ message: true, task: true, … }` wäre die zweite Möglichkeit gewesen, aber
+ * die Liste ist kürzer, folgt der Reihenfolge der Werkzeugbeschreibung und
+ * lässt sich um einen künftigen Weg verlängern, ohne das Schema zu ändern. Wer
+ * nicht wartet (kein Agent, kein Ziel, Ziel nicht `active`), bekommt die leere
+ * Liste: nichts ist entwaffnet, also weckt auch nichts.
+ *
  * SELBSTPRÜFUNG
  *   node --test test/goal-await.test.mjs
- *   (13 Faelle plus drei Gegenproben am Code. Die frueher hier genannte Zeile
- *   `node ~/.dsh/patches/goal-await.mjs --test` war falsch: ein Selbsttest in
- *   dieser Datei hat nie existiert — der Verweis zeigte auf nichts.)
+ *   (17 Faelle, davon vier Gegenproben am Code: Absenderfilter, Teamfilter,
+ *   Statusfilter und die Verschiebung des Weiterschaltens. Die frueher hier
+ *   genannte Zeile `node ~/.dsh/patches/goal-await.mjs --test` war falsch: ein
+ *   Selbsttest in dieser Datei hat nie existiert — der Verweis zeigte auf
+ *   nichts.)
  * NACHSEHEN
  *   ~/.dsh/logs/goal-await.log
  * ZURÜCK
@@ -367,6 +419,8 @@ export function neuerZustand() {
 		seit: 0,
 		/** Wann er spätestens endet (ms seit Epoche). */
 		bis: 0,
+		/** Wie oft das Weiterschalten schon gescheitert ist (für sichtbaren Rückzug). */
+		versuche: 0,
 		/** Die Frist-Uhr. */
 		uhr: undefined
 	};
@@ -420,32 +474,108 @@ export function apply(ctx, config = {}) {
 	}
 
 	/**
+	 * Legt eine Arbeit in einen eigenen Durchlauf.
+	 *
+	 * Zwingend für das Weiterschalten, siehe Modulkopf (D): `session/event` wird
+	 * synchron innerhalb von `session.append` zugestellt, und ein `resume` von
+	 * dort aus wirft "session append cannot reenter while another append is
+	 * being published". `setImmediate` läuft erst, wenn `append` vollständig
+	 * zurückgekehrt ist (der `finally`-Block hat `appending` dann gelöscht).
+	 */
+	function spaeter(arbeit) {
+		setImmediate(arbeit);
+	}
+
+	/** Stellt die Uhr eines Wartezustands; eine bestehende Uhr wird vorher angehalten. */
+	function stelleUhr(agent, zustand, ms, grund) {
+		if (zustand.uhr !== undefined) clearTimeout(zustand.uhr);
+		const uhr = setTimeout(() => {
+			zustand.uhr = undefined;
+			wecke(agent, grund);
+		}, ms);
+		if (typeof uhr?.unref === "function") uhr.unref();
+		zustand.uhr = uhr;
+	}
+
+	/** Wartezeit bis zum nächsten Anlauf nach einem Fehlschlag: 1 s, 2 s, 4 s … höchstens 60 s. */
+	function wiederholungMs(versuche) {
+		return Math.min(1000 * 2 ** Math.max(0, versuche - 1), 60000);
+	}
+
+	/**
 	 * Schaltet das Ziel eines Agenten wieder scharf.
 	 *
+	 * Der Wartezustand wird ERST gelöscht, wenn das Scharfschalten gelungen ist
+	 * (oder das Ziel nicht mehr zu ihm passt). Scheitert es, bleibt er samt Uhr
+	 * stehen — der gemessene Fehler vom 2026-11-03 war, dass der Zustand schon
+	 * weg war, bevor der Fehler kam.
+	 *
 	 * @param agent - der wartende Agent.
+	 * @param zustand - der Wartezustand, der geweckt werden soll.
 	 * @param grund - warum der Wartezustand endet (für Protokoll und Antwort).
-	 * @returns der beendete Wartezustand, oder undefined, wenn keiner lief.
+	 * @returns das Ergebnis für den Aufrufer; undefined, wenn es nichts mehr zu
+	 * wecken gibt (ersetzt, abgebaut oder schon geweckt).
 	 */
-	function wecke(agent, grund) {
-		const beendet = beendeWarten(agent, grund);
-		if (beendet === undefined) return undefined;
+	function schalteScharf(agent, zustand, grund) {
+		// Inzwischen ersetzt, abgebaut oder schon geweckt: nichts mehr zu tun.
+		if (zustaende.get(agent) !== zustand) return undefined;
+		const ergebnis = {
+			zielId: zustand.zielId,
+			revision: zustand.revision,
+			bedingung: zustand.bedingung,
+			von: zustand.von,
+			gewartetSekunden: Math.max(0, Math.round((Date.now() - zustand.seit) / 1000)),
+			grund
+		};
 		let scharf = false;
 		let fehler;
 		try {
 			const ziel = ctx.goals.get(agent);
-			if (ziel !== undefined && ziel.id === beendet.zielId && ziel.revision === beendet.revision && ziel.phase === "active") {
+			if (ziel !== undefined && ziel.id === ergebnis.zielId && ziel.revision === ergebnis.revision && ziel.phase === "active") {
 				if (ziel.activation !== "armed") {
 					ctx.goals.resume(agent, { id: ziel.id, revision: ziel.revision });
-					scharf = true;
-				} else {
-					scharf = true;
 				}
+				scharf = true;
 			}
 		} catch (error) {
 			fehler = error instanceof Error ? error.message : String(error);
 		}
-		protokoll(`wecken agent=${agent.id} grund=${grund} gewartet=${beendet.gewartetSekunden}s ziel=${beendet.zielId} scharf=${scharf}${fehler === undefined ? "" : ` fehler=${fehler}`} bedingung="${beendet.bedingung}"`);
-		return { ...beendet, scharf, ...fehler === undefined ? {} : { fehler } };
+		if (fehler !== undefined) {
+			zustand.versuche += 1;
+			let zusatz = "";
+			// Eine laufende Frist-Uhr bleibt unangetastet: sie holt den nächsten
+			// Anlauf. Nur wenn sie gerade selbst geweckt hat (die Frist ist damit
+			// verbraucht), wird eine Wiederholungs-Uhr gestellt.
+			if (zustand.uhr === undefined) {
+				const ms = wiederholungMs(zustand.versuche);
+				stelleUhr(agent, zustand, ms, "wiederholung");
+				zusatz = ` naechster=${Math.round(ms / 1000)}s`;
+			}
+			protokoll(`wecken agent=${agent.id} grund=${grund} gewartet=${ergebnis.gewartetSekunden}s ziel=${ergebnis.zielId} scharf=false fehler=${fehler} zustand=bleibt versuch=${zustand.versuche}${zusatz} bedingung="${ergebnis.bedingung}"`);
+			return { ...ergebnis, scharf: false, fehler };
+		}
+		beendeWarten(agent, grund);
+		protokoll(`wecken agent=${agent.id} grund=${grund} gewartet=${ergebnis.gewartetSekunden}s ziel=${ergebnis.zielId} scharf=${scharf} bedingung="${ergebnis.bedingung}"`);
+		return { ...ergebnis, scharf };
+	}
+
+	/**
+	 * Meldet, dass die Zutat da ist.
+	 *
+	 * Das Weiterschalten selbst läuft NICHT hier, sondern in
+	 * {@link schalteScharf} in einem eigenen Durchlauf: dieser Aufruf kommt aus
+	 * einem Horcher, und ein `resume` aus einem Horcher heraus schreibt in eine
+	 * Sitzung, in der gerade ein `append` läuft (siehe Modulkopf (D)).
+	 *
+	 * @param agent - der wartende Agent.
+	 * @param grund - warum geweckt wird (für Protokoll und Antwort).
+	 * @returns immer undefined; das Ergebnis steht im Protokoll.
+	 */
+	function wecke(agent, grund) {
+		const zustand = zustaende.get(agent);
+		if (zustand === undefined || zustand.zielId === undefined) return undefined;
+		spaeter(() => schalteScharf(agent, zustand, grund));
+		return undefined;
 	}
 
 	/**
@@ -467,29 +597,59 @@ export function apply(ctx, config = {}) {
 	}
 
 	/**
+	 * Die Mitgliedschaft eines Agenten, soweit der Team-Dienst sie kennt.
+	 *
+	 * `tryMembership` wird bevorzugt, weil es für einen Agenten ohne Team
+	 * `undefined` liefert statt zu werfen; ein Dienst ohne diese Methode wird
+	 * über `membership` im try/catch gefragt.
+	 *
+	 * @param agent - der wartende Agent.
+	 * @returns das Mitglied, oder undefined (kein Team, kein Dienst, Dienst wirft).
+	 */
+	function mitgliedschaft(agent) {
+		const dienst = teamDienst();
+		if (dienst === undefined || dienst === null) return undefined;
+		try {
+			return typeof dienst.tryMembership === "function"
+				? dienst.tryMembership(agent)
+				: dienst.membership(agent);
+		} catch {
+			return undefined;
+		}
+	}
+
+	/**
 	 * Ob ein Agent zu dem Team gehört, dessen Aufgabe gerade fertig wurde.
 	 *
 	 * Verglichen wird die Team-Kennung: `membership(agent).id` ist bei Lead UND
 	 * Teammates die Sitzung der Team-Wurzel, und genau die steht im Ereignis.
-	 * `tryMembership` wird bevorzugt, weil es für einen Agenten ohne Team
-	 * `undefined` liefert statt zu werfen; ein Dienst ohne diese Methode wird
-	 * über `membership` im try/catch gefragt.
 	 *
 	 * @param agent - der wartende Agent.
 	 * @param teamId - die Team-Kennung aus dem Ereignis.
 	 * @returns true, wenn das Ereignis diesen Agenten etwas angeht.
 	 */
 	function gehoertZumTeam(agent, teamId) {
-		const dienst = teamDienst();
-		if (dienst === undefined || dienst === null) return false;
+		const mitglied = mitgliedschaft(agent);
+		if (mitglied === undefined || mitglied === null) return false;
 		try {
-			const mitglied = typeof dienst.tryMembership === "function"
-				? dienst.tryMembership(agent)
-				: dienst.membership(agent);
-			return mitglied !== undefined && mitglied !== null && String(mitglied.id) === teamId;
+			return String(mitglied.id) === teamId;
 		} catch {
 			return false;
 		}
+	}
+
+	/**
+	 * Ob dieser Agent überhaupt in einem Team ist.
+	 *
+	 * Nur dann kann ihn eine fertige Team-Aufgabe wecken; die Antwort
+	 * `wakes_on` nennt den Aufgaben-Weg deshalb nur für Mitglieder (Modulkopf (E)).
+	 *
+	 * @param agent - der Agent aus dem Werkzeugaufruf.
+	 * @returns true, wenn der Team-Dienst ihn als Mitglied führt.
+	 */
+	function hatTeam(agent) {
+		const mitglied = mitgliedschaft(agent);
+		return mitglied !== undefined && mitglied !== null;
 	}
 
 	/** Alle laufenden Wartezustände dieses Moduls (für Prüfung und Antwort). */
@@ -556,10 +716,10 @@ export function apply(ctx, config = {}) {
 					waiting: { type: "boolean", required: true, description: "True when the goal is now disarmed and waiting." },
 					goal: { type: "string", required: true, description: "Objective of the goal that is waiting, for the human's orientation." },
 					wakes_on: {
-						type: "string",
+						type: "array",
 						required: true,
-						enum: ["message", "timeout", "none"],
-						description: "What will re-arm the goal: the next incoming message, the expiry, or nothing (when no active goal exists)."
+						items: { type: "string", enum: ["message", "task", "timeout"] },
+						description: "Everything that will re-arm the goal, one entry per way: 'message' (an incoming message — any sender, or only `von` when given; human input always wakes), 'task' (a task of your team reaching 'completed'; listed only for members of a team), 'timeout' (max_wait_seconds). Empty means nothing was disarmed, so nothing will wake it."
 					},
 					max_wait_seconds: { type: "number", required: true, description: "Effective safety limit in seconds." },
 					note: { type: "string", required: true, description: "What the model should tell the human, in one sentence." }
@@ -573,7 +733,7 @@ export function apply(ctx, config = {}) {
 				return {
 					waiting: false,
 					goal: "",
-					wakes_on: "none",
+					wakes_on: [],
 					max_wait_seconds: 0,
 					note: "No agent context; nothing was disarmed."
 				};
@@ -583,7 +743,7 @@ export function apply(ctx, config = {}) {
 				return {
 					waiting: false,
 					goal: "",
-					wakes_on: "none",
+					wakes_on: [],
 					max_wait_seconds: 0,
 					note: "This session has no goal. Nothing was disarmed — just end your turn; an incoming message wakes you anyway."
 				};
@@ -592,7 +752,7 @@ export function apply(ctx, config = {}) {
 				return {
 					waiting: false,
 					goal: ziel.objective,
-					wakes_on: "none",
+					wakes_on: [],
 					max_wait_seconds: 0,
 					note: `The goal is ${ziel.phase}, so there is nothing to wait for. End your turn.`
 				};
@@ -610,19 +770,19 @@ export function apply(ctx, config = {}) {
 			zustand.von = von;
 			zustand.seit = Date.now();
 			zustand.bis = zustand.seit + frist;
-			zustand.uhr = setTimeout(() => {
-				wecke(agent, "frist");
-			}, frist);
-			if (typeof zustand.uhr?.unref === "function") zustand.uhr.unref();
+			stelleUhr(agent, zustand, frist, "frist");
 			protokoll(`warten agent=${agent.id} ziel=${ziel.id} frist=${Math.round(frist / 1000)}s bedingung="${bedingung}"${von.length === 0 ? "" : ` von=${von}`}`);
+			// Alle Wege, die das Ziel wieder scharf schalten, als Liste: ein
+			// Einzelwert würde über die anderen beiden lügen (Modulkopf (E)).
+			const imTeam = hatTeam(agent);
 			return {
 				waiting: true,
 				goal: ziel.objective,
-				wakes_on: "message",
+				wakes_on: imTeam ? ["message", "task", "timeout"] : ["message", "timeout"],
 				max_wait_seconds: Math.round(frist / 1000),
 				note: `The goal is waiting for: ${bedingung}. It continues by itself as soon as ${
 					von.length === 0 ? "a message arrives here" : `${von} writes here`
-				}, and as soon as a task of your team reaches 'completed', at the latest in ${Math.round(frist / 1000)} seconds. Tell the human in one sentence what you are waiting for and end your turn.`
+				}${imTeam ? ", or as soon as a task of your team reaches 'completed'" : ""}, at the latest in ${Math.round(frist / 1000)} seconds. Tell the human in one sentence what you are waiting for and end your turn.`
 			};
 		},
 		presentCall: (args) => ({
@@ -690,7 +850,8 @@ export function apply(ctx, config = {}) {
 			if (!istAufgabenWecker(event)) return;
 			const teamId = String(event.data.teamId ?? "");
 			if (teamId.length === 0) return;
-			// Über eine Kopie laufen: das Wecken löscht aus derselben Map.
+			// Über eine Kopie laufen: ein Wecken kann einen Eintrag beenden,
+			// während wir noch über die Map laufen.
 			for (const agent of [...zustaende.keys()]) {
 				if (!gehoertZumTeam(agent, teamId)) continue;
 				wecke(agent, "aufgabe");

@@ -14,10 +14,25 @@
  * und die Rückwärtsverträglichkeit: ohne Absenderangabe, ohne Team und bei
  * Ablauf der Frist bleibt alles genau wie vorher.
  *
- * Jede Prüfung hat eine Gegenprobe, und drei davon stehen als eigener Test am
- * Ende: eine Kopie des Moduls unter /tmp, in der genau ein Filter ausgebaut ist,
- * muss den zugehörigen Test ROT machen. Bliebe er grün, prüfte der Test nichts
- * (die Lehre aus Issue #10 — eine Prüfung ohne Gegenprobe ist eine Behauptung).
+ * Jede Prüfung hat eine Gegenprobe, und vier davon stehen als eigener Test am
+ * Ende: eine Kopie des Moduls unter /tmp, in der genau eine Stelle ausgebaut
+ * ist, muss den zugehörigen Test ROT machen. Bliebe er grün, prüfte der Test
+ * nichts (die Lehre aus Issue #10 — eine Prüfung ohne Gegenprobe ist eine
+ * Behauptung).
+ *
+ * Am 2026-11-03 kam ein dritter, gemessener Fehler dazu (Protokoll 22:07:53):
+ * `grund=aufgabe` feuerte, aber `scharf=false` mit "session append cannot
+ * reenter while another append is being published". Ein Sitzungs-Ereignis wird
+ * SYNCHRON innerhalb von `session.append` zugestellt; ein `resume` von dort aus
+ * schreibt in dieselbe Sitzung und ist verboten. Zwei Prüfungen decken die
+ * Reparatur ab:
+ *   (D) das Weiterschalten liegt in einem eigenen Durchlauf (`setImmediate`) —
+ *       nachgestellt wird das durch `sende`, das `session/event` innerhalb eines
+ *       laufenden append zustellt, in dem `resume` wirft;
+ *   (E) der Wartezustand verschwindet erst nach gelungenem Scharfschalten —
+ *       scheitert der Dienst, bleibt er samt Uhr stehen.
+ * Die vierte Gegenprobe baut die Verschiebung aus und erwartet, dass der
+ * Kerntest rot wird.
  *
  * Gesteuert wird über GOAL_AWAIT_MODUL: ohne die Variable gilt das Modul des
  * Repos, mit ihr die Kopie. Genau dieselbe Umlenkung benutzt team-board.test.mjs.
@@ -62,6 +77,9 @@ const BOB = 'sess-bob'
 const CAROL = 'sess-carol'
 const TEAM = 'sess-lead'
 
+/** Wörtlich der Fehler, den der Kern aus einem laufenden append wirft (gemessen 2026-11-03). */
+const REENTRANZ = 'session append cannot reenter while another append is being published'
+
 /** Eine echte Team-Mailbox-Nachricht, so wie `mailbox.js` sie baut. */
 const teamNachricht = (senderId, senderName) => ({
 	source: { kind: 'team-message', teamId: TEAM, messageId: 'm-' + senderId + '-1', senderId, senderName }
@@ -87,16 +105,33 @@ const aufgabenEreignis = (teamId, status) => ({
 const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms))
 
 /**
+ * Wartet den Durchlauf ab, in den das Weiterschalten verschoben ist.
+ *
+ * `setImmediate` deckt beide zulässigen Techniken ab: es läuft nach allen
+ * Microtasks (also auch nach `queueMicrotask`) und in einem eigenen Task.
+ */
+const naechsterDurchlauf = () => new Promise((fertig) => setImmediate(fertig))
+
+/**
  * Eine Szene: ein Cordis-Kontext, so weit `goal-await` ihn benutzt, plus die
  * Ziel-Attrappe des Kerns. `goals.disarm` und `goals.resume` sind die zwei
  * öffentlichen Dienste, die der Patch wirklich ruft — mehr braucht er nicht.
  *
- * @param optionen - `{ team }`: der native Team-Dienst oder undefined.
+ * Zwei Dinge bildet die Attrappe nach, weil der Patch sie messbar machen muss:
+ *   - `ctx.imAppend` ist gesetzt, während `sende('session/event', …)` läuft, und
+ *     `resume` wirft dann den Fehler des Kerns. So ist die Verschiebung des
+ *     Weiterschaltens prüfbar (Modulkopf (D)).
+ *   - `optionen.resumeFehler` darf einzelne Anläufe scheitern lassen, damit
+ *     „Wartezustand bleibt stehen" prüfbar ist (Modulkopf (D), Fehler 2).
+ *
+ * @param optionen - `{ team, resumeFehler }`: Team-Dienst und Fehler-Injektion.
+ * @returns die Szene samt Zugriff auf den Diagnose-Dienst des Patches.
  */
 function baueSzene(optionen = {}) {
 	const ziele = new Map()
 	const horcher = new Map()
 	const werkzeuge = []
+	const dienste = new Map()
 	const aufrufe = { disarm: 0, resume: 0 }
 
 	const ctx = {
@@ -110,6 +145,14 @@ function baueSzene(optionen = {}) {
 			},
 			resume: (agent, ref) => {
 				aufrufe.resume += 1
+				// Der Kern verbietet ein resume, das aus einem laufenden append
+				// kommt (dsh-session/lib/index.js: "cannot reenter while another
+				// append is being published"). Genau das bildet diese Attrappe
+				// nach, damit die Verschiebung des Weiterschaltens messbar ist.
+				if (ctx.imAppend === true) throw new Error(REENTRANZ)
+				// Fehler-Injektion für den Test „Wartezustand bleibt stehen".
+				const erzwungen = optionen.resumeFehler?.(aufrufe.resume)
+				if (erzwungen !== undefined) throw new Error(erzwungen)
 				const ziel = ziele.get(agent)
 				if (ziel === undefined || ziel.id !== ref.id || ziel.revision !== ref.revision) {
 					throw new Error('goal is not resumable')
@@ -121,7 +164,12 @@ function baueSzene(optionen = {}) {
 		agents: { list: () => [], get: () => undefined },
 		tools: { register: (definition) => { werkzeuge.push(definition); return () => {} } },
 		systemPrompt: { section: () => () => {}, getSectionOrder: () => 5 },
-		provide: () => () => {},
+		// `goal-await` meldet hier seinen Diagnose-Dienst an; die Szene hebt ihn
+		// auf, damit „der Wartezustand ist weg/steht noch" von außen prüfbar ist.
+		provide: (name, dienst) => {
+			dienste.set(name, dienst)
+			return () => { dienste.delete(name) }
+		},
 		// cordis wirft für einen Dienst, den das Profil nicht geladen hat.
 		get: (name) => {
 			if (name === 'agentTeams' && optionen.team !== undefined) return optionen.team
@@ -156,9 +204,22 @@ function baueSzene(optionen = {}) {
 		return agent
 	}
 
-	/** Alle angemeldeten Horcher eines Ereignisses auslösen. */
+	/**
+	 * Alle angemeldeten Horcher eines Ereignisses auslösen.
+	 *
+	 * `session/event` läuft im Kern SYNCHRON innerhalb von `session.append`
+	 * (gemessen 2026-11-03, siehe Modulkopf (D)) — `ctx.imAppend` bildet das nach,
+	 * und `resume` wirft dann den Fehler des Kerns. Ein `agent/inbox/inserted`
+	 * läuft nicht in einem append; dort bleibt das Flag aus.
+	 */
 	const sende = (ereignis, ...argumente) => {
-		for (const fn of horcher.get(ereignis) ?? []) fn(...argumente)
+		const vorher = ctx.imAppend
+		if (ereignis === 'session/event') ctx.imAppend = true
+		try {
+			for (const fn of horcher.get(ereignis) ?? []) fn(...argumente)
+		} finally {
+			ctx.imAppend = vorher
+		}
 	}
 
 	/**
@@ -177,7 +238,15 @@ function baueSzene(optionen = {}) {
 		throw new Error('das Werkzeug await_goal_dependency wurde nicht angemeldet — ist @deepseek-ai/dsh-tools auffindbar?')
 	}
 
-	return { ctx, ziele, aufrufe, mitZiel, sende, werkzeug, ziel: (agent) => ziele.get(agent) }
+	/**
+	 * Die offenen Wartezustände, wie der Patch sie selbst meldet.
+	 *
+	 * Der Dienst wird synchron in `apply` angemeldet (`ctx.provide` steht im
+	 * Rumpf der `ctx.effect`-Funktion), deshalb ist er hier schon da.
+	 */
+	const offene = () => dienste.get('goalAwait')?.offene() ?? []
+
+	return { ctx, ziele, aufrufe, mitZiel, sende, werkzeug, offene, ziel: (agent) => ziele.get(agent) }
 }
 
 // ---------------------------------------------------------------------------
@@ -199,6 +268,8 @@ test('die richtige Nachricht weckt das Ziel', async () => {
 	assert.equal(szene.ziel(anna).activation, 'disarmed', 'das Ziel muss entwaffnet sein, sonst verbraucht es weiter Runden')
 
 	szene.sende('agent/inbox/inserted', { agent: anna, message: teamNachricht(BOB, 'bob') })
+	// Das Scharfschalten liegt in einem eigenen Durchlauf (Modulkopf (D)).
+	await naechsterDurchlauf()
 
 	assert.equal(szene.ziel(anna).activation, 'armed', 'die Nachricht von bob ist die Zutat — das Ziel muss wieder scharf sein')
 	assert.equal(szene.aufrufe.resume, 1, 'genau ein Scharfschalten')
@@ -213,6 +284,7 @@ test('die falsche Nachricht weckt das Ziel nicht', async () => {
 
 	// carol schreibt — das ist NICHT die Zutat.
 	szene.sende('agent/inbox/inserted', { agent: anna, message: teamNachricht(CAROL, 'carol') })
+	await naechsterDurchlauf()
 
 	assert.equal(
 		szene.ziel(anna).activation,
@@ -225,6 +297,7 @@ test('die falsche Nachricht weckt das Ziel nicht', async () => {
 	// Wartezustand. Ohne diesen Teil würde der Test auch dann grün, wenn der
 	// Wecker gar nicht mehr funktioniert.
 	szene.sende('agent/inbox/inserted', { agent: anna, message: teamNachricht(BOB, 'bob') })
+	await naechsterDurchlauf()
 	assert.equal(szene.ziel(anna).activation, 'armed', 'danach muss bob das Ziel wecken — sonst prüft der Test nur, dass nichts passiert')
 })
 
@@ -245,6 +318,7 @@ test('ohne Absenderangabe weckt jede Nachricht wie bisher (Rückwärtsverträgli
 
 	// Ein beliebiger Absender — ohne `von` ist das weiterhin die Zutat.
 	szene.sende('agent/inbox/inserted', { agent: anna, message: teamNachricht(CAROL, 'carol') })
+	await naechsterDurchlauf()
 	assert.equal(szene.ziel(anna).activation, 'armed', 'ohne Absenderangabe muss jede Nachricht wecken wie vorher')
 
 	// Und der Mensch weckt immer, auch mit gesetztem Absender.
@@ -253,6 +327,7 @@ test('ohne Absenderangabe weckt jede Nachricht wie bisher (Rückwärtsverträgli
 	const werkzeug2 = await szene2.werkzeug()
 	await werkzeug2.execute({ waiting_for: 'die Antwort des Menschen', von: 'bob', max_wait_seconds: 60 }, { agent: bert })
 	szene2.sende('agent/inbox/inserted', { agent: bert, message: menschenNachricht })
+	await naechsterDurchlauf()
 	assert.equal(szene2.ziel(bert).activation, 'armed', 'der Mensch darf nie am Absenderfilter hängen bleiben')
 })
 
@@ -296,6 +371,7 @@ test('ein Teammitglied, das auf eine Aufgabe wartet, wird geweckt, wenn die Aufg
 	// Das Ereignis liegt auf der Sitzung der Team-Wurzel, nicht auf annas Sitzung —
 	// geweckt wird trotzdem, weil die MITGLIEDSCHAFT entscheidet.
 	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'completed'))
+	await naechsterDurchlauf()
 
 	assert.equal(szene.ziel(anna).activation, 'armed', 'eine fertige Aufgabe ist die Zutat — das Ziel muss wieder scharf sein')
 })
@@ -308,12 +384,14 @@ test('ein fremdes Team weckt ein wartendes Ziel nicht', async () => {
 	await werkzeug.execute({ waiting_for: 'die Messung auf dem Board', max_wait_seconds: 60 }, { agent: anna })
 
 	szene.sende('session/event', { id: 'sess-anderes-team' }, aufgabenEreignis('sess-anderes-team', 'completed'))
+	await naechsterDurchlauf()
 
 	assert.equal(szene.ziel(anna).activation, 'disarmed', 'ein fremdes Team darf ein wartendes Ziel nicht wecken')
 	assert.equal(szene.aufrufe.resume, 0)
 
 	// Gegenprobe im selben Aufbau: das EIGENE Team weckt denselben Wartezustand.
 	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'completed'))
+	await naechsterDurchlauf()
 	assert.equal(szene.ziel(anna).activation, 'armed', 'das eigene Team muss danach wecken — sonst prüft der Test nur, dass nichts passiert')
 })
 
@@ -326,11 +404,13 @@ test('eine Aufgabe in Arbeit weckt ein wartendes Ziel nicht', async () => {
 
 	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'in_progress'))
 	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'pending'))
+	await naechsterDurchlauf()
 
 	assert.equal(szene.ziel(anna).activation, 'disarmed', 'nur `completed` ist die Zutat — sonst wäre der Wecker wieder „jede Änderung weckt"')
 
 	// Gegenprobe: `completed` weckt denselben Wartezustand.
 	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'completed'))
+	await naechsterDurchlauf()
 	assert.equal(szene.ziel(anna).activation, 'armed')
 })
 
@@ -341,10 +421,116 @@ test('ein Ziel ohne Wartezustand wird von einer fertigen Aufgabe nicht angefasst
 	await szene.werkzeug()
 
 	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'completed'))
+	await naechsterDurchlauf()
 
 	assert.equal(szene.ziel(anna).activation, 'armed', 'das Ziel war scharf und muss scharf bleiben')
 	assert.equal(szene.aufrufe.resume, 0, 'ohne Wartezustand darf niemand scharf geschaltet werden')
 	assert.equal(szene.aufrufe.disarm, 0, 'ohne Wartezustand darf niemand entwaffnet werden')
+})
+
+// ---------------------------------------------------------------------------
+// 3b. Der gemessene Fehler vom 2026-11-03: Weiterschalten und Wartezustand
+// ---------------------------------------------------------------------------
+
+test('der Kerntest: eine fertige Aufgabe weckt und schaltet weiter', async () => {
+	const szene = baueSzene({ team: baueTeam({ 'sess-anna': { root: { id: TEAM }, id: TEAM, role: 'teammate', name: 'anna' } }) })
+	const anna = szene.mitZiel('sess-anna')
+	const werkzeug = await szene.werkzeug()
+
+	await werkzeug.execute({ waiting_for: 'die Messung auf dem Board', max_wait_seconds: 60 }, { agent: anna })
+	assert.equal(szene.ziel(anna).activation, 'disarmed')
+	assert.equal(szene.offene().length, 1, 'der Wartezustand muss nach dem Aufruf angelegt sein')
+
+	// `sende` stellt `session/event` — wie der Kern — innerhalb eines append zu;
+	// ein resume von hier aus würde werfen (siehe `baueSzene`).
+	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'completed'))
+	await naechsterDurchlauf()
+
+	assert.equal(szene.ziel(anna).activation, 'armed', 'die fertige Aufgabe muss das Ziel wieder scharf schalten')
+	assert.equal(szene.aufrufe.resume, 1, 'genau ein Scharfschalten')
+	assert.deepEqual(
+		szene.offene(),
+		[],
+		'nach dem Wecken muss der Wartezustand weg sein — sonst weckt ihn die Frist ein zweites Mal'
+	)
+})
+
+test('scheitert das Weiterschalten, bleibt der Wartezustand samt Uhr stehen', async () => {
+	// Der Dienst wirft bei den ersten beiden Anläufen den GEMESSENEN Fehler des
+	// Kerns (Reentrancy); der dritte Anlauf gelingt. Geprüft wird beides: der
+	// Zustand überlebt den Fehlschlag, und die Uhr holt das Ziel danach wirklich.
+	const szene = baueSzene({
+		team: baueTeam({ 'sess-anna': { root: { id: TEAM }, id: TEAM, role: 'teammate', name: 'anna' } }),
+		resumeFehler: (nummer) => (nummer <= 2 ? REENTRANZ : undefined)
+	})
+	const anna = szene.mitZiel('sess-anna')
+	const werkzeug = await szene.werkzeug()
+
+	// 5 s ist die kleinste Frist, die `fristMs` zulässt: der Test wartet sie ab,
+	// statt die Uhr zu fälschen — geprüft wird die Wirkung, nicht ein Aufruf.
+	await werkzeug.execute({ waiting_for: 'die Messung auf dem Board', max_wait_seconds: 5 }, { agent: anna })
+	assert.equal(szene.ziel(anna).activation, 'disarmed')
+
+	// Anlauf 1 kommt aus dem Aufgaben-Ereignis und scheitert.
+	szene.sende('session/event', { id: TEAM }, aufgabenEreignis(TEAM, 'completed'))
+	await naechsterDurchlauf()
+
+	assert.equal(szene.ziel(anna).activation, 'disarmed', 'ein gescheitertes Weiterschalten darf das Ziel nicht scharf melden')
+	assert.equal(szene.aufrufe.resume, 1, 'der Anlauf muss beim Dienst angekommen sein')
+	assert.equal(
+		szene.offene().length,
+		1,
+		'der Wartezustand darf bei einem Fehlschlag NICHT verschwinden — genau das ließ das Ziel am 2026-11-03 hängen'
+	)
+
+	// Anlauf 2 kommt von der Frist und scheitert ebenfalls; danach stellt der
+	// Patch eine Wiederholungs-Uhr, und Anlauf 3 gelingt.
+	const grenze = Date.now() + 12000
+	while (Date.now() < grenze && szene.ziel(anna).activation !== 'armed') await warte(50)
+
+	assert.equal(
+		szene.ziel(anna).activation,
+		'armed',
+		'die Uhr muss das Ziel trotz des Fehlschlags wieder scharf bekommen — sonst bliebe es dauerhaft hängen'
+	)
+	assert.ok(szene.aufrufe.resume >= 3, `der dritte Anlauf fehlt (nur ${szene.aufrufe.resume} Versuche)`)
+	assert.deepEqual(szene.offene(), [], 'nach dem gelungenen Anlauf muss der Wartezustand weg sein')
+})
+
+test('wakes_on nennt alle Wege, die das Ziel wieder scharf schalten', async () => {
+	// Im Team sind alle drei Wege scharf; ein Einzelwert würde über zwei davon lügen.
+	const mitTeam = baueSzene({ team: baueTeam({ 'sess-anna': { root: { id: TEAM }, id: TEAM, role: 'teammate', name: 'anna' } }) })
+	const anna = mitTeam.mitZiel('sess-anna')
+	const erste = await (await mitTeam.werkzeug()).execute(
+		{ waiting_for: 'die Messung auf dem Board', max_wait_seconds: 60 },
+		{ agent: anna }
+	)
+	assert.deepEqual(erste.wakes_on, ['message', 'task', 'timeout'], 'die Antwort muss alle drei Wege nennen')
+	assert.match(erste.note, /task of your team/u, 'die Erklärung muss den Aufgaben-Weg nennen')
+
+	// Ohne Team kann keine Aufgabe wecken — dann gehört `task` nicht in die Antwort.
+	const ohneTeam = baueSzene()
+	const bert = ohneTeam.mitZiel('sess-bert')
+	const zweite = await (await ohneTeam.werkzeug()).execute(
+		{ waiting_for: 'die Antwort des Menschen', max_wait_seconds: 60 },
+		{ agent: bert }
+	)
+	assert.deepEqual(zweite.wakes_on, ['message', 'timeout'], 'ohne Team gibt es keinen Aufgaben-Wecker')
+	assert.ok(!/task of your team/u.test(zweite.note), 'ohne Team darf die Erklärung keinen Aufgaben-Weg versprechen')
+
+	// Nichts entwaffnet: leere Liste. Sie wäre falsch, sobald dort ein Weg stünde.
+	const ohneZiel = baueSzene()
+	const dritte = await (await ohneZiel.werkzeug()).execute({ waiting_for: 'egal' }, { agent: { id: 'sess-caesar', session: {} } })
+	assert.equal(dritte.waiting, false)
+	assert.deepEqual(dritte.wakes_on, [], 'ohne Ziel ist nichts entwaffnet, also weckt auch nichts')
+
+	// Ein pausiertes Ziel wird ebenfalls nicht entwaffnet.
+	const pausiert = baueSzene()
+	const dora = pausiert.mitZiel('sess-dora')
+	pausiert.ziel(dora).phase = 'paused'
+	const vierte = await (await pausiert.werkzeug()).execute({ waiting_for: 'egal' }, { agent: dora })
+	assert.equal(vierte.waiting, false)
+	assert.deepEqual(vierte.wakes_on, [], 'ein nicht aktives Ziel wird nicht entwaffnet')
 })
 
 // ---------------------------------------------------------------------------
@@ -475,7 +661,7 @@ test('Gegenprobe am Code: ohne den Teamfilter wird der Fremdteam-Test rot', asyn
 	assert.match(echt.ausgabe, /# pass 1/u, 'es lief nicht genau der Fremdteam-Test:\n' + echt.ausgabe)
 
 	const ohne = kopieOhne(
-		['\t\t\treturn mitglied !== undefined && mitglied !== null && String(mitglied.id) === teamId;', '\t\t\treturn true;'],
+		['\t\t\treturn String(mitglied.id) === teamId;', '\t\t\treturn true;'],
 		'ohne-teamfilter'
 	)
 	const kaputt = await laufeTests(muster, ohne)
@@ -494,4 +680,20 @@ test('Gegenprobe am Code: ohne den Statusfilter wird der In-Arbeit-Test rot', as
 	const kaputt = await laufeTests(muster, ohne)
 	assert.notEqual(kaputt.code, 0, 'der In-Arbeit-Test blieb ohne Statusfilter grün — er prüft den Status nicht:\n' + kaputt.ausgabe)
 	assert.match(kaputt.ausgabe, /# fail 1/u, 'ohne Statusfilter wurde nicht genau dieser Test rot:\n' + kaputt.ausgabe)
+})
+
+test('Gegenprobe am Code: ohne die Verschiebung wird der Kerntest rot', async () => {
+	const muster = '^der Kerntest'
+
+	// Erst die Probe auf dem ECHTEN Modul: der Kerntest muss hier grün sein.
+	const echt = await laufeTests(muster, MODUL)
+	assert.equal(echt.code, 0, 'der Kerntest ist auf dem echten Modul rot:\n' + echt.ausgabe)
+	assert.match(echt.ausgabe, /# pass 1/u, 'es lief nicht genau der Kerntest:\n' + echt.ausgabe)
+
+	// Jetzt dieselbe Probe gegen die Kopie, in der das Weiterschalten wieder
+	// DIREKT im Horcher läuft — das ist der gemessene Zustand vom 2026-11-03.
+	const direkt = kopieOhne(['\tsetImmediate(arbeit);', '\tarbeit();'], 'ohne-verschieben')
+	const kaputt = await laufeTests(muster, direkt)
+	assert.notEqual(kaputt.code, 0, 'der Kerntest blieb ohne die Verschiebung grün — er prüft den Aufrufkontext nicht:\n' + kaputt.ausgabe)
+	assert.match(kaputt.ausgabe, /# fail 1/u, 'ohne die Verschiebung wurde nicht GENAU der Kerntest rot:\n' + kaputt.ausgabe)
 })
