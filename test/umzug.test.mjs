@@ -96,9 +96,17 @@ const SHA256_ABWEICHEND = {
 	//      hatte. Der Befehl endet mit exit 0 und tut nichts; er sieht aus wie eine Pruefung und
 	//      ist keine. Ersetzt durch `node --test test/goal-await.test.mjs`, und die Zeile nennt
 	//      jetzt, dass der alte Verweis ins Leere ging.
+	//  (4) 2026-11-03: DIAGNOSE, VORUEBERGEHEND. Zwei Live-Versuche haben gezeigt, dass
+	//      der Aufgaben-Wecker nicht weckt. Die Hypothese "asynchron registriert" ist
+	//      widerlegt (die Horcher stehen synchron in derselben ctx.effect-Funktion, und
+	//      der Nachrichten-Horcher mit demselben Muster funktioniert nachweislich).
+	//      Deshalb protokolliert der session/event-Horcher jetzt JEDES ankommende
+	//      Ereignis (Zeile "diagnose session/event ..."). Die Zeile wird nach der
+	//      Messung wieder entfernt und der Anker erneut nachgezogen — das ist der
+	//      einzige Grund, warum er diesmal ohne Reparatur wandert.
 	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
 	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
-	'goal-await.mjs': '383de9ebeb4d5b4afd21b60c40bfa3b551059cffc9a2b6dfb9e23b88ff884665',
+	'goal-await.mjs': '80ae544769a0a6a94284293e66112ecbe6b559d65736f16fec42a181f863fc69',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:

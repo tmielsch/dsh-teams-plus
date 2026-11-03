@@ -673,7 +673,16 @@ export function apply(ctx, config = {}) {
 		//     Nachricht. Wer geweckt wird, entscheidet die Mitgliedschaft, nicht die
 		//     Sitzung des Ereignisses — das Ereignis liegt auf der Sitzung der
 		//     Team-Wurzel, und ein wartendes Teammitglied soll es trotzdem spüren.
+		//
+		// DIAGNOSE (03.11., vorübergehend): Gemessen werden soll, ob dieser
+		// Horcher überhaupt aufgerufen wird. Zwei Live-Versuche haben gezeigt,
+		// dass der Aufgaben-Wecker nicht weckt; die Hypothese "asynchron
+		// registriert" ist widerlegt, weil die Registrierung synchron steht.
+		// Bleibt die Frage, ob `session/event` den Plugin-Kontext erreicht.
+		// Solange diese Zeile steht, protokolliert der Horcher JEDES ankommende
+		// Ereignis. Nach der Messung wird sie wieder entfernt.
 		const abAufgabe = ctx.on("session/event", (session, event) => {
+			protokoll(`diagnose session/event typ=${String(event?.type)} team=${String(event?.data?.teamId ?? "-")} sitzung=${String(session?.id ?? "-")}`);
 			if (!istAufgabenWecker(event)) return;
 			const teamId = String(event.data.teamId ?? "");
 			if (teamId.length === 0) return;
