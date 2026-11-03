@@ -35,3 +35,9 @@
       name: '@tmielsch/dsh-teams-plus/patches/send-to-session.mjs'
     - id: team-board
       name: '@tmielsch/dsh-teams-plus/patches/team-board.mjs'
+    # Hoechstens N Agenten gleichzeitig (Spec docs/SPEC-LOKALMODUS.md, Nachtrag
+    # 2026-11-03 21:42): Zaehler, Warteschlange und die Bremse zwischen den Zuegen.
+    # Ein- und Ausschalten ueber das Werkzeug `team_bremse`; die Grenze steht in
+    # ~/.dsh/.tm/teams-plus/lokalmodus.json.
+    - id: team-bremse
+      name: '@tmielsch/dsh-teams-plus/patches/team-bremse.mjs'

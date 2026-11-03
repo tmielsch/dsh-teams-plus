@@ -2,9 +2,12 @@
  * umzug.test.mjs — Selbstpruefung fuer den Umzug aus dsh-projectOS.
  *
  * Der Test belegt sieben Dinge:
- *   1. alle 23 Patch-Dateien liegen im Paket; 21 davon sind byte-gleich zum Original (sha256),
- *      die zwei Rollen-Patches tragen die neue Fassung (Begruendung bei SHA256_ABWEICHEND),
- *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches,
+ *   1. alle 27 Dateien in patches/ liegen im Paket (26 .mjs plus package.json). Davon sind
+ *      19 byte-gleich zum Original (sha256, SHA256_ORIGINAL), vier tragen ABSICHTLICH die neue
+ *      Fassung (SHA256_ABWEICHEND), eine entsteht in diesem Paket und hat einen eigenen Anker
+ *      (SHA256_EIGEN), zwei entstehen hier ohne Anker gegen projectOS (send-to-session,
+ *      team-board); die Listen sind die Zaehlung, nicht diese Zeile,
+ *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die acht B-Patches,
  *   3. jede der 18 A-Dateien antwortet auf --status, ohne die DSH-Installation anzufassen,
  *   4. bin/teams-plus.mjs ist ausfuehrbar und `status` listet die A-Patches,
  *   5. `link` haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus (geprueft in einem
@@ -133,6 +136,33 @@ const SHA256_ABWEICHEND = {
 	'stille-nachrichten.mjs': '82a080adf2a872eb18d7786c55e8faa9aed7cb84d6089d183cc8992fc5456946'
 }
 
+/**
+ * Der Anker fuer die Patches, die in DIESEM Paket ENTSTEHEN — fuer sie gibt es
+ * kein Original aus projectOS, gegen das ein Umzugs-Anker zeigen koennte.
+ *
+ * Die Regel stammt aus dem Auftrag zu `team_bremse`: *„Der sha256-Anker in
+ * test/umzug.test.mjs muss fuer jede neue Patch-Datei ergaenzt werden; die Liste
+ * dort ist nummeriert, ergaenze den Grund."* Der Anker haelt die Fassung fest,
+ * die ausgeliefert wurde; wer sie spaeter aendert, zieht ihn mit Grund nach —
+ * genau wie bei SHA256_ABWEICHEND. So ist „neu hinzugefuegt" nicht mit
+ * „unbemerkt veraendert" zu verwechseln.
+ *
+ * Warum hier NUR team-bremse.mjs steht und nicht auch send-to-session.mjs und
+ * team-board.mjs (Stand 2026-11-03): die beiden entstehen ebenfalls in diesem
+ * Paket, werden aber auf einer anderen Spur weiterentwickelt. Ein Anker dort
+ * wuerde fremde Arbeit rot machen, bevor sie geprueft ist. Die Entscheidung ist
+ * bewusst und steht hier, damit sie nicht als Versehen durchgeht.
+ *
+ * (1) team-bremse.mjs — neu im Auftrag „team_bremse" (Spec Lokalmodus, Nachtrag
+ *     2026-11-03 21:42): hoechstens N gleichzeitig aktive Agenten, Warteschlange
+ *     und das Werkzeug `team_bremse` mit `status` / `ein` / `aus`. Geprueft in
+ *     test/team-bremse.test.mjs (13 Faelle, darunter die fuenf Pflichtfaelle des
+ *     Auftrags und die Gegenprobe am Code).
+ */
+const SHA256_EIGEN = {
+	'team-bremse.mjs': 'da0faca5a5c23faab13b44e19736b5b1517c0aad93483fc5a6e52daefc8a340e'
+}
+
 /** Die 18 A-Dateien: sie schreiben in die DSH-Installation. */
 const A_DATEIEN = [
 	'allow-child-goal-resume.mjs', 'child-goal-resume.mjs',
@@ -146,9 +176,12 @@ const A_DATEIEN = [
 ]
 
 /** Die B-Patches: Cordis-Plugins aus cordis.patch.yml.
- *  Fuenf sind umgezogen; `send-to-session.mjs` und `team-board.mjs` entstehen in
- *  diesem Paket und sind deshalb ohne sha256-Anker gegen projectOS. */
-const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs', 'team-board.mjs']
+ *  Fuenf sind umgezogen; `send-to-session.mjs`, `team-board.mjs` und
+ *  `team-bremse.mjs` entstehen in diesem Paket und sind deshalb ohne
+ *  sha256-Anker gegen projectOS. `team-bremse` traegt einen eigenen Anker
+ *  (SHA256_EIGEN, siehe unten), damit die erste ausgelieferte Fassung
+ *  festgehalten ist. */
+const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs', 'team-board.mjs', 'team-bremse.mjs']
 
 /** Die Werkzeuge mit eigener Bedienung (--status, --revert). */
 const WERKZEUGE = A_DATEIEN.filter((name) => name.startsWith('allow-'))
@@ -216,13 +249,14 @@ function zieldateien() {
 	return stan.sort()
 }
 
-test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen Rollenaufloesung', () => {
+test('alle 27 Dateien in patches/ liegen im Paket: 19 byte-gleich, vier mit Absicht geaendert, eine eigene mit eigenem Anker', () => {
 	const alle = { ...SHA256_ORIGINAL, ...SHA256_ABWEICHEND }
 	assert.equal(Object.keys(SHA256_ORIGINAL).length, 19, 'die Liste der unveraenderten Originale muss 19 Dateien haben')
 	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 4, 'es sind genau vier Dateien mit Absicht geaendert (zwei Rollen + goal-await + stille-nachrichten)')
+	assert.equal(Object.keys(SHA256_EIGEN).length, 1, 'es ist genau eine eigene Datei mit eigenem Anker (team-bremse); siehe SHA256_EIGEN')
 
 	const abweichend = []
-	for (const [name, soll] of Object.entries(alle)) {
+	for (const [name, soll] of Object.entries({ ...alle, ...SHA256_EIGEN })) {
 		const pfad = join(PATCHES, name)
 		if (!existsSync(pfad)) { abweichend.push(`${name}: fehlt im Paket`); continue }
 		const ist = createHash('sha256').update(readFileSync(pfad)).digest('hex')
@@ -233,7 +267,8 @@ test('alle 23 Patch-Dateien liegen im Paket; 21 byte-gleich, zwei mit der neuen 
 	// sie ist kein Patch und steht deshalb nicht in den sha256-Listen.
 	// `send-to-session.mjs` und `team-board.mjs` sind EIGENE Werkzeuge dieses Pakets, keine
 	// umgezogenen Patches: sie entstehen hier und haben deshalb keinen sha256-Anker gegen projectOS.
-	const erwartet = [...Object.keys(alle), 'package.json', 'send-to-session.mjs', 'team-board.mjs'].sort()
+	// `team-bremse.mjs` entsteht hier ebenfalls; fuer sie steht der Anker in SHA256_EIGEN.
+	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs'].sort()
 	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
@@ -334,7 +369,7 @@ test('die zwei zurueckgezogenen Rollen bleiben im Paket, werden aber nicht ausge
 	}
 })
 
-test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die sechs B-Patches', () => {
+test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die acht B-Patches', () => {
 	const paket = JSON.parse(readFileSync(join(PAKET, 'package.json'), 'utf8'))
 	assert.equal(paket.exports['./patches/*'], './patches/*', 'Wildcard-Export "./patches/*" fehlt')
 	assert.equal(paket.exports['./rollen/*'], './rollen/*', 'Wildcard-Export "./rollen/*" fehlt')
@@ -342,7 +377,7 @@ test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die se
 
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const genannt = [...yml.matchAll(/@tmielsch\/dsh-teams-plus\/patches\/([\w.-]+\.mjs)/gu)].map((treffer) => treffer[1])
-	assert.deepEqual(genannt.sort(), [...B_PATCHES].sort(), 'cordis.patch.yml nennt andere Dateien als die sechs B-Patches')
+	assert.deepEqual(genannt.sort(), [...B_PATCHES].sort(), 'cordis.patch.yml nennt andere Dateien als die acht B-Patches')
 	for (const name of genannt) assert.ok(existsSync(join(PATCHES, name)), `patches/${name} fehlt`)
 })
 
@@ -396,10 +431,11 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(lstatSync(join(ziel, 'patches')).isSymbolicLink(), 'patches ist kein Verweis')
 		assert.ok(lstatSync(join(ziel, 'rollen')).isSymbolicLink(), 'rollen ist kein Verweis')
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
-		// 23 umgezogene Patch-Dateien, dazu send-to-session.mjs und team-board.mjs als eigene
-		// Werkzeuge dieses Pakets; patches/package.json ist die Paketgrenze fuer den
+		// 23 umgezogene Patch-Dateien, dazu team-bremse.mjs als neue eigene Datei dieses
+		// Auftrags sowie send-to-session.mjs und team-board.mjs als eigene Werkzeuge dieses
+		// Pakets; patches/package.json ist die Paketgrenze fuer den
 		// Client-Modul-Regler und zaehlt nicht mit (.mjs-Filter).
-		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 25)
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 26)
 		// Der Verweis muss jede Rollendatei erreichbar machen — Namen, nicht nur die Anzahl.
 		assert.deepEqual(readdirSync(join(ziel, 'rollen')).sort(), [...ROLLEN].sort(), 'der Verweis auf rollen/ erreicht nicht jede Rollendatei')
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))
