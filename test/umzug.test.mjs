@@ -589,3 +589,51 @@ test('link ohne Schalter ist ein Trockenlauf und legt nichts an (Abnahme 2026-10
 		rmSync(heim, { recursive: true, force: true })
 	}
 })
+
+/**
+ * Waechter gegen doppelt gepflegte Listen (repariert am 2026-11-03).
+ *
+ * `bin/teams-plus.mjs` fuehrte die B-Patches als festes Array mit fuenf Namen,
+ * waehrend cordis.patch.yml laengst acht Eintraege hatte. Folge: `status` meldete
+ * "5 B-Patches", `doctor` hielt alle Dateien fuer vorhanden, und ein im Paket
+ * fehlender Patch waere unbemerkt geblieben. Dieselbe Sorte Fehler wie beim
+ * Zeiger auf ZimaOS: eine Liste, die nicht mitwaechst, und eine Ausgabe, die
+ * plausibel klingt.
+ *
+ * Der Test haelt beide Seiten fest: die YAML und das, was das Werkzeug daraus
+ * liest. Wer einen B-Patch eintraegt und die Anzeige vergisst, faellt hier auf —
+ * nicht erst auf einer zweiten Maschine.
+ */
+test('bin/teams-plus.mjs liest die B-Patches aus cordis.patch.yml, nicht aus einer zweiten Liste', () => {
+  const lauf = spawnSync(process.execPath, [join(PAKET, 'bin', 'teams-plus.mjs'), 'status'], { encoding: 'utf8' })
+  assert.equal(lauf.status, 0, `status endet mit ${lauf.status}: ${lauf.stderr}`)
+
+  // Was die YAML nennt, ist die Wahrheit.
+  const yaml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
+  const ausYaml = new Set()
+  for (const treffer of yaml.matchAll(/name:\s*'@tmielsch\/dsh-teams-plus\/patches\/([A-Za-z0-9._-]+\.mjs)'/gu)) ausYaml.add(treffer[1])
+  assert.ok(ausYaml.size >= 8, `cordis.patch.yml nennt nur ${ausYaml.size} B-Patches`)
+
+  // Und die Anzeige muss dieselbe Zahl nennen — sonst wird wieder doppelt gepflegt.
+  const genannt = /(\d+)\s+B-Patches/u.exec(lauf.stdout)
+  assert.ok(genannt !== null, `status nennt keine Zahl von B-Patches: ${lauf.stdout}`)
+  assert.equal(Number(genannt[1]), ausYaml.size, `status nennt ${genannt[1]} B-Patches, cordis.patch.yml hat ${ausYaml.size}`)
+
+  // Gegenprobe: eine zusaetzliche Zeile in einer Kopie muss die Zahl erhoehen.
+  // Sonst prueft der Test nur, dass zwei Zahlen zufaellig gleich sind.
+  const kopie = mkdtempSync(join(tmpdir(), 'teams-plus-bpatch-'))
+  try {
+    // Das Werkzeug liegt in <paket>/bin; es liest <paket>/cordis.patch.yml.
+    // Fuer die Probe genuegt eine Kopie des bin-Ordners neben einer erweiterten YAML.
+    mkdirSync(join(kopie, 'bin'), { recursive: true })
+    writeFileSync(join(kopie, 'bin', 'teams-plus.mjs'), readFileSync(join(PAKET, 'bin', 'teams-plus.mjs')))
+    const erfunden = 'erfunden-probe.mjs'
+    writeFileSync(join(kopie, 'cordis.patch.yml'), `${yaml}\n      name: '@tmielsch/dsh-teams-plus/patches/${erfunden}'\n`)
+    const zweiter = spawnSync(process.execPath, [join(kopie, 'bin', 'teams-plus.mjs'), 'status'], { encoding: 'utf8' })
+    const zahl = /(\d+)\s+B-Patches/u.exec(zweiter.stdout)
+    assert.ok(zahl !== null, `die Kopie nennt keine Zahl: ${zweiter.stdout}${zweiter.stderr}`)
+    assert.equal(Number(zahl[1]), ausYaml.size + 1, 'die Kopie zaehlt den erfundenen Eintrag nicht mit — die Liste kommt nicht aus der YAML')
+  } finally {
+    rmSync(kopie, { recursive: true, force: true })
+  }
+})

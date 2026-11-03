@@ -34,7 +34,7 @@
  * fragen und dann `teams-plus apply` laufen lassen.
  */
 import { spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -60,8 +60,32 @@ const A_PATCHES = [
 /** Die A-Dateien, die im Paket liegen muessen (18 Stueck). */
 const A_DATEIEN = A_PATCHES.flatMap((patch) => patch.dateien)
 
-/** Die B-Patches aus cordis.patch.yml (5 Stueck); hier nur zur Anzeige und zur Vollstaendigkeit. */
-const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs']
+/**
+ * Die B-Patches, **gelesen aus cordis.patch.yml** statt hier gepflegt.
+ *
+ * WARUM NICHT MEHR ALS FESTE LISTE (repariert am 2026-11-03)
+ * Bis hierher stand hier ein Array mit fuenf Dateinamen. Als `send-to-session`,
+ * `team-board` und `team-bremse` dazukamen, wuchs die YAML mit, diese Liste
+ * nicht. Folge: `status` meldete "5 B-Patches" und `doctor` hielt alle Dateien
+ * fuer vorhanden, obwohl in Wahrheit acht geladen werden. Faellt eine davon aus
+ * dem Paket, haette niemand es gemerkt — genau der Fehlertyp, der auf einer
+ * zweiten Maschine auffaellt und auf der ersten nicht.
+ *
+ * Deshalb ist die YAML jetzt die einzige Quelle: was dort eingetragen ist, wird
+ * gezaehlt und geprueft. Wer einen Patch eintraegt, muss hier nichts nachziehen.
+ */
+function bPatchesAusYaml() {
+	const datei = join(PAKET, 'cordis.patch.yml')
+	if (!existsSync(datei)) return []
+	const text = readFileSync(datei, 'utf8')
+	const namen = new Set()
+	const muster = /name:\s*'@tmielsch\/dsh-teams-plus\/patches\/([A-Za-z0-9._-]+\.mjs)'/gu
+	for (const treffer of text.matchAll(muster)) namen.add(treffer[1])
+	return [...namen].sort()
+}
+
+/** Die B-Patches aus cordis.patch.yml; hier zur Anzeige und zur Vollstaendigkeit. */
+const B_PATCHES = bPatchesAusYaml()
 
 const AUSFUEHRLICH = process.argv.includes('--ausfuehrlich')
 
