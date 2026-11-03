@@ -1,6 +1,6 @@
 {
   "name": "@tmielsch/dsh-teams-plus",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Agent Teams Plus for DeepSeek Harness: the unlocks, the roles, a policy schema and the profile installer that make agent teams work.",
   "type": "module",
   "exports": {
