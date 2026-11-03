@@ -84,10 +84,15 @@ test('ein fehlendes Ziel wird verknuepft, ein Verweis woandershin bleibt liegen,
 test('das Manifest dieses Pakets ist lesbar und zeigt in den Datenordner, nicht nach ~/.dsh/patches', () => {
   const repo = join(import.meta.dirname, '..')
   const eintraege = plan(repo, join(tmpdir(), 'teams-plus-leeres-zuhause'))
-  assert.equal(eintraege.length, 2, 'das Manifest muss patches/ und rollen/ nennen')
+  // Drei, seit dem Zeiger-Umbau: `agents` kam am 2026-11-03 dazu, weil der
+  // TEAMSPLUS-Block in AGENTS.md auf ~/.dsh/.tm/teams-plus/agents/… zeigt.
+  // Ohne diesen Verweis zeigt der Zeiger ins Leere — auf dem Mac fiel das nicht
+  // auf, weil der Ordner dort von Hand angelegt worden war; der Einbau auf
+  // ZimaOS hat es aufgedeckt.
+  assert.equal(eintraege.length, 3, 'das Manifest muss patches/, rollen/ und agents/ nennen')
   for (const { link } of eintraege) {
     assert.ok(link.to.startsWith('.tm/teams-plus/'), `Ziel zeigt nicht in den Datenordner: ${link.to}`)
     assert.equal(link.kind, 'dir')
   }
-  assert.deepEqual(eintraege.map(({ link }) => link.from).sort(), ['patches', 'rollen'])
+  assert.deepEqual(eintraege.map(({ link }) => link.from).sort(), ['agents', 'patches', 'rollen'])
 })

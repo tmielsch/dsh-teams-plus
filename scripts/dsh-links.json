@@ -1,5 +1,5 @@
 {
-  "comment": "Was link-dsh.mjs aus diesem Paket nach ~/.dsh haengt: die A-Patches (die Dateien, die in die DSH-Installation schreiben) und die Rollen. Ziel ist der Ordner ~/.dsh/.tm/teams-plus — nicht mehr das Repo selbst und nicht mehr ~/.dsh/patches. Die B-Patches stehen in cordis.patch.yml und werden ueber '@tmielsch/dsh-teams-plus/patches/<name>.mjs' geladen; sie brauchen keinen Verweis. Die Sicherungsordner patches/backup-* in ~/.dsh bleiben, wo sie sind.",
+  "comment": "Was link-dsh.mjs aus diesem Paket nach ~/.dsh haengt: die A-Patches (die Dateien, die in die DSH-Installation schreiben), die Rollen und die Anweisungsdateien. Ziel ist der Ordner ~/.dsh/.tm/teams-plus — nicht mehr das Repo selbst und nicht mehr ~/.dsh/patches. Die B-Patches stehen in cordis.patch.yml und werden ueber '@tmielsch/dsh-teams-plus/patches/<name>.mjs' geladen; sie brauchen keinen Verweis. Die Sicherungsordner patches/backup-* in ~/.dsh bleiben, wo sie sind. `agents` kam am 2026-11-03 dazu: seit dem Zeiger-Umbau verweist der TEAMSPLUS-Block in AGENTS.md auf ~/.dsh/.tm/teams-plus/agents/teams-plus-agents.voll.md. Ohne diesen Verweis zeigt der Zeiger ins Leere — auf dem Mac fiel das nicht auf, weil der Ordner dort von Hand angelegt worden war; der Einbau auf ZimaOS hat es aufgedeckt.",
   "links": [
     {
       "from": "patches",
@@ -9,6 +9,11 @@
     {
       "from": "rollen",
       "to": ".tm/teams-plus/rollen",
+      "kind": "dir"
+    },
+    {
+      "from": "agents",
+      "to": ".tm/teams-plus/agents",
       "kind": "dir"
     }
   ]
