@@ -122,3 +122,110 @@ Die vier Fragen klären, dann bauen: einen Werkzeug-Aufruf `lokalmodus` mit den
 beiden Aktionen `ein` und `aus`, einen Ablauf, der in der richtigen Reihenfolge
 läuft, und einen Test, der beweist, dass die Reihenfolge eingehalten wird (eine
 Gegenprobe, die bei umgekehrter Reihenfolge rot wird).
+
+---
+
+## Nachtrag 2026-11-03, 21:40 — die Präzisierung des Menschen
+
+> „Es darf halt nur noch eine dann Zeit arbeiten. Das heißt, der Teamlead übergibt
+> die Arbeit an jemanden und wird dann der andere. Und wenn der andere wiederum
+> dann delegiert, dann wird er der. Das heißt, es gibt quasi nur einen Agent, der
+> alle Rollen nacheinander spielt, wie in so einem Theaterstück, wo einer alleine
+> mit sich Theater spielt — was ein bisschen traurig ist, aber ich habe leider nur
+> eine Grafikkarte."
+
+**Das ist der Kern des Lokalmodus, und es ist mehr als ein Modellwechsel.**
+Gemeint ist nicht „die Sitzungen bekommen andere Modelle", sondern: **es läuft
+immer nur ein Agent.** Wer delegiert, hört auf zu arbeiten und wird der andere;
+wer wiederum delegiert, wird wieder der andere. Eine Rolle nach der anderen,
+immer in derselben einen Sitzung.
+
+Der Grund ist die Hardware: **eine Grafikkarte.** Sieben gleichzeitige Sitzungen
+bedeuten, dass der Kontext jeder Sitzung aus dem Speicher verdrängt wird, bevor
+sie wieder drankommt — jede Sitzung liest beim Aufwachen alles neu ein.
+Sequenziell zu arbeiten ist auf dieser Maschine nicht Bescheidenheit, sondern
+die einzige Art, den Modellzustand im Speicher zu halten.
+
+### Was daraus folgt, und es ist unangenehm
+
+Die bestehende `policies/lokalmodus.md` beschreibt genau das schon — aber sie
+beschreibt es als **Haltung des Leads** („er cosplayt die Rollen selbst, er
+spawnnt keine Teammates"). Das ist eine Bitte an ein Modell. Was der Mensch
+braucht, ist der Zustand: **nie zwei Agenten gleichzeitig.**
+
+Damit ist „nur einer aktiv" die schärfste Bedingung des ganzen Lokalmodus und
+die einzige, die sich wirklich erzwingen lässt.
+
+## Antworten auf die vier offenen Fragen (gemessen 2026-11-03, 21:40)
+
+**F3 — die Provider-Routen: beantwortet, beide existieren genau so.**
+
+```
+homepc/swift-1.5-iq2_xs        = der genannte „Swift 1.5 XS IQ2"
+deepseek-official/deepseek-flash = der genannte „DeepSeek V41 Flash"
+```
+
+Beide stehen im Katalog dieser Installation (`list_subagent_models`). Neben dem
+Swift gibt es noch `homepc/swift-1.5-iq3_xxs` — eine Stufe größer. Die Spec nimmt
+`iq2_xs` als Vorgabe, weil der Mensch sie so benannt hat.
+
+**F4 — der Kontextbegriff: beantwortet, es gibt einen Messer.**
+
+`ctx.get('tokenMeter')` liefert `surfaceTokens` — die tatsächliche Größe der
+Oberfläche einer Sitzung in Token. Rolling-Compaction benutzt genau diesen Wert.
+„Über 300 000" ist damit messbar und nicht schätzbar.
+
+Wichtig aus dem Quelltext von Rolling-Compaction, wörtlich: *„a fixed number was
+the wrong trigger, because 300000 tokens is 30 % of a 1000000-token window and
+77 % of a 262144-token one"*. Die 300 000 sind also **kein Naturgesetz**, sondern
+eine Zahl, die zum Fenster passt. Für Swift mit kleinem Fenster ist sie
+möglicherweise zu groß — das ist beim Einbau zu prüfen und gegebenenfalls
+herunterzusetzen.
+
+**F1 — woran erkennt das Protokoll, dass verdichtet wurde: beantwortet, technisch.**
+
+Es gibt einen Messer (F4) und es gibt `agent/status` mit `idle` ⇄ `running`. Das
+Protokoll kann also nach dem Anschreiben **selbst nachsehen**: für jede Sitzung
+`surfaceTokens` lesen und warten, bis alle unter der Grenze liegen. Das ist die
+stärkste der drei Möglichkeiten und braucht kein Vertrauen in eine Rückmeldung.
+
+**F2 — was bei einer Sitzung geschieht, die nicht verdichtet: offen, und das ist
+eine Entscheidung des Menschen.**
+
+Drei Wege, mit unterschiedlichem Preis:
+
+1. **Blockieren, bis alle unter der Grenze sind.** Der Lokalmodus geht erst an,
+wenn wirklich Platz ist. Gefahr: eine hängende Sitzung blockiert das Umschalten
+für immer.
+2. **Frist setzen und dann umschalten, mit Meldung.** Der Lokalmodus geht nach
+einer Frist an, die Sitzung, die nicht verdichtet hat, wird namentlich gemeldet.
+Gefahr: genau die Sitzung, die den Speicher sprengt, kommt durch.
+3. **Frist, und wer nicht verdichtet hat, wird beendet.** Härteste Variante,
+verliert aber möglicherweise Arbeit, die noch nicht geschrieben ist.
+
+**Empfehlung: Weg 2, aber mit der Frist als Teil des Protokolls.** Ein Lokalmodus,
+der nie angeht, weil eine Sitzung hängt, hilft niemandem; ein Lokalmodus, der
+Arbeit wegwirft, ist schlimmer als einer, der zu spät kommt. Die Meldung ist der
+Preis, und sie ist sichtbar.
+
+## Die offene Frage, die bleibt — und sie ist die wichtigste
+
+**„Nur einer aktiv" ist bisher nirgends erzwungen.** Der Lokalmodus kann heute nur
+*sagen*, dass sequenziell gearbeitet wird. Was ihn zu einem Zustand macht, ist
+eine Sperre: solange ein Agent `running` ist, darf kein zweiter starten.
+
+Dafür gibt es zwei Wege, und sie unterscheiden sich grundlegend:
+
+- **Weich:** Der Werkzeugtext von `spawn_teammate` und `delegate_task` sagt im
+  Lokalmodus, dass gewartet werden muss. Das ist wieder eine Bitte.
+- **Hart:** `spawn_teammate` wird im Lokalmodus **verweigert**, solange ein anderer
+  Agent `running` ist, mit der Aufforderung, zu warten oder die Arbeit selbst zu
+  tun. Das ist erzwingbar, weil es im Werkzeug liegt und nicht im Prompt.
+
+Der harte Weg passt zu dem, was der Mensch beschrieben hat: „der Teamlead
+übergibt die Arbeit an jemanden und wird dann der andere". Wenn der Lead die
+Arbeit selbst tut, braucht er keinen zweiten Agenten — und genau das erlaubt der
+harte Weg.
+
+**Diese Entscheidung braucht den Menschen.** Sie ist der Unterschied zwischen
+einem Lokalmodus, der empfiehlt, und einem, der gilt.
