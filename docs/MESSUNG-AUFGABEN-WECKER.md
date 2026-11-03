@@ -153,3 +153,68 @@ beendet den Zug und erzeugt genau die Meldung, die man ausschließen will.
 Damit ist der zweite Versuch auch von der Seite des Teilnehmers bestätigt: keine
 Nachricht, kein Werkzeugfehler, keine private Notiz. Das einzige Signal war das
 Team-Ereignis — und es hat nicht geweckt.
+## Korrektur 03.11., 02:36 — die Hypothese war falsch
+
+Im Abschnitt „Der Verdacht, der als erster zu prüfen ist" stand, unser Horcher
+werde in einer asynchronen Selbstausführung registriert und hänge deshalb am
+falschen Kontext. **Das ist widerlegt, und zwar am eigenen Code.**
+
+`patches/goal-await.mjs`: Die asynchrone Selbstausführung (Zeile 653-663)
+umschließt **nur** die Werkzeug-Registrierung (`ctx.tools.register`) mit ihrem
+dynamischen Import. Die drei Horcher stehen **synchron daneben**, in derselben
+`ctx.effect`-Funktion:
+
+    ctx.effect(() => {
+        ...  // Dienst anmelden
+        (async () => { ...Werkzeug registrieren... })();   // asynchron
+        const abInbox   = ctx.on("agent/inbox/inserted", ...);   // synchron
+        const abAufgabe = ctx.on("session/event", ...);          // synchron
+        const abWeg     = ctx.on("agent/disposed", ...);         // synchron
+        return () => { ...alles abmelden... };
+    }, "goal-await lifecycle");
+
+Die Registrierung ist also nicht das Problem. Und der Nachrichten-Horcher auf
+`agent/inbox/inserted` **funktioniert** — er hat in Versuch 1 nachweislich
+geweckt (`grund=nachricht`). Dasselbe Registrierungsmuster trägt dort also.
+
+**Damit ist die Ursache offen, nicht gefunden.** Der Unterschied zwischen den
+beiden Horchern liegt nicht in der Registrierung, sondern im Ereignis selbst:
+`agent/inbox/inserted` gegenüber `session/event`.
+
+### Was als Nächstes gemessen wird, statt weiter zu raten
+
+Ein Diagnose-Protokoll im Patch, das **jedes** ankommende `session/event`
+mitschreibt (Typ und Zeitstempel), unabhängig von allen Filtern. Dann ein
+Team-Ereignis auslösen und nachsehen:
+
+- **Kommt gar nichts an** → der Plugin-Kontext sieht die Sitzungsereignisse nicht;
+  der Weg über `session/event` ist für dieses Modul unbrauchbar und muss durch
+  den Team-Dienst ersetzt werden.
+- **Kommt etwas an, aber nicht `team/task`** → die Verteilung filtert bereits;
+  dann ist der Weg über den Dienst (`waitForChange`) richtig.
+- **Kommt `team/task` an** → der Fehler liegt in `istAufgabenWecker` oder in
+  `gehoertZumTeam`, und ich prüfe dort weiter.
+
+Das kostet einen Neustart, ist aber die einzige Messung, die die drei Fälle
+trennt. Alle drei möglichen Ausgänge führen zu einer klaren Entscheidung.
+
+### Der Ausweichweg, der ohne `session/event` auskommt
+
+Der Team-Dienst bietet selbst, was gebraucht wird — ohne Ereignis-Verteilung:
+
+    ctx.get("agentTeams").waitForChange(caller, timeoutMs, signal)
+
+(`lib/index.js:1939-1942`). Grenzen: 10 s bis 1 h. Er weckt bei **jeder**
+Änderung im Team — aber das ist hier kein Fehler mehr, denn der Patch kann
+danach **selbst nachsehen**, welche Aufgabe fertig wurde:
+
+    ctx.get("agentTeams").listTasks(caller)
+
+Damit wird aus „weckt zu oft" ein „weckt und prüft": Der Patch wartet auf die
+nächste Team-Änderung, liest die Aufgabenliste und weckt nur, wenn die erwartete
+Aufgabe wirklich `completed` ist. Das ist derselbe Filter, nur ohne auf die
+Verteilung von `session/event` angewiesen zu sein.
+
+**Das ist der Weg, den ich für richtig halte**, wenn die Diagnose „kommt nichts an"
+ergibt. Er benutzt ausschließlich dokumentierte Methoden des Dienstes und keine
+Annahme über die Ereignis-Verteilung.
