@@ -297,3 +297,31 @@ mit einem langen gebatchten Toolcall, einmal mit einem Agenten und einmal mit
 zwei, und die Uhr daneben. Solange das nicht gemessen ist, bleibt die Grenze eine
 Einstellung (Vorgabe 2), die man herunter- und hochstellen kann — keine
 Behauptung.
+---
+
+## Nachtrag 2026-11-03, 22:10 — F4 endgültig beantwortet
+
+> „Swift kann 384k. 300k ist natürlich viel, aber Swift wird dann schon weiter
+> compacten wenn nötig."
+
+**Damit sind die 300 000 keine harte Grenze, sondern eine weiche.** Das Fenster
+ist 384 000; bei 300 000 sind noch 84 000 Token Luft, und Rolling-Compaction
+greift ohnehin weiter, wenn es eng wird. Die Aufforderung muss also nicht
+»verdichte auf genau 300 000« lauten, sondern: *wenn du darüber bist, verdichte —
+Swift schafft den Rest selbst.*
+
+Das ist wichtig für den Ton des Anschreibens: Eine harte Zahl, die man erzwingen
+muss, wäre ein Eingriff. Eine weiche Grenze, unter der das Modell selbst
+weitermacht, ist eine Bitte um Vorarbeit — und die ist billig.
+
+### Was damit feststeht
+
+| Frage | Antwort |
+|---|---|
+| F3 Provider-Routen | `homepc/swift-1.5-iq2_xs` (lokal), `deepseek-official/deepseek-flash` (Cloud) |
+| F4 Kontextgrenze | 300 000 weich; Fenster 384 000; Swift verdichtet selbst weiter |
+| F1 Fertig-Erkennung | `ctx.get('tokenMeter')` liefert `surfaceTokens`, das Protokoll sieht selbst nach |
+| F2 Sitzung verdichtet nicht | **offen** — Empfehlung bleibt: Frist plus Meldung |
+| Aktive Agenten | Vorgabe 2, Einstellung, nicht gemessen |
+
+Nur F2 ist noch nicht entschieden. Alles andere ist gebautauglich.
