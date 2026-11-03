@@ -325,3 +325,38 @@ weitermacht, ist eine Bitte um Vorarbeit — und die ist billig.
 | Aktive Agenten | Vorgabe 2, Einstellung, nicht gemessen |
 
 Nur F2 ist noch nicht entschieden. Alles andere ist gebautauglich.
+---
+
+## Nachtrag 2026-11-03, 22:12 — F2 entschieden: Frist und Meldung
+
+> „und ja, angenommen dein vorschlag mit frist und meldung"
+
+**F2 ist damit entschieden. Alle vier Fragen sind beantwortet.**
+
+Eine Sitzung, die nach der Aufforderung nicht verdichtet, **blockiert das
+Protokoll nicht und wird nicht beendet**. Es gilt eine Frist; läuft sie ab, geht
+das Protokoll weiter und **meldet die Sitzung namentlich** als Ausnahme.
+
+Die Begründung ist am 2026-11-03 festgehalten:
+
+- Ein Lokalmodus, der nie angeht, weil eine Sitzung hängt, hilft niemandem.
+- Ein Lokalmodus, der Arbeit wegwirft, ist schlimmer als einer, der zu spät kommt.
+- Die Meldung ist der Preis, und sie ist sichtbar. Wer sie liest, kann die
+  Sitzung selbst verdichten oder beenden.
+
+Die Frist ist **eine Einstellung**, kein fester Wert im Code — sie gehört neben
+`maxAktiv` in dieselbe Konfigurationsdatei.
+
+### Der Stand der Spec
+
+| Frage | Entscheidung |
+|---|---|
+| F1 Fertig-Erkennung | Der Messer `surfaceTokens` wird selbst gelesen, nicht auf Rückmeldungen vertraut |
+| F2 Ausnahme | **Frist plus namentliche Meldung**, weder Blockieren noch Beenden |
+| F3 Provider-Routen | `homepc/swift-1.5-iq2_xs` lokal · `deepseek-official/deepseek-flash` Cloud |
+| F4 Kontextgrenze | 300 000 **weich** (Fenster 384 000); Swift verdichtet selbst weiter |
+| Aktive Agenten | Vorgabe 2, Einstellung, nicht gemessen |
+
+**Die Spec ist damit gebautauglich.** Was noch fehlt, ist die Umsetzung in zwei
+Teilen: die Bremse (in Arbeit) und das Protokoll, das verdichtet und dann
+umstellt.
