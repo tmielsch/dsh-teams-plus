@@ -104,9 +104,13 @@ const SHA256_ABWEICHEND = {
 	//      Ereignis (Zeile "diagnose session/event ..."). Die Zeile wird nach der
 	//      Messung wieder entfernt und der Anker erneut nachgezogen — das ist der
 	//      einzige Grund, warum er diesmal ohne Reparatur wandert.
+	//  (5) 2026-11-03, fuer 0.7.0: Die Diagnose ist wieder AUSGEBAUT. Ein Release soll
+	//      kein Protokoll-Feuerwerk enthalten. Der Anker wandert damit ein zweites Mal
+	//      an diesem Tag, diesmal weil etwas entfernt wurde. Im Modulkopf steht, wie
+	//      die Zeile fuer eine Wiederholung der Messung wieder eingebaut wird.
 	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
 	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
-	'goal-await.mjs': '80ae544769a0a6a94284293e66112ecbe6b559d65736f16fec42a181f863fc69',
+	'goal-await.mjs': '94deb487986fbce8476e6bf14255140bfb0ddc752733e3ffa8fb36399d3971eb',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:

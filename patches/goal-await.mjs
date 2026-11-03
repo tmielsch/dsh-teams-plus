@@ -681,8 +681,12 @@ export function apply(ctx, config = {}) {
 		// Bleibt die Frage, ob `session/event` den Plugin-Kontext erreicht.
 		// Solange diese Zeile steht, protokolliert der Horcher JEDES ankommende
 		// Ereignis. Nach der Messung wird sie wieder entfernt.
+		//
+		// STAND 0.7.0: Die Diagnose ist wieder AUSGEBAUT. Ein Release soll kein
+		// Protokoll-Feuerwerk enthalten. Wer die Messung wiederholt, baut die Zeile
+		// `protokoll(\`diagnose session/event …\`)` als erste Zeile im Rumpf ein und
+		// zieht den sha256-Anker in test/umzug.test.mjs nach.
 		const abAufgabe = ctx.on("session/event", (session, event) => {
-			protokoll(`diagnose session/event typ=${String(event?.type)} team=${String(event?.data?.teamId ?? "-")} sitzung=${String(session?.id ?? "-")}`);
 			if (!istAufgabenWecker(event)) return;
 			const teamId = String(event.data.teamId ?? "");
 			if (teamId.length === 0) return;
