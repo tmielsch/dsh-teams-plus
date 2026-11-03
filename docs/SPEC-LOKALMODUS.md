@@ -229,3 +229,71 @@ harte Weg.
 
 **Diese Entscheidung braucht den Menschen.** Sie ist der Unterschied zwischen
 einem Lokalmodus, der empfiehlt, und einem, der gilt.
+---
+
+## Nachtrag 2026-11-03, 21:42 — Korrektur: nicht sperren, sondern begrenzen
+
+> „Nee, es ist schon okay, dass ihr das macht. So, es muss nur so sein, dass es
+> nicht mehr asynchron dann das Team funktionieren kann, weil meine Engine schafft
+> so schon so zwölf Gespräche zu cachen. Das heißt, der Wechsel dauert auch nur so
+> zwei Sekunden oder sowas. Das ist jetzt nicht schlimm. Aber wenn jetzt
+> gleichzeitig zwei Agents sind, die Toolcalls hintereinander hämmern, so, dann ist
+> das nicht so gut."
+
+> „Jetzt, wo wir PTC haben, könnte es sein, dass es sich lohnt, zwei gleichzeitig
+> zu haben. Weil ein gebatchter Toolcall halt auch länger braucht, bis er
+> abgeschlossen ist und das Modell deswegen auch länger idle ist."
+
+> „Deswegen könnte man sagen, okay, es dürfen maximal zwei aktive Sessions zurzeit
+> im Team sein. Und die anderen müssen dann halt ihren Turn beenden und werden dann
+> geweckt wieder, wenn die andere vorbei ist. Aber es muss halt immer irgendwie ein
+> Bewusstsein dafür sein, wie viele Aktive sind gerade da."
+
+**Das ersetzt den Vorschlag „hart verweigern" aus dem vorigen Abschnitt.** Kein
+Verbot, sondern eine **Obergrenze** mit Warteschlange. Der Grund steht in den
+Zahlen: die Engine cached zwölf Gespräche, ein Wechsel kostet rund zwei Sekunden.
+Der Wechsel ist billig — teuer ist, wenn zwei Agenten gleichzeitig Toolcalls
+hämmern.
+
+**Und PTC ändert das Optimum.** Ein gebatchter Toolcall läuft lange; das Modell
+ist währenddessen untätig. In dieser Zeit kann ein zweiter Agent rechnen, ohne
+dass der erste darunter leidet. Zwei gleichzeitig sind deshalb nicht mehr
+schädlich, sondern **nützlich**. Die Grenze ist also nicht 1, sondern 2 — und
+zwar weil ein Toolcall lang ist, nicht weil zwei Modelle sich stören.
+
+### Was das technisch verlangt
+
+| Baustein | Befund (gemessen 2026-11-03) |
+|---|---|
+| Wer ist aktiv? | `agent/status` mit `idle` ⇄ `running`; ein weckender Eingang geht **synchron** in `running` |
+| Wie viele? | `ctx.agents.list()` und der Zähler aus den Status-Ereignissen |
+| Aus dem Weg gehen | `goals.disarm(agent)` beendet die Rundenfolge; `goals.resume` weckt wieder |
+| Warten ohne Runden | `await_goal_dependency` tut genau das schon |
+
+Alle vier Bausteine sind vorhanden. Es fehlt der **Zähler und die Warteschlange
+davor**, nicht ein neuer Mechanismus.
+
+### Die ehrliche Grenze
+
+Was sich **nicht** sauber erzwingen lässt: einen Agenten daran hindern, einen
+Turn zu **beginnen**, sobald eine Nachricht in seinem Eingang liegt. Ein weckender
+Eingang setzt ihn synchron auf `running`. Erzwungen werden kann nur, was danach
+kommt: dass er **keine weitere Runde** bekommt (Ziel entwaffnen) und dass die
+nächste Nachricht erst fließt, wenn ein Platz frei ist.
+
+Das heißt praktisch: Die Grenze wirkt **zwischen** den Zügen, nicht in der Mitte
+eines Zuges. Für den beschriebenen Fall genügt das — zwei Agenten, die
+gleichzeitig Toolcalls hämmern, entstehen dadurch, dass beide Ziele scharf sind
+und beide Runden nachgeschoben bekommen. Genau dort greift der Zähler.
+
+### Die Grenze ist zwei, nicht eins — vielleicht
+
+„Maximal zwei" ist eine **Vermutung auf Grundlage der PTC-Überlegung**, keine
+Messung. Ob zwei gleichzeitig wirklich schneller sind als einer, hängt an der
+Länge der Toolcalls und daran, wie die Engine mit zwei aktiven Modellen umgeht.
+
+**Das ist messbar** und sollte vor der Festlegung gemessen werden: eine Aufgabe
+mit einem langen gebatchten Toolcall, einmal mit einem Agenten und einmal mit
+zwei, und die Uhr daneben. Solange das nicht gemessen ist, bleibt die Grenze eine
+Einstellung (Vorgabe 2), die man herunter- und hochstellen kann — keine
+Behauptung.
