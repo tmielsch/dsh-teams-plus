@@ -218,3 +218,74 @@ Verteilung von `session/event` angewiesen zu sein.
 **Das ist der Weg, den ich für richtig halte**, wenn die Diagnose „kommt nichts an"
 ergibt. Er benutzt ausschließlich dokumentierte Methoden des Dienstes und keine
 Annahme über die Ereignis-Verteilung.
+---
+
+## Nachtrag 2026-11-03, 23:18 — DER AUFGABEN-WECKER FEUERT. Und scheitert danach.
+
+Der erste Live-Lauf nach dem Einbau von 0.8.0 (Prozessstart 23:05:14) beantwortet
+die offene Frage: **Der Horcher wirkt.** Zum ersten Mal steht im Protokoll:
+
+    22:07:53.569Z wecken agent=session-e40fe6ab… ziel=goal-55cfd638…
+                  grund=aufgabe gewartet=43s scharf=false
+                  fehler=session append cannot reenter while another append is being published
+
+`grund=aufgabe` — nicht `nachricht`, nicht `frist`. Der Weg über `session/event`
+mit `team/task` und `status: completed` funktioniert. Zwei Tage und zwei
+gescheiterte Versuche lang war das offen.
+
+**Aber `scharf=false`.** Das Wecken läuft, das Weiterschalten scheitert:
+
+### Der Fehler
+
+    session append cannot reenter while another append is being published
+
+Wörtlich aus `dsh-session/lib/index.js`, `append()`:
+
+    const entry = attachments.get(this);
+    if (entry?.appending) throw new Error("session append cannot reenter while another append is being published");
+
+**Die Ursache ist die Reihenfolge im Kern, nicht im Patch.** Ein Sitzungs-Ereignis
+wird über `invokeContainedSessionObservers` **synchron innerhalb** von `append`
+zugestellt, und zwar solange `entry.appending === true` ist. Unser Horcher läuft
+also mitten in einem Append. `wecke()` ruft daraufhin `ctx.goals.resume()`, und
+das schreibt selbst ein Ereignis in dieselbe Sitzung — was `append` genau dann
+verbietet.
+
+**Warum `grund=nachricht` immer funktionierte:** `agent/inbox/inserted` wird
+**nicht** aus einem `append` heraus ausgelöst. Dort ist `entry.appending` nicht
+gesetzt, und dasselbe Resume gelingt. Das erklärt die ganze Asymmetrie der
+letzten Tage — es war nie die Registrierung, es war der Kontext des Aufrufs.
+
+### Die zweite Hälfte, und sie ist schlimmer
+
+`wecke()` ruft **zuerst** `beendeWarten(agent, grund)` — das löscht den
+Wartezustand aus der Map und stoppt die Frist-Uhr. **Danach** kommt der
+Resume-Versuch. Scheitert er, ist der Wartezustand trotzdem weg.
+
+Gemessen am 2026-11-03 um 23:18, `team_bremse`-Nachbarzelle und `get_goal`:
+
+    phase: active, activation: disarmed, roundsStarted: 0
+
+**Das Ziel hängt dauerhaft.** Kein Wecken mehr möglich, keine Frist mehr, die
+es holen könnte: Das Ziel ist entschärft, aber niemand schaltet es wieder scharf.
+Es wartet auf einen Menschen, der nicht weiß, dass er gebraucht wird.
+
+Das ist der schlimmste Ausgang des ganzen Mechanismus — schlimmer als „weckt zu
+oft", weil es still ist. Ein Agent, der auf etwas wartet, das längst da ist und
+ihn nie erreicht.
+
+### Was daraus folgt
+
+Zwei Änderungen, beide klein, beide zwingend:
+
+1. **Das Weiterschalten darf nicht im Horcher laufen.** `resume` muss aus dem
+   laufenden `append` heraus in einen eigenen Durchlauf verschoben werden
+   (`setImmediate`/`queueMicrotask`), sonst greift die Reentrancy-Sperre immer.
+2. **Der Wartezustand darf nicht verloren gehen, bevor das Weiterschalten
+   gelungen ist.** Scheitert es, muss der Zustand samt Uhr stehen bleiben und
+   beim nächsten Anlauf erneut versucht werden — nicht stillschweigend
+   verschwinden.
+
+Solange beides nicht behoben ist, gilt: **`await_goal_dependency` auf eine
+Team-Aufgabe kann ein Ziel dauerhaft hängen lassen.** Wer es benutzt, muss
+wissen, dass ein Abschluss im Team ihn nicht rettet.
