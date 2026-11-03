@@ -128,3 +128,28 @@ Die Modultests (13 Fälle, drei Gegenproben) sind davon **nicht** betroffen: Sie
 prüfen die Logik gegen einen nachgebauten Cordis-Kontext. Sie sagen nichts
 darüber, ob ein echtes `session/event` diesen Kontext erreicht — genau die Lücke,
 die hier aufgefallen ist, und der Grund, warum der Live-Lauf gemacht wurde.
+
+## Nachtrag: eine Falle im Messaufbau (03.11., 02:35)
+
+Der Teilnehmer des zweiten Versuchs hat beim Bericht einen Punkt genannt, der
+den Aufbau erst wirksam gemacht hat und den ich beim nächsten Mal sonst wieder
+übersehen hätte:
+
+> „Danach den Zug 600 Sekunden offen gehalten (zweimal `sleep 300` im Vordergrund,
+> damit keine Obergrenze den Schlaf in einen Hintergrundjob verschiebt und den Zug
+> vorzeitig beendet). In dieser Zeit ging keine Nachricht an den Lead — das
+> Team-Ereignis ‚Aufgabe abgeschlossen' war damit das einzige Signal, das ihn
+> wecken konnte."
+
+**Die Falle:** Ein einzelnes `sleep 600` wäre an der Obergrenze des Werkzeugs
+gescheitert und in einen Hintergrundjob gewandert. Der Zug hätte sich beendet,
+die Abschluss-Meldung ohne Absender wäre entstanden — und der Test wäre genau
+dort verunreinigt gewesen, wo er sauber sein sollte. Zwei `sleep 300` umgehen das.
+
+Für jeden künftigen Test dieser Art gilt deshalb: **Der Teilnehmer muss im Zug
+bleiben, und zwar nachweislich.** Ein `sleep`, der in den Hintergrund rutscht,
+beendet den Zug und erzeugt genau die Meldung, die man ausschließen will.
+
+Damit ist der zweite Versuch auch von der Seite des Teilnehmers bestätigt: keine
+Nachricht, kein Werkzeugfehler, keine private Notiz. Das einzige Signal war das
+Team-Ereignis — und es hat nicht geweckt.
