@@ -146,7 +146,7 @@ test('lib/client.js traegt den Lader-Kopf mit Paketnamen und factory', () => {
 	}
 })
 
-test('cordis.patch.yml nennt das Paket selbst zuerst und danach die acht Patch-Module', () => {
+test('cordis.patch.yml nennt das Paket selbst zuerst und danach die neun Patch-Module', () => {
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const eintraege = [...yml.matchAll(/-\s*id:\s*([\w.-]+)/gu)].map((treffer) => treffer[1])
 	assert.equal(eintraege[0], 'teams-plus', `der Paket-Eintrag steht nicht zuerst: ${eintraege.join(', ')}`)
@@ -156,8 +156,8 @@ test('cordis.patch.yml nennt das Paket selbst zuerst und danach die acht Patch-M
 	// (Spec docs/SPEC-LOKALMODUS.md, Nachtrag 2026-11-03 21:42). Die Zahl ist
 	// Buchhaltung ueber die Registrierung, keine Aussage ueber das Verhalten der
 	// anderen sieben.
-	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse'])
-	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse']) {
+	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse', 'team-anruf'])
+	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse', 'team-anruf']) {
 		assert.ok(yml.includes(`@tmielsch/dsh-teams-plus/patches/${name}.mjs`), `patches/${name}.mjs fehlt in cordis.patch.yml`)
 	}
 })

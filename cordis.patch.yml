@@ -41,3 +41,9 @@
     # ~/.dsh/.tm/teams-plus/lokalmodus.json.
     - id: team-bremse
       name: '@tmielsch/dsh-teams-plus/patches/team-bremse.mjs'
+    # Das Verzeichnis der Gespraeche zwischen zwei Abteilungen (Spec
+    # docs/TEAM-ARBEITSWEISE.md Paragraph 6b): Anruf-Kennungen, Fork-Kennungen
+    # und Zusammenfassungen, damit eine Sitzung nachsehen kann, ob dasselbe
+    # Thema schon einmal besprochen wurde. Werkzeuge: team_anruf, team_anrufe.
+    - id: team-anruf
+      name: '@tmielsch/dsh-teams-plus/patches/team-anruf.mjs'
