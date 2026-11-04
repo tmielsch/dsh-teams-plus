@@ -457,10 +457,10 @@ Ein **Eintrag** ist ein Anruf, nicht ein Gesprächsschritt:
 | Feld | Bedeutung |
 |---|---|
 | `id` | Anruf-Kennung, `anruf-<n>` (fortlaufend, in der Datei geführt) |
-| `von` / `an` | Sitzungs-Kennungen der beiden Abteilungsleiter |
+| `von` / `an` | `von` ist der **Absender** (die Session, die anklopft), `an` der **Empfaenger** (die angerufene Abteilung). Beide duerfen handeln: einer von ihnen schickt die Zusammenfassung zurueck. |
 | `thema` | ein Satz, wonach man später sucht (nicht der ganze Text) |
 | `begonnen` | Zeitstempel |
-| `stand` | `offen`, `erledigt`, `abgebrochen` |
+| `stand` | `offen` (der Kanal ruht, so ist es gedacht), `erledigt` (eine Zusammenfassung liegt vor), `abgebrochen` (nicht zustande gekommen) |
 | `forks` | die Fork-Kennungen beider Seiten (sobald bekannt) |
 | `zusammenfassung` | das Ergebnis, **auf beiden Seiten gleich** |
 | `stichworte` | Liste für die Suche — ohne sie findet man nur, was man exakt benennt |
@@ -495,12 +495,24 @@ Zwei Werkzeuge, im Paket `@tmielsch/dsh-teams-plus`:
 **Die Suche ist der Punkt**, nicht das Anlegen. Ein Verzeichnis, das man nur
 befüllt und nie abfragt, ist eine Ablage, keine Datenbank.
 
-### Die eiserne Regel
+### Der Kanal ruht (Entscheidung des Menschen 2026-11-04)
 
-Ein Eintrag wird **erst geschlossen**, wenn die Zusammenfassung vorliegt. Ein
-offener Anruf ohne Ergebnis ist sichtbar (`stand: offen`) und stört damit — genau
-so soll es sein. Ein stiller offener Anruf wäre dasselbe Muster wie der Wecker,
-der nicht weckte.
+**Ein Anruf muss nicht geschlossen werden.** Der Kanal bleibt dormant, bis er
+wieder genutzt wird; niemand trägt einem offenen Anruf nach. In den Worten des
+Menschen:
+
+> „Anrufe müssen ja auch nicht geschlossen werden. Es ist einfach nur so, dass
+> man das auf beiden Seiten kann — eines der Modelle entscheidet, eine Summary
+> aus dem Fork an den Parent zurückzuschicken. Aber der Kanal bleibt halt
+> einfach dormant, bis er wieder genutzt wird."
+
+Das ersetzt die frühere „eiserne Regel", die einem offenen Anruf nachtrug. Was
+vom alten Satz bleibt, ist nur dieses: **wenn** einer schließt, hat er eine
+Zusammenfassung. Ein Schließen ohne Text gibt es nicht — dann ist es kein
+Ergebnis, sondern ein leeres Feld.
+
+Die Zusammenfassung kann **von beiden Gesprächsteilnehmern** ausgelöst werden,
+also von `von` oder `an`. Eine dritte Sitzung löst sie nicht aus.
 
 ### Tests mit Gegenprobe (jeder Punkt muss scheitern können)
 

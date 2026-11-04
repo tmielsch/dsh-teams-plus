@@ -387,6 +387,95 @@ test("eine unbekannte Kennung ist ein Fehler, kein stiller Erfolg", () => {
 	assert.equal(modul.findeAnruf(ablage, "anruf-99"), undefined)
 })
 
+test("Umlaute: mit Umlaut, mit UE und ohne finden dasselbe", () => {
+	// Anordnung des Menschen 2026-11-04: „es sollte mit Umlauten, mit und ohne,
+	// das sollte quasi dasselbe sein, ob es ein Umlaut ist oder UE oder Ü."
+	// Der Befund des ersten Passes war: „losung" fand „Lösung" NICHT.
+	const ablage = modul.leereAblage()
+	const a = modul.oeffneAnruf(ablage, {
+		von: "a", an: "b", thema: "Lösung für Größe", stichworte: ["Ärger"], jetzt: 1
+	})
+	for (const suche of ["lösung", "losung", "LOESUNG", "Loesung", "LÖSUNG"]) {
+		assert.equal(modul.sucheAnrufe(a.ablage, suche).length, 1, `"${suche}" muss den Eintrag finden`)
+	}
+	for (const suche of ["größe", "groesse", "GROESSE", "grosse"]) {
+		assert.equal(modul.sucheAnrufe(a.ablage, suche).length, 1, `"${suche}" muss den Eintrag finden`)
+	}
+	// ß und ss sind auch dasselbe.
+	const b = modul.oeffneAnruf(a.ablage, { von: "c", an: "d", thema: "Straße und Maß", jetzt: 2 })
+	for (const suche of ["straße", "strasse", "STRASSE"]) {
+		assert.equal(modul.sucheAnrufe(b.ablage, suche).length, 1, `"${suche}" muss den Eintrag finden`)
+	}
+})
+
+test("nur die beiden Gespraechsteilnehmer duerfen einen Anruf schliessen", async () => {
+	// Entscheidung des Menschen 2026-11-04: „Diese Summary kommt dann halt fuer
+	// beide, kann aber von beiden Gespraechsteilnehmern getriggert werden."
+	// Eine dritte Sitzung also nicht — das war MITTEL-5 des ersten Passes.
+	const { createRequire } = await import("node:module")
+	const kandidaten = []
+	try {
+		kandidaten.push(createRequire(import.meta.url).resolve("@deepseek-ai/dsh-tools/lib/index.js"))
+	} catch { /* liegt nicht im Suchpfad */ }
+	for (const basis of [
+		"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+		join(homedir(), ".npm-global", "lib", "node_modules", "@deepseek-ai", "dsh", "node_modules"),
+		"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules"
+	]) {
+		kandidaten.push(join(basis, "@deepseek-ai", "dsh-tools", "lib", "index.js"))
+	}
+	const rahmen = kandidaten.find((pfad) => existsSync(pfad))
+	if (rahmen === undefined) assert.fail("der Werkzeug-Rahmen ist nicht auffindbar")
+	await import(rahmen)
+
+	const ort = werkstatt()
+	try {
+		const registriert = []
+		const ctx = {
+			logger: { info() {}, warn() {} },
+			effect(fn) { fn(); return () => {} },
+			tools: { register: (d) => { registriert.push(d); return () => {} } },
+			get: () => undefined
+		}
+		modul.apply(ctx, { pfad: ort.pfad, sperre: (_p, aktion) => aktion() })
+		for (let i = 0; i < 150 && registriert.length < 2; i += 1) {
+			await new Promise((fertig) => setTimeout(fertig, 20))
+		}
+		const team_anruf = registriert.find((w) => w.name === "team_anruf")
+		assert.ok(team_anruf !== undefined)
+
+		const eins = await team_anruf.execute(
+			{ aktion: "oeffnen", an: "session-bert", thema: "Eine Frage" },
+			{ agent: { id: "session-anna" } }
+		)
+		assert.equal(eins.ok, true, eins.note)
+		const id = eins.anruf.id
+
+		// Der Empfaenger darf schliessen — er ist die zweite Seite.
+		const durchEmpfaenger = await team_anruf.execute(
+			{ aktion: "schliessen", id, zusammenfassung: "Vom Empfaenger beantwortet." },
+			{ agent: { id: "session-bert" } }
+		)
+		assert.equal(durchEmpfaenger.ok, true, durchEmpfaenger.note)
+
+		// Ein Dritter darf es nicht.
+		const eins2 = await team_anruf.execute(
+			{ aktion: "oeffnen", an: "session-bert", thema: "Zweite Frage" },
+			{ agent: { id: "session-anna" } }
+		)
+		const fremd = await team_anruf.execute(
+			{ aktion: "schliessen", id: eins2.anruf.id, zusammenfassung: "Ich war gar nicht dabei." },
+			{ agent: { id: "session-dritte" } }
+		)
+		assert.equal(fremd.ok, false, "eine dritte Sitzung darf einen fremden Anruf nicht schliessen")
+		assert.match(fremd.note, /only the two sessions/u)
+		// Und der Eintrag ist unveraendert offen.
+		assert.equal(modul.findeAnruf(modul.ladeAblage(ort.pfad), eins2.anruf.id).stand, "offen")
+	} finally {
+		ort.aufraeumen()
+	}
+})
+
 test("A5: ein vergiftetes stichworte macht die Ablage nicht unlesbar", () => {
 	// Befund MITTEL-5 des zweiten Passes, gemessen: `"stichworte": {"toString": 1}`
 	// ist gueltiges JSON, liess aber `String()` mit „Cannot convert object to

@@ -29,11 +29,18 @@
  *   zusammenfassung  das Ergebnis; leer, solange der Anruf offen ist
  *   stichworte    Liste für die Suche — ohne sie findet man nur, was man exakt benennt
  *
- * DIE EISERNE REGEL (§ 6b)
- * Ein Eintrag wird erst GESCHLOSSEN, wenn die Zusammenfassung vorliegt. Ein
- * offener Anruf bleibt als `stand: offen` sichtbar und stört damit. Ein stiller
- * offener Anruf wäre dasselbe Muster wie der Wecker, der nicht weckte: ein
- * Zustand, der verschwindet, statt sichtbar zu sein.
+ * DER KANAL RUHT (Entscheidung des Menschen 2026-11-04)
+ * Ein Anruf muss NICHT geschlossen werden. Der Kanal bleibt dormant, bis er
+ * wieder genutzt wird; niemand traegt einem offenen Anruf nach. In den Worten
+ * des Menschen: „Anrufe muessen ja auch nicht geschlossen werden. Es ist
+ * einfach nur so, dass man das auf beiden Seiten kann — eines der Modelle
+ * entscheidet, eine Summary aus dem Fork an den Parent zurueckzuschicken. Aber
+ * der Kanal bleibt halt einfach dormant, bis er wieder genutzt wird."
+ *
+ * Was bleibt: WENN einer schliesst, hat er eine Zusammenfassung. Ein Schliessen
+ * ohne Text ist kein Ergebnis, sondern ein leeres Feld. Und die Zusammenfassung
+ * kann von beiden Gespraechsteilnehmern kommen (`von` oder `an`), von niemandem
+ * sonst — `istTeilnehmer` haelt das im Werkzeugpfad fest.
  *
  * DIE SUCHE IST DER PUNKT, NICHT DAS ANLEGEN
  * Ein Verzeichnis, das man nur befüllt und nie abfragt, ist eine Ablage, keine
@@ -233,7 +240,8 @@ export function ladeAblage(pfad = anrufPfad()) {
 		// fest, und niemand weiss hinterher, dass die Datei je anders aussah.
 		if (JSON.stringify(heil) !== JSON.stringify(wert)) repariert += 1;
 		// Und ein `erledigt` ohne Zusammenfassung ist genau der Zustand, den die
-		// eiserne Regel aus 6b verbietet — er wird gemeldet, nicht gesund geredet.
+		// Kanal-Regel verbietet (ein geschlossener Anruf ohne Text ist ein leeres
+		// Feld) — er wird gemeldet, nicht gesund geredet.
 		if (heil.stand === "erledigt" && heil.zusammenfassung.trim().length === 0) {
 			ohneZusammenfassung.push(heil.id);
 		}
@@ -274,6 +282,46 @@ export function speichereAblage(ablage, pfad = anrufPfad()) {
 // Die Regeln. Reine Funktionen ohne Dateisystem — damit der Test sie ohne
 // Sperre und ohne Datei fuehren kann.
 // ---------------------------------------------------------------------------
+
+/**
+ * Alle deutschen Schreibweisen eines Wortes, fuer die Suche.
+ *
+ * Anordnung des Menschen 2026-11-04: „es sollte mit Umlauten, mit und ohne, das
+ * sollte quasi dasselbe sein, ob es ein Umlaut ist oder UE oder Ü."
+ *
+ * Warum nicht EINE Faltung: `Größe` einmal auf `grose` zu falten laesst
+ * `grosse` nichts finden; einmal auf `groesse` laesst `grose` nichts finden.
+ * Und gemischte Schreibweisen wie `grosse` (ö ohne e, ß als ss) braucht man
+ * auch. Deshalb werden ALLE Kombinationen gebildet — vier Stellen, hoechstens
+ * 2^4 = 16 Formen je Wort:
+ *
+ *   ä → a | ae      ö → o | oe      ü → u | ue      ß → s | ss
+ *
+ * Damit finden `lösung`, `losung`, `loesung`, `LÖSUNG`, `Größe`, `grose`,
+ * `grosse` und `groesse` jeweils denselben Eintrag.
+ */
+export function faltFormen(text) {
+	const klein = String(text ?? "").toLowerCase();
+	const stellen = [
+		["ä", ["a", "ae"]],
+		["ö", ["o", "oe"]],
+		["ü", ["u", "ue"]],
+		["ß", ["s", "ss"]]
+	];
+	let formen = [klein];
+	for (const [zeichen, ersatz] of stellen) {
+		const neu = [];
+		for (const form of formen) {
+			if (form.includes(zeichen) === false) {
+				neu.push(form);
+				continue;
+			}
+			for (const e of ersatz) neu.push(form.split(zeichen).join(e));
+		}
+		formen = neu;
+	}
+	return [...new Set(formen)];
+}
 
 /** Kuerzt und prüft einen Text, der im Eintrag stehen soll. */
 export function pruefeText(wert, feld, grenze = 400) {
@@ -335,6 +383,18 @@ export function oeffneAnruf(ablage, { von, an, thema, stichworte, jetzt = Date.n
 		ablage: { ...ablage, naechsteId: ablage.naechsteId + 1, eintraege: [...ablage.eintraege, eintrag] },
 		eintrag
 	};
+}
+
+/**
+ * Ob eine Sitzung in diesem Anruf mitspricht.
+ *
+ * Entscheidung des Menschen 2026-11-04: „Diese Summary kommt dann halt fuer
+ * beide, kann aber von beiden Gespraechsteilnehmern getriggert werden." Also
+ * `von` oder `an` — und niemand sonst. Eine dritte Sitzung schliesst keinen
+ * fremden Anruf.
+ */
+export function istTeilnehmer(eintrag, sitzung) {
+	return eintrag.von === sitzung || eintrag.an === sitzung;
 }
 
 /** Einen Eintrag nach seiner Kennung suchen, ohne zu werfen. */
@@ -405,13 +465,15 @@ export function schliesseAnruf(ablage, id, zusammenfassung, jetzt = Date.now()) 
  * @returns die passenden Eintraege, neueste zuerst.
  */
 export function sucheAnrufe(ablage, suche) {
-	const nadel = typeof suche === "string" ? suche.trim().toLowerCase() : "";
-	const treffer = nadel.length === 0
+	// Beide Schreibweisen auf BEIDEN Seiten (siehe faltFormen): sonst findet
+	// „losung" das Wort „Lösung" nicht, und „loesung" faende „Losung" nicht.
+	const nadeln = typeof suche === "string" && suche.trim().length > 0 ? faltFormen(suche.trim()) : [];
+	const treffer = nadeln.length === 0
 		? [...ablage.eintraege]
 		: ablage.eintraege.filter((eintrag) => {
 			const heu = [eintrag.thema, eintrag.zusammenfassung, ...(eintrag.stichworte ?? [])]
-				.map((wert) => String(wert ?? "").toLowerCase());
-			return heu.some((teil) => teil.includes(nadel));
+				.flatMap((wert) => faltFormen(wert));
+			return nadeln.some((nadel) => heu.some((teil) => teil.includes(nadel)));
 		});
 	return treffer.sort((a, b) => (b.begonnen ?? 0) - (a.begonnen ?? 0));
 }
@@ -603,6 +665,13 @@ export function apply(ctx, optionen = {}) {
 									return { ok: true, anruf: eintrag, note: `fork noted on ${eintrag.id}` };
 								}
 								if (aktion === "schliessen") {
+									const vorhanden = findeAnruf(ablage, args.id);
+									if (vorhanden !== undefined && istTeilnehmer(vorhanden, absender) === false) {
+										return {
+											ok: false,
+											note: `only the two sessions of this call (${vorhanden.von} and ${vorhanden.an}) may close it, not ${absender}`
+										};
+									}
 									const { ablage: neu, eintrag } = schliesseAnruf(ablage, args.id, args.zusammenfassung);
 									speichereAblage(neu, pfad);
 									return { ok: true, anruf: eintrag, note: `closed ${eintrag.id} with a summary` };
