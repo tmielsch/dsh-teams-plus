@@ -57,7 +57,7 @@
  * sie enthält Gespräche, die stattgefunden haben. Siehe docs/EINBAU-ANRUFDB.md.
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -220,12 +220,31 @@ export function ladeAblage(pfad = anrufPfad()) {
 	}
 	const eintraege = [];
 	let verworfen = 0;
+	let repariert = 0;
+	const ohneZusammenfassung = [];
 	for (const wert of daten.eintraege) {
-		if (istEintrag(wert)) eintraege.push(normalisiereEintrag(wert));
-		else verworfen += 1;
+		if (istEintrag(wert) === false) {
+			verworfen += 1;
+			continue;
+		}
+		const heil = normalisiereEintrag(wert);
+		// A5 (Red-Team 2, MITTEL-6): Wer repariert, protokolliert die Reparatur.
+		// Sonst schreibt der naechste fremde Schreibvorgang die Glaettung still
+		// fest, und niemand weiss hinterher, dass die Datei je anders aussah.
+		if (JSON.stringify(heil) !== JSON.stringify(wert)) repariert += 1;
+		// Und ein `erledigt` ohne Zusammenfassung ist genau der Zustand, den die
+		// eiserne Regel aus 6b verbietet — er wird gemeldet, nicht gesund geredet.
+		if (heil.stand === "erledigt" && heil.zusammenfassung.trim().length === 0) {
+			ohneZusammenfassung.push(heil.id);
+		}
+		eintraege.push(heil);
 	}
 	// Ein verworfener Eintrag ist nicht still (MITTEL-4): er steht im Protokoll.
 	if (verworfen > 0) protokolliere(`warn ${verworfen} malformed entries skipped in ${pfad}`);
+	if (repariert > 0) protokolliere(`warn ${repariert} entries repaired on load in ${pfad}`);
+	if (ohneZusammenfassung.length > 0) {
+		protokolliere(`warn ${ohneZusammenfassung.length} closed calls without a summary in ${pfad}: ${ohneZusammenfassung.join(", ")}`);
+	}
 	return { version: 1, naechsteId: naechsteFreieNummer(daten.naechsteId, eintraege), eintraege };
 }
 
@@ -240,7 +259,14 @@ export function speichereAblage(ablage, pfad = anrufPfad()) {
 	mkdirSync(dirname(pfad), { recursive: true });
 	const vorlaeufig = `${pfad}.${process.pid}.tmp`;
 	writeFileSync(vorlaeufig, `${JSON.stringify(ablage, null, "\t")}\n`);
-	renameSync(vorlaeufig, pfad);
+	try {
+		renameSync(vorlaeufig, pfad);
+	} catch (fehler) {
+		// NIEDRIG-3: bleibt das Umbenennen stecken, darf keine .tmp liegen
+		// bleiben — das Brett raeumt an genau dieser Stelle genauso auf.
+		try { unlinkSync(vorlaeufig); } catch { /* schon weg */ }
+		throw fehler;
+	}
 	return pfad;
 }
 
@@ -260,10 +286,20 @@ export function pruefeText(wert, feld, grenze = 400) {
 /** Eine Liste von Stichworten: getrimmt, ohne Leere, ohne Doppel, klein geschrieben. */
 export function pruefeStichworte(wert) {
 	if (wert === undefined || wert === null) return [];
-	const roh = Array.isArray(wert) ? wert : String(wert).split(/[,;]+/u);
+	// A5 (Red-Team 2, MITTEL-5): Ein Wert wie `{"toString": 1}` liess `String()`
+	// mit „Cannot convert object to primitive value" werfen — und damit war die
+	// GANZE Ablage unlesbar, fuer beide Werkzeuge. Deshalb: nur Zeichenketten und
+	// endliche Zahlen, alles andere wird uebersprungen.
+	let roh;
+	if (Array.isArray(wert)) roh = wert;
+	else if (typeof wert === "string") roh = wert.split(/[,;]+/u);
+	else if (typeof wert === "number" && Number.isFinite(wert)) roh = [String(wert)];
+	else roh = [];
 	const gesehen = new Set();
 	for (const teil of roh) {
-		const wort = typeof teil === "string" ? teil.trim().toLowerCase() : "";
+		let wort = "";
+		if (typeof teil === "string") wort = teil.trim().toLowerCase();
+		else if (typeof teil === "number" && Number.isFinite(teil)) wort = String(teil);
 		if (wort.length > 0 && wort.length <= 64) gesehen.add(wort);
 	}
 	return [...gesehen].sort();
@@ -398,7 +434,9 @@ export function alsZeile(eintrag) {
 // Das Modul: Werkzeug registrieren.
 // ---------------------------------------------------------------------------
 
-export const inject = ["tools", "agents"];
+// NIEDRIG-7: `agents` wird nirgends gelesen — 6b sagt ausdruecklich, die Ablage
+// haenge sich nicht in die Sitzungen. Also bleibt nur `tools`.
+export const inject = ["tools"];
 
 /** Ein Kern-Baustein, einmal geladen. */
 let werkzeugBaustein;
@@ -455,7 +493,10 @@ async function ladeKern(paket) {
  *   (Red-Team-Befund NIEDRIG-6) — und genau dort sitzt die Sperre.
  */
 export function apply(ctx, optionen = {}) {
-	const sperre = typeof optionen.sperre === "function" ? optionen.sperre : mitSperre;
+	// NIEDRIG-5: `apply(ctx, null)` warf vor jedem Schutz. Ein Test darf nicht
+	// den Host mitreissen, nur weil er den zweiten Parameter vergisst.
+	const einstellungen = optionen ?? {};
+	const sperre = typeof einstellungen.sperre === "function" ? einstellungen.sperre : mitSperre;
 	const melden = (stufe, text) => {
 		protokolliere(text);
 		try {
@@ -466,7 +507,7 @@ export function apply(ctx, optionen = {}) {
 
 	ctx.effect(() => {
 		let abgemeldet = false;
-		let abRegister;
+		const abmeldungen = [];
 
 		(async () => {
 			werkzeugBaustein ??= await ladeKern("@deepseek-ai/dsh-tools");
@@ -541,7 +582,7 @@ export function apply(ctx, optionen = {}) {
 					execute: async (args, exec) => {
 						const absender = exec?.agent?.id;
 						if (typeof absender !== "string") return { ok: false, note: "no calling agent" };
-						const pfad = optionen.pfad ?? anrufPfad();
+						const pfad = einstellungen.pfad ?? anrufPfad();
 						const aktion = args?.aktion;
 						try {
 							const ergebnis = await sperre(pfad, () => {
@@ -619,7 +660,7 @@ export function apply(ctx, optionen = {}) {
 					}),
 					isConcurrencySafe: () => true,
 					execute: async (args) => {
-						const pfad = optionen.pfad ?? anrufPfad();
+						const pfad = einstellungen.pfad ?? anrufPfad();
 						try {
 							const ablage = ladeAblage(pfad);
 							let treffer = sucheAnrufe(ablage, args?.suche);
@@ -646,13 +687,21 @@ export function apply(ctx, optionen = {}) {
 				})
 			];
 
-			try {
-				abRegister = abläufe.map((definition) => ctx.tools.register(definition));
-				melden("info", `Werkzeuge ${WERKZEUG} und ${WERKZEUG_LISTE} registriert`);
-			} catch (fehler) {
-				// HOCH-1: Eine abgelehnte Definition darf den Host nicht toeten.
-				melden("warn", `Werkzeuge konnten nicht angemeldet werden: ${fehler instanceof Error ? fehler.message : String(fehler)}`);
+			// A4 (Red-Team 2, MITTEL-4): Die Aufraeum-Liste steht VOR der Schleife und
+			// wird pro Definition gefuellt. Die alte Fassung wies sie erst nach dem
+			// vollstaendigen `map` zu — warf das `map` in der Mitte, blieb ein halb
+			// registrierter Zustand stehen, den der Disposer nicht mehr abraeumen
+			// konnte (gemessen: `team_anruf` blieb belegt, der zweite Ladevorgang
+			// registrierte gar nichts mehr). Das Brett macht es seit jeher so.
+			for (const definition of abläufe) {
+				try {
+					abmeldungen.push(ctx.tools.register(definition));
+				} catch (fehler) {
+					// HOCH-1: Eine abgelehnte Definition darf den Host nicht toeten.
+					melden("warn", `Werkzeug ${definition?.name} konnte nicht angemeldet werden: ${fehler instanceof Error ? fehler.message : String(fehler)}`);
+				}
 			}
+			melden("info", `Werkzeuge ${WERKZEUG} und ${WERKZEUG_LISTE} registriert; Ablage ${optionen.pfad ?? anrufPfad()}`);
 		})().catch((fehler) => {
 			// HOCH-1: Was hier abgelehnt wird, ist eine unbehandelte Ablehnung —
 			// und die beendet nach Node-Regel den ganzen Host (Exit 1). Das darf
@@ -662,8 +711,7 @@ export function apply(ctx, optionen = {}) {
 
 		return () => {
 			abgemeldet = true;
-			if (Array.isArray(abRegister)) for (const ab of abRegister) if (typeof ab === "function") ab();
-			else if (typeof abRegister === "function") abRegister();
+			for (const ab of abmeldungen) if (typeof ab === "function") ab();
 		};
 	}, "team-anruf lifecycle");
 }

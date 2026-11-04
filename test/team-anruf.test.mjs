@@ -19,7 +19,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 const HIER = dirname(fileURLToPath(import.meta.url));
-const PAKET = join(HIER, "..");
+const PAKET = process.env.TEAM_ANRUF_PAKET ?? join(HIER, "..");
 const MODUL = join(PAKET, "patches", "team-anruf.mjs");
 const MODUL_DATEI = process.env.TEAM_ANRUF_MODUL ?? MODUL;
 
@@ -32,7 +32,21 @@ const modul = await import(MODUL_DATEI);
 function werkstatt() {
 	const heim = mkdtempSync(join(tmpdir(), "teams-plus-anruf-"));
 	const pfad = join(heim, "state", "anrufe.json");
-	return { heim, pfad, aufraeumen: () => rmSync(heim, { recursive: true, force: true }) };
+	// A6 (Red-Team 2, NIEDRIG-1): Ohne diese Zeile schrieb das Protokoll ins
+	// ECHTE Zuhause — gemessen wuchs ~/.dsh/.tm/teams-plus/logs/team-anruf.log
+	// bei jedem Testlauf um zwei Zeilen mit Temp-Pfaden. Die einzige Spur, die
+	// einen stillen Schreibverlust spaeter belegen koennte, war damit Ruauschen.
+	const vorher = process.env.DSH_HOME;
+	process.env.DSH_HOME = heim;
+	return {
+		heim,
+		pfad,
+		aufraeumen: () => {
+			if (vorher === undefined) delete process.env.DSH_HOME;
+			else process.env.DSH_HOME = vorher;
+			rmSync(heim, { recursive: true, force: true });
+		}
+	};
 }
 
 /** Ein Lauf auf der Ablage, mit dem Schreiben am Ende — wie es das Werkzeug tut. */
@@ -181,33 +195,35 @@ test("GEGENPROBE am Code: ohne die Suche werden die Suchtests rot", async () => 
 		assert.notEqual(kaputt, quelle, "die Ersetzung muss greifen")
 		writeFileSync(join(kopie, "team-anruf.mjs"), kaputt)
 
+		// Die Testdatei wird KOPIERT und die Kopie gefahren: node:test laesst
+		// einen rekursiven Lauf derselben Datei nicht zu („skipping running
+		// files"), und mit dem Namensfilter laeuft in der Kopie nur der eine
+		// geschuetzte Test — die Gegenprobe darin ist ausgefiltert, also keine
+		// Endlosrekursion.
+				const testKopie = join(kopie, "test-kopie.mjs")
+		copyFileSync(fileURLToPath(import.meta.url), testKopie)
+		// node:test markiert seinen Lauf ueber `NODE_TEST_CONTEXT`. Bleibt die
+		// Variable stehen, verweigert der Kindprozess den Lauf („skipping running
+		// files") und die Gegenprobe sieht NICHTS — sie war damit blind, und genau
+		// das war der Befund MITTEL-2 des zweiten Passes. Also raus damit.
+		const umgebung = { ...process.env, TEAM_ANRUF_MODUL: join(kopie, "team-anruf.mjs"), TEAM_ANRUF_PAKET: PAKET }
+		delete umgebung.NODE_TEST_CONTEXT
 		const lauf = spawnSync(
 			process.execPath,
-			["--test", "--test-name-pattern", "die Suche findet ueber ein STICHWORT", fileURLToPath(import.meta.url)],
-			{ encoding: "utf8", env: { ...process.env, TEAM_ANRUF_MODUL: join(kopie, "team-anruf.mjs") } }
+			["--test", "--test-name-pattern", "die Suche findet ueber ein STICHWORT", testKopie],
+			{ encoding: "utf8", env: umgebung }
 		)
-		// Zwei Wege, dass die Gegenprobe greift — und sie prueft BEIDE:
-		//  (1) Der Kindprozess meldet einen Fehlschlag in seiner Ausgabe. Auf ihn
-		//      allein ist kein Verlass: `spawnSync().status` ist hier 0 geblieben,
-		//      obwohl „# fail 1" in der Ausgabe stand (gemessen 2026-11-04).
-		//      Wer sich nur auf den Exit-Code verlaesst, meldet eine bestandene
-		//      Gegenprobe, die keine ist — genau der Fehler, den dieses Repo an
-		//      der Selbstpruefungs-Zeile schon hatte.
-		//  (2) Die Suchfunktion selbst liefert in der Kopie falsche Ergebnisse.
-		//      Das ist der direkte Beweis, unabhaengig vom Testrunner.
+		// A2 (Red-Team 2, MITTEL-2): Die alte Fassung fragte `kindRot ||
+		// kaputteSuche !== 0` — der zweite Teil ist wahr, sobald die Kopie falsch
+		// sucht, ganz gleich, ob irgendein Test das bemerkt. Damit blieb die
+		// Gegenprobe gruen, auch als der geschuetzte Test GELOESCHT war (gemessen).
+		// Jetzt muss der Test NAMENTLICH als Fehlschlag in der Ausgabe stehen.
 		const ausgabe = `${lauf.stdout}${lauf.stderr}`
-		const kindRot = /not ok|# fail [1-9]/u.test(ausgabe)
-
-		const kopieModul = await import(`${join(kopie, "team-anruf.mjs")}?v=${Date.now()}`)
-		const probe = kopieModul.leereAblage()
-		const a = kopieModul.oeffneAnruf(probe, { von: "a", an: "b", thema: "ohne Stichwort", jetzt: 1 })
-		const kaputteSuche = kopieModul.sucheAnrufe(a.ablage, "gibtesnicht").length
-
-		assert.ok(
-			kindRot || kaputteSuche !== 0,
-			`die Gegenprobe greift nicht: der Kindprozess war nicht rot UND die Kopie sucht richtig (${kaputteSuche} Treffer fuer ein Wort, das nirgends steht)`
-		)
-	} finally {
+		assert.match(
+			ausgabe,
+			/not ok \d+ - die Suche findet ueber ein STICHWORT/u,
+			`der geschuetzte Test muss namentlich als Fehlschlag erscheinen; die Gegenprobe ist sonst blind:\n${ausgabe}`
+		)	} finally {
 		rmSync(kopie, { recursive: true, force: true })
 	}
 })
@@ -217,43 +233,73 @@ test("GEGENPROBE am Code: ohne die Suche werden die Suchtests rot", async () => 
 // ---------------------------------------------------------------------------
 
 test("zwei Schreiber gleichzeitig verlieren keinen Eintrag, die Kennungen bleiben eindeutig", async () => {
+	// A1 (Red-Team 2, MITTEL-1): Die alte Fassung importierte `mitSperre` selbst
+	// und rief nur reine Funktionen — sie mass die Sperr-HILFE, nicht das Modul.
+	// Gemessen: mit ausgebauter Sperre im Modul blieb dieser Test gruen, waehrend
+	// zehn echte Aufrufe nur 9 Eintraege ergaben und `anruf-5` doppelt vergeben
+	// wurde. Jetzt faehrt jeder Kindprozess den WERKZEUGein-Pfad ueber `apply`.
 	const ort = werkstatt();
 	try {
 		mkdirSync(dirname(ort.pfad), { recursive: true })
 		modul.speichereAblage(modul.leereAblage(), ort.pfad)
 
-		// Zehn Anrufe gleichzeitig, jeder in einem EIGENEN Prozess.
-		//
-		// Warum echte Prozesse: Die erste Fassung dieses Tests lief im selben
-		// Node-Prozess und damit vollstaendig nacheinander — dort kann ohne Sperre
-		// gar nichts verlorengehen, der Test konnte also nie rot werden
-		// (Red-Team-Befund NIEDRIG-6; Mutant M1, die ausgeraubte Sperre im Modul,
-		// blieb gruen). Mit zehn Prozessen ist der Verlust messbar: ohne Sperre
-		// blieben 8, 9 und 10 von 10 Eintraegen uebrig, mit Sperre dreimal 10.
+		const { createRequire } = await import("node:module")
+		const kandidaten = []
+		try {
+			kandidaten.push(createRequire(import.meta.url).resolve("@deepseek-ai/dsh-tools/lib/index.js"))
+		} catch { /* liegt nicht im Suchpfad des Repos */ }
+		for (const basis of [
+			"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+			join(homedir(), ".npm-global", "lib", "node_modules", "@deepseek-ai", "dsh", "node_modules"),
+			"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules"
+		]) {
+			kandidaten.push(join(basis, "@deepseek-ai", "dsh-tools", "lib", "index.js"))
+		}
+		const rahmen = kandidaten.find((pfad) => existsSync(pfad))
+		if (rahmen === undefined) assert.fail("der Werkzeug-Rahmen ist nicht auffindbar")
+
+		// Der Arbeiter: meldet das Modul an und ruft das WERKZEUG auf — so wie es
+		// im Betrieb geschieht, samt Sperre aus dem Modul.
 		const arbeiter = join(ort.heim, "arbeiter.mjs")
 		const zeilen = [
-			"import { mitSperre } from " + JSON.stringify(join(PAKET, "patches", "send-to-session.mjs")),
+			"const rahmen = await import(" + JSON.stringify(rahmen) + ")",
 			"const modul = await import(" + JSON.stringify(MODUL_DATEI) + ")",
 			"const [pfad, i] = process.argv.slice(2)",
-			"await mitSperre(pfad, () => {",
-			"\tconst ablage = modul.ladeAblage(pfad)",
-			"\tconst r = modul.oeffneAnruf(ablage, { von: \"a-\" + i, an: \"b-\" + i, thema: \"Thema \" + i, jetzt: Date.now() })",
-			"\tmodul.speichereAblage(r.ablage, pfad)",
-			"})",
+			"const registriert = []",
+			"const ctx = {",
+			"\tlogger: { info() {}, warn() {} },",
+			"\teffect(fn) { fn(); return () => {} },",
+			"\ttools: { register: (d) => { registriert.push(d); return () => {} } },",
+			"\tget: () => undefined",
+			"}",
+			"modul.apply(ctx, { pfad })",
+			"for (let n = 0; n < 200 && registriert.length < 2; n += 1) {",
+			"\tawait new Promise((f) => setTimeout(f, 10))",
+			"}",
+			"const werkzeug = registriert.find((d) => d.name === \"team_anruf\")",
+			"if (werkzeug === undefined) { console.error(\"nicht registriert\"); process.exit(3) }",
+			"const r = await werkzeug.execute(",
+			"\t{ aktion: \"oeffnen\", an: \"b-\" + i, thema: \"Thema \" + i },",
+			"\t{ agent: { id: \"a-\" + i } }",
+			")",
+			"if (r.ok !== true) { console.error(JSON.stringify(r)); process.exit(4) }",
+			"process.exit(0)",
 			""
 		]
 		writeFileSync(arbeiter, zeilen.join("\n"))
-		await Promise.all(
+
+		const codes = await Promise.all(
 			Array.from(
 				{ length: 10 },
 				(_, i) =>
 					new Promise((fertig) => {
 						const kind = spawn(process.execPath, [arbeiter, ort.pfad, String(i)], { stdio: "ignore" })
-						kind.on("exit", fertig)
-						kind.on("error", fertig)
+						kind.on("exit", (code) => fertig(code))
+						kind.on("error", () => fertig(-1))
 					})
 			)
 		)
+		assert.deepEqual(codes, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "jeder Arbeiter muss sauber durchlaufen sein")
 
 		const amEnde = modul.ladeAblage(ort.pfad)
 		assert.equal(amEnde.eintraege.length, 10, "kein Eintrag darf verloren gehen")
@@ -263,10 +309,6 @@ test("zwei Schreiber gleichzeitig verlieren keinen Eintrag, die Kennungen bleibe
 		ort.aufraeumen()
 	}
 })
-
-// ---------------------------------------------------------------------------
-// 4. Eine kaputte Ablage wird laut gemeldet
-// ---------------------------------------------------------------------------
 
 test("eine kaputte anrufe.json wird LAUT gemeldet, nicht als leeres Verzeichnis gelesen", () => {
 	const ort = werkstatt();
@@ -343,6 +385,181 @@ test("eine unbekannte Kennung ist ein Fehler, kein stiller Erfolg", () => {
 	assert.throws(() => modul.trageFork(ablage, "anruf-99", "f"), /no call with id/u)
 	assert.throws(() => modul.schliesseAnruf(ablage, "anruf-99", "text"), /no call with id/u)
 	assert.equal(modul.findeAnruf(ablage, "anruf-99"), undefined)
+})
+
+test("A5: ein vergiftetes stichworte macht die Ablage nicht unlesbar", () => {
+	// Befund MITTEL-5 des zweiten Passes, gemessen: `"stichworte": {"toString": 1}`
+	// ist gueltiges JSON, liess aber `String()` mit „Cannot convert object to
+	// primitive value" werfen — und damit war die GANZE Ablage tot, fuer beide
+	// Werkzeuge, mit einer Meldung, die weder Pfad noch Feld nannte.
+	const ort = werkstatt()
+	try {
+		mkdirSync(dirname(ort.pfad), { recursive: true })
+		writeFileSync(ort.pfad, JSON.stringify({
+			version: 1,
+			naechsteId: 2,
+			eintraege: [
+				{ id: "anruf-1", von: "a", an: "b", thema: "Das Brett", stand: "offen", stichworte: { toString: 1 }, begonnen: 1 }
+			]
+		}))
+		const ablage = modul.ladeAblage(ort.pfad)
+		assert.equal(ablage.eintraege.length, 1, "der Eintrag darf nicht verschwinden")
+		assert.deepEqual(ablage.eintraege[0].stichworte, [], "ein unbrauchbares stichworte wird zu einer leeren Liste")
+		// Und die Suche funktioniert weiter — der Eintrag ist ueber sein Thema auffindbar.
+		assert.equal(modul.sucheAnrufe(ablage, "brett").length, 1)
+	} finally {
+		ort.aufraeumen()
+	}
+})
+
+test("A4: ein werfendes register hinterlaesst keinen halb registrierten Zustand", async () => {
+	// Befund MITTEL-4 des zweiten Passes, gemessen: Warf `ctx.tools.register`
+	// beim ZWEITEN Werkzeug, blieb das erste belegt — der Disposer hatte keine
+	// Liste, weil sie erst nach dem vollstaendigen `map` zugewiesen wurde. Der
+	// naechste Ladevorgang registrierte dann gar nichts mehr.
+	const { createRequire } = await import("node:module")
+	const kandidaten = []
+	try {
+		kandidaten.push(createRequire(import.meta.url).resolve("@deepseek-ai/dsh-tools/lib/index.js"))
+	} catch { /* liegt nicht im Suchpfad */ }
+	for (const basis of [
+		"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+		join(homedir(), ".npm-global", "lib", "node_modules", "@deepseek-ai", "dsh", "node_modules"),
+		"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules"
+	]) {
+		kandidaten.push(join(basis, "@deepseek-ai", "dsh-tools", "lib", "index.js"))
+	}
+	const rahmen = kandidaten.find((pfad) => existsSync(pfad))
+	if (rahmen === undefined) assert.fail("der Werkzeug-Rahmen ist nicht auffindbar")
+	await import(rahmen)
+
+	const ort = werkstatt()
+	try {
+		const belegt = new Set()
+		let abmelden
+		const ctx = {
+			logger: { info() {}, warn() {} },
+			effect(fn) {
+				abmelden = fn()
+				return () => {}
+			},
+			tools: {
+				register: (definition) => {
+					if (belegt.has(definition.name)) throw new Error(`team "${definition.name}" is already registered`)
+					belegt.add(definition.name)
+					return () => belegt.delete(definition.name)
+				}
+			},
+			get: () => undefined
+		}
+		// `team_anrufe` ist schon belegt: das zweite register wirft.
+		belegt.add("team_anrufe")
+		modul.apply(ctx, { pfad: ort.pfad, sperre: (_p, aktion) => aktion() })
+		// Warten, bis die asynchrone Anmeldung durch ist — nicht bis der Disposer
+		// da ist: den liefert `apply` sofort, die Registrierung laeuft danach.
+		for (let i = 0; i < 150 && belegt.has("team_anruf") === false && i < 150; i += 1) {
+			await new Promise((fertig) => setTimeout(fertig, 20))
+			if (i === 149) break
+		}
+		assert.ok(abmelden !== undefined, "apply hat keinen Disposer geliefert")
+		assert.ok(belegt.has("team_anruf"), "das erste Werkzeug wurde angemeldet")
+		// Jetzt entladen: das erste Werkzeug MUSS wieder freigegeben werden.
+		abmelden()
+		assert.equal(
+			belegt.has("team_anruf"),
+			false,
+			"der Aufraeum-Pfad muss abraeumen, was er angelegt hat — sonst bleibt ein halb registrierter Zustand stehen"
+		)
+	} finally {
+		ort.aufraeumen()
+	}
+})
+
+test("A3: das WERKZEUG team_anrufe sucht, filtert und liefert leere Ergebnisse", async () => {
+	// Befund MITTEL-3 des zweiten Passes: Der ganze Ausfuehrungspfad von
+	// `team_anrufe` war ungemessen. Vier Mutationen im Werkzeugkoerper (Treffer
+	// immer leer, `suche` ignoriert, `stand`-Filter aus, `begonnen` roh) blieben
+	// ueber alle 17 Tests gruen — und die Suche ist laut 6b der Zweck des Moduls.
+	const { createRequire } = await import("node:module")
+	const kandidaten = []
+	try {
+		kandidaten.push(createRequire(import.meta.url).resolve("@deepseek-ai/dsh-tools/lib/index.js"))
+	} catch { /* liegt nicht im Suchpfad des Repos */ }
+	for (const basis of [
+		"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+		join(homedir(), ".npm-global", "lib", "node_modules", "@deepseek-ai", "dsh", "node_modules"),
+		"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules"
+	]) {
+		kandidaten.push(join(basis, "@deepseek-ai", "dsh-tools", "lib", "index.js"))
+	}
+	const rahmen = kandidaten.find((pfad) => existsSync(pfad))
+	if (rahmen === undefined) assert.fail("der Werkzeug-Rahmen ist nicht auffindbar")
+	await import(rahmen)
+
+	const ort = werkstatt()
+	try {
+		const registriert = []
+		const ctx = {
+			logger: { info() {}, warn() {} },
+			effect(fn) { fn(); return () => {} },
+			tools: { register: (d) => { registriert.push(d); return () => {} } },
+			get: () => undefined
+		}
+		modul.apply(ctx, { pfad: ort.pfad, sperre: (_p, aktion) => aktion() })
+		for (let i = 0; i < 150 && registriert.length < 2; i += 1) {
+			await new Promise((fertig) => setTimeout(fertig, 20))
+		}
+		assert.equal(registriert.length, 2, "beide Werkzeuge muessen angemeldet sein")
+		const anruf = registriert.find((w) => w.name === "team_anruf")
+		const liste = registriert.find((w) => w.name === "team_anrufe")
+		assert.ok(anruf !== undefined && liste !== undefined)
+
+		const aufruf = { agent: { id: "session-anna" } }
+		// Zwei Anrufe, einer mit einem Stichwort, das im Thema NICHT steht.
+		const eins = await anruf.execute(
+			{ aktion: "oeffnen", an: "session-bert", thema: "Das Brett schreibt zu langsam", stichworte: ["Sperre"] },
+			aufruf
+		)
+		assert.equal(eins.ok, true, eins.note)
+		const zwei = await anruf.execute(
+			{ aktion: "oeffnen", an: "session-caesar", thema: "Wie wird ein Release gebaut" },
+			aufruf
+		)
+		assert.equal(zwei.ok, true, zwei.note)
+
+		// 1. Ohne Suche: alles.
+		const alle = await liste.execute({}, aufruf)
+		assert.equal(alle.ok, true, alle.note)
+		assert.equal(alle.anzahl, 2, "ohne Suchbegriff muss das Werkzeug beide Eintraege liefern")
+
+		// 2. Treffer ueber das Stichwort, das im Thema nicht steht.
+		const treffer = await liste.execute({ suche: "sperre" }, aufruf)
+		assert.equal(treffer.anzahl, 1, "die Suche muss ueber das Stichwort finden")
+		assert.equal(treffer.eintraege[0].id, eins.anruf.id)
+
+		// 3. Leerer Suchbegriff ist kein Irrtum, sondern "zeig mir alles".
+		const leer = await liste.execute({ suche: "" }, aufruf)
+		assert.equal(leer.anzahl, 2)
+
+		// 4. Ein Wort, das nirgends steht.
+		const nichts = await liste.execute({ suche: "gibtesnicht" }, aufruf)
+		assert.equal(nichts.anzahl, 0)
+		assert.equal(nichts.ok, true, "nichts gefunden ist kein Fehler")
+
+		// 5. Der stand-Filter: vor dem Schliessen ist nichts erledigt.
+		const vorher = await liste.execute({ stand: "erledigt" }, aufruf)
+		assert.equal(vorher.anzahl, 0)
+		await anruf.execute(
+			{ aktion: "schliessen", id: eins.anruf.id, zusammenfassung: "Die Sperre hielt zu lange." },
+			aufruf
+		)
+		const nachher = await liste.execute({ stand: "erledigt" }, aufruf)
+		assert.equal(nachher.anzahl, 1, "der stand-Filter muss nach dem Schliessen greifen")
+		const offen = await liste.execute({ stand: "offen" }, aufruf)
+		assert.equal(offen.anzahl, 1)
+	} finally {
+		ort.aufraeumen()
+	}
 })
 
 test("GEGENPROBE: der Pfad faellt bei DSH_HOME=\"\" auf das echte Zuhause zurueck", () => {
