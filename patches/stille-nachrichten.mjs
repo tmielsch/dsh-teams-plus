@@ -67,6 +67,30 @@ export const name = "stille-nachrichten";
 /** Dienste, ohne die dieses Modul nichts tun kann. */
 export const inject = ["tools", "agents", "agentTeams", "systemPrompt"];
 
+/**
+ * Der echte Kern-Validator fuer Ausgabeschemata.
+ *
+ * Warum ueber den Dateipfad: die Kernpakete wohnen NUR in der Installation, ein
+ * nackter Import findet sie im Repo nicht (`~/.dsh/AGENTS.md`, „NIEMALS
+ * @deepseek-ai-Kernpakete installieren"). Ohne diesen Validator waere die
+ * Selbstpruefung eine Behauptung — und genau das war der Fehler vom 2026-11-04:
+ * das Ergebnis trug ein Feld, das das Schema nicht kennt, und niemand hat es
+ * gegengeprueft.
+ */
+async function ladeValidator() {
+	const basis = [
+		"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai",
+		join(homedir(), ".npm-global/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai"),
+		"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai"
+	];
+	for (const pfad of basis) {
+		try {
+			return await import(join(pfad, "dsh-tools/lib/index.js"));
+		} catch { /* naechster Kandidat */ }
+	}
+	return undefined;
+}
+
 /** Marke auf der umgebogenen Ausfuehrung: verhindert Stapeln nach einem Neuladen. */
 const MARKE = Symbol.for("stille-nachrichten.umgebogen");
 // Die fruehere Marke auf `spawn_teammate` entfaellt mit dem Spawn-Anhang (siehe
@@ -242,6 +266,27 @@ export function erweitereDefinition(definition, umgebung) {
 
 	definition.description = grundBeschreibung + " With `quiet: true` the message is private between you and the target: the target answers in its own thread and does not tell the Lead about it, so no cascade of unnecessary messages starts.";
 
+	// Der Hinweis an den ABSENDER darf nicht als Feld im Ergebnis stehen: das
+	// Ausgabeschema von `send_message` hat `additionalProperties: false` und kennt
+	// nur `messageId`. Im Betrieb gemessen am 2026-11-04:
+	//
+	//   tool "send_message" returned invalid output:
+	//   "value.note" is not a declared property (additionalProperties: false)
+	//
+	// Das Ergebnis wird dann VERWORFEN, und die Nachricht gilt als nicht
+	// zugestellt — obwohl sie zugestellt wurde. Der Hinweis geht deshalb in den
+	// gerenderten Text, den `render` frei formulieren darf; das Schema prueft nur
+	// den Wert, nicht den Text.
+	let letzterHinweis = "";
+	const grundRender = typeof definition.output?.render === "function" ? definition.output.render : undefined;
+	if (grundRender !== undefined) {
+		definition.output.render = (args, wert) => {
+			const teile = grundRender(args, wert);
+			if (letzterHinweis.length === 0) return teile;
+			return [...teile, { type: "text", text: letzterHinweis }];
+		};
+	}
+
 	definition.execute = async function (args, exec) {
 		if (args.quiet !== true) return grundExecute.call(this, args, exec);
 		const nachricht = args?.message;
@@ -260,10 +305,16 @@ export function erweitereDefinition(definition, umgebung) {
 				const sessions = umgebung.sessions?.();
 				kindName = sessions?.get?.(String(kind))?.displayTitle ?? String(kind);
 			} catch { /* Der Name ist Schmuck am Vermerk, nie Bedingung. */ }
-			return {
-				...(await grundExecute.call(this, { ...args, message: empfaengerVermerk(kindName) + "\n\n" + nachricht }, exec)),
-				note: absenderHinweis(String(kind)),
-			};
+			// KEIN zusaetzliches Feld im Ergebnis: das Ausgabeschema von
+			// `send_message` hat `additionalProperties: false` und kennt nur
+			// `messageId`. Ein Feld `note` laesst den Kern das ganze Ergebnis
+			// verwerfen — im Betrieb gemessen am 2026-11-04:
+			//   tool "send_message" returned invalid output:
+			//   "value.note" is not a declared property (additionalProperties: false)
+			// Der Hinweis geht deshalb ueber `letzterHinweis` in den gerenderten
+			// Text, den `render` frei formulieren darf.
+			letzterHinweis = absenderHinweis(String(kind));
+			return await grundExecute.call(this, { ...args, message: empfaengerVermerk(kindName) + "\n\n" + nachricht }, exec);
 		}
 
 		let senderName = "";
@@ -281,10 +332,8 @@ export function erweitereDefinition(definition, umgebung) {
 		}
 		const gesendet = await teams.sendMessage(sender, { target: args.target, content, signal: exec.signal });
 		umgebung.protokoll(`stille Nachricht an "${args.target}" zugestellt (${gesendet?.messageId ?? "ohne Kennung"}).`);
-		return {
-			...(gesendet && typeof gesendet === "object" ? gesendet : {}),
-			note: absenderHinweis(args.target),
-		};
+		letzterHinweis = absenderHinweis(args.target);
+		return gesendet && typeof gesendet === "object" ? gesendet : {};
 	};
 	definition.execute[MARKE] = true;
 	return {
@@ -293,6 +342,7 @@ export function erweitereDefinition(definition, umgebung) {
 		zurueck() {
 			definition.execute = grundExecute;
 			definition.description = grundBeschreibung;
+			if (grundRender !== undefined && definition.output !== undefined) definition.output.render = grundRender;
 			Reflect.deleteProperty(eigenschaften, "quiet");
 		}
 	};
@@ -509,17 +559,27 @@ if (alsHauptmodul) {
 			target: { type: "string", description: "Member target ..." },
 			message: { type: "string", description: "The message." }
 		};
+		// Das Ergebnis darf NUR haben, was das Ausgabeschema kennt: der echte
+		// `send_message` hat `additionalProperties: false` und genau ein Feld.
+		const gerendert = [];
 		const aufrufe = [];
 		const definition = {
 			name: "send_message",
 			description: "Send one durable message to another Team member.",
 			parameters: { type: "object", properties: props, required: ["target", "message"], additionalProperties: false },
+			output: {
+				schema: { type: "object", additionalProperties: false, properties: { messageId: { type: "string" } }, required: ["messageId"] },
+				render: (_args, wert) => {
+					gerendert.push(wert);
+					return [{ type: "text", text: `delivered ${wert.messageId}` }];
+				}
+			},
 			execute: async function (args) {
 				aufrufe.push(args);
-				return { messageId: "team-1", status: "accepted" };
+				return { messageId: "team-1" };
 			}
 		};
-		return { definition, aufrufe };
+		return { definition, aufrufe, gerendert };
 	};
 
 	{
@@ -554,7 +614,12 @@ if (alsHauptmodul) {
 		Promise.resolve(wert).then((ergebnis) => {
 			pruefe(gesehen?.content?.[0]?.text?.includes("nur fuer dich"), true, "der Vermerk steht an der Nachricht");
 			pruefe(gesehen?.content?.[1]?.text, "hallo unter vier Augen", "der Text folgt dem Vermerk");
-			pruefe(ergebnis.note.includes("Lead"), true, "der Absender bekommt den Hinweis");
+			// Der Hinweis steht NICHT mehr im Ergebnis (das Schema kennt ihn nicht),
+			// sondern im gerenderten Text.
+			pruefe(Object.hasOwn(ergebnis, "note"), false, "das Ergebnis traegt kein Feld note");
+			const teile = definition.output.render({ target: "experte" }, ergebnis)
+			const gerendertText = teile.map((t) => t.text ?? "").join(" ")
+			pruefe(gerendertText.includes("Lead"), true, "der Absender bekommt den Hinweis im Text");
 			pruefe(aufrufe.length, 0, "die gefilterte Grund-execute wird bei quiet nicht gerufen");
 		});
 	}
@@ -624,7 +689,7 @@ if (alsHauptmodul) {
 		const { definition } = nachbau()
 		definition.parameters.properties.agent_id = { type: "string" }
 		const aufrufe = []
-		definition.execute = async function (args, exec) { aufrufe.push(args); return { ok: true } }
+		definition.execute = async function (args, exec) { aufrufe.push(args); return { messageId: "kind-1" } }
 		const umgebung = {
 			protokoll: () => {},
 			teams: () => ({ sendMessage: async () => ({}) }),
@@ -638,7 +703,21 @@ if (alsHauptmodul) {
 		pruefe(text.endsWith("Nur unter uns."), true, "der Nachrichttext bleibt der letzte Teil")
 		pruefe(text.includes("Der Experte"), true, "der Kind-Name steht im Vermerk")
 		pruefe(aufrufe[0].agent_id, "kind1", "agent_id bleibt erhalten")
-		pruefe(ergebnis.note.includes("kind1"), true, "der Absender bekommt den Hinweis auf die Kind-Sitzung")
+		// Der Hinweis darf NICHT im Ergebnis stehen — das Ausgabeschema von
+		// `send_message` kennt nur `messageId`, und ein fremdes Feld laesst den
+		// Kern das ganze Ergebnis verwerfen (gemessen 2026-11-04 im Betrieb).
+		const kern = await ladeValidator()
+		if (kern === undefined) {
+			console.log("HINWEIS  der Kern-Validator ist nicht auffindbar; die Schemapruefung entfaellt in dieser Umgebung")
+		} else {
+			const verstoesse = kern.validateJsonSchemaValue(definition.output.schema, ergebnis, "value")
+			pruefe(verstoesse.length, 0, `das Ergebnis muss das Ausgabeschema erfuellen: ${verstoesse.join("; ")}`)
+		}
+		pruefe(Object.hasOwn(ergebnis, "note"), false, "das Ergebnis traegt KEIN Feld note mehr")
+		// Der Hinweis steht im gerenderten Text.
+		const teile = definition.output.render({ agent_id: "kind1" }, ergebnis)
+		const gerendertText = teile.map((t) => t.text ?? "").join(" ")
+		pruefe(gerendertText.includes("kind1"), true, "der Absender bekommt den Hinweis auf die Kind-Sitzung — im Text")
 	}
 
 	setTimeout(() => {

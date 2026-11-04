@@ -143,6 +143,16 @@ const SHA256_ABWEICHEND = {
 	//  (3) die Prompt-Regel wurde ueber das Agenten-OBJEKT geschluesselt und bei jeder
 	//      Neuerzeugung erneut eingetragen, ohne den alten Eintrag abzumelden — die Regel stand
 	//      in der Test-Sitzung mehr als 20-mal im System-Prompt.
+	// (4) am 2026-11-04: das Ergebnis der stillen Nachricht trug ein Feld `note`.
+	//      Das Ausgabeschema von `send_message` hat `additionalProperties: false` und
+	//      kennt nur `messageId` — der Kern verwarf deshalb JEDES Ergebnis:
+	//        tool "send_message" returned invalid output:
+	//        "value.note" is not a declared property (additionalProperties: false)
+	//      Die Nachricht galt als nicht zugestellt, obwohl sie zugestellt wurde.
+	//      Aenderung: der Hinweis an den Absender geht ueber `letzterHinweis` in den
+	//      GERENDERTEN Text (den `render` frei formulieren darf, das Schema prueft ihn
+	//      nicht); die Selbstpruefung prueft das Ergebnis jetzt gegen den ECHTEN
+	//      Kern-Validator. Test: test/stille-nachrichten.test.mjs.
 	// Aenderungen: Protokoll-Drossel (20 Zeilen/s), eigener Stand "fremd" ohne Warnung,
 	// Schluessel ueber die Sitzungs-Kennung, Aufraeumer auf `agent/disposed`.
 	//
@@ -153,7 +163,7 @@ const SHA256_ABWEICHEND = {
 	//      Modell-Input (Spawn-Prompt und System-Sektion). Die Sektion traegt sie allein;
 	//      Begruendung und gemessener Beleg stehen bei `kaskadenRegelTraeger`;
 	//  (3) die Drossel-Summenzeile wird jetzt auch bei Ruhe geschrieben (Timer mit unref).
-	'stille-nachrichten.mjs': '82a080adf2a872eb18d7786c55e8faa9aed7cb84d6089d183cc8992fc5456946'
+	'stille-nachrichten.mjs': 'e2b8dbb41695cd6dfb8a2abe8adc26c56f5192ce53ec5230b5b832e440db85bc'
 }
 
 /**
