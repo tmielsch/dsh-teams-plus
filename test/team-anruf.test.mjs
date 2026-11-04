@@ -11,9 +11,9 @@
  */
 
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -222,21 +222,36 @@ test("zwei Schreiber gleichzeitig verlieren keinen Eintrag, die Kennungen bleibe
 		mkdirSync(dirname(ort.pfad), { recursive: true })
 		modul.speichereAblage(modul.leereAblage(), ort.pfad)
 
-		// Zehn Anrufe gleichzeitig, jeder mit eigener Sperre und eigenem Laden.
-		// Die Sperre ist die aus send-to-session.mjs — dieselbe, die das Werkzeug
-		// benutzt. Ohne sie verlieren gleichzeitige Schreiber Einträge, weil
-		// jeder seine eigene Ablage liest und alle dieselbe Datei ueberschreiben.
-		const { mitSperre } = await import(join(PAKET, "patches", "send-to-session.mjs"))
+		// Zehn Anrufe gleichzeitig, jeder in einem EIGENEN Prozess.
+		//
+		// Warum echte Prozesse: Die erste Fassung dieses Tests lief im selben
+		// Node-Prozess und damit vollstaendig nacheinander — dort kann ohne Sperre
+		// gar nichts verlorengehen, der Test konnte also nie rot werden
+		// (Red-Team-Befund NIEDRIG-6; Mutant M1, die ausgeraubte Sperre im Modul,
+		// blieb gruen). Mit zehn Prozessen ist der Verlust messbar: ohne Sperre
+		// blieben 8, 9 und 10 von 10 Eintraegen uebrig, mit Sperre dreimal 10.
+		const arbeiter = join(ort.heim, "arbeiter.mjs")
+		const zeilen = [
+			"import { mitSperre } from " + JSON.stringify(join(PAKET, "patches", "send-to-session.mjs")),
+			"const modul = await import(" + JSON.stringify(MODUL_DATEI) + ")",
+			"const [pfad, i] = process.argv.slice(2)",
+			"await mitSperre(pfad, () => {",
+			"\tconst ablage = modul.ladeAblage(pfad)",
+			"\tconst r = modul.oeffneAnruf(ablage, { von: \"a-\" + i, an: \"b-\" + i, thema: \"Thema \" + i, jetzt: Date.now() })",
+			"\tmodul.speichereAblage(r.ablage, pfad)",
+			"})",
+			""
+		]
+		writeFileSync(arbeiter, zeilen.join("\n"))
 		await Promise.all(
-			Array.from({ length: 10 }, (_, i) =>
-				mitSperre(ort.pfad, () => {
-					const ablage = modul.ladeAblage(ort.pfad)
-					const { ablage: neu } = modul.oeffneAnruf(ablage, {
-						von: `a-${i}`, an: `b-${i}`, thema: `Thema ${i}`, jetzt: 1_700_000_000_000 + i
+			Array.from(
+				{ length: 10 },
+				(_, i) =>
+					new Promise((fertig) => {
+						const kind = spawn(process.execPath, [arbeiter, ort.pfad, String(i)], { stdio: "ignore" })
+						kind.on("exit", fertig)
+						kind.on("error", fertig)
 					})
-					modul.speichereAblage(neu, ort.pfad)
-					return true
-				})
 			)
 		)
 
@@ -348,11 +363,184 @@ test("GEGENPROBE: der Pfad faellt bei DSH_HOME=\"\" auf das echte Zuhause zuruec
 	}
 })
 
-test("das Modul laedt und meldet seine beiden Werkzeuge an", async () => {
-	// Ein billiger Rauchtest: der Patch muss importierbar sein, ohne DSH zu
-	// brauchen. Wer ihn kaputt macht, faellt hier auf, nicht erst beim Start.
-	const frisch = await import(`${MODUL_DATEI}?v=${Date.now()}`)
-	assert.equal(typeof frisch.apply, "function", "apply fehlt")
-	assert.equal(frisch.name, "team-anruf")
-	assert.ok(Array.isArray(frisch.inject))
+test("HOCH-2: die naechste Kennung liegt nie hinter einer vergebenen", () => {
+	// Gemessener Befund des Red Teams: Stand `naechsteId` auf 1, obwohl schon
+	// anruf-1 und anruf-2 in der Datei lagen, bekam der naechste Anruf wieder
+	// anruf-1. Ein spaeteres `schliessen` traf dann zwei Eintraege auf einmal.
+	const ort = werkstatt()
+	try {
+		mkdirSync(dirname(ort.pfad), { recursive: true })
+		writeFileSync(ort.pfad, JSON.stringify({
+			version: 1,
+			naechsteId: 1,
+			eintraege: [
+				{ id: "anruf-1", von: "a", an: "b", thema: "der erste", stand: "offen", forks: [], stichworte: [], begonnen: 1 },
+				{ id: "anruf-2", von: "c", an: "d", thema: "der zweite", stand: "offen", forks: [], stichworte: [], begonnen: 2 }
+			]
+		}))
+		const geladen = modul.ladeAblage(ort.pfad)
+		assert.equal(geladen.naechsteId, 3, "die Kennung muss hinter anruf-2 liegen, nicht wieder bei 1 anfangen")
+		const { eintrag } = modul.oeffneAnruf(geladen, { von: "e", an: "f", thema: "der dritte", jetzt: 3 })
+		assert.equal(eintrag.id, "anruf-3")
+		// Und eine Kollision wird LAUT abgelehnt statt still doppelt vergeben.
+		// Hier absichtlich hergestellt: eine Ablage, deren naechste Kennung auf
+		// einen vorhandenen Eintrag zeigt.
+		const kollision = { ...geladen, naechsteId: 1 }
+		assert.throws(
+			() => modul.oeffneAnruf(kollision, { von: "e", an: "f", thema: "noch einer", jetzt: 4 }),
+			/already taken/u,
+			"eine doppelte Kennung muss abgelehnt werden, nicht hingenommen"
+		)
+	} finally {
+		ort.aufraeumen()
+	}
+})
+
+test("HOCH-2: ein schliessen trifft nur EINEN Eintrag, auch wenn zwei dieselbe Kennung tragen", () => {
+	// Die alte Fassung schrieb `map((e) => (e.id === id ? neu : e))` und ersetzte
+	// jeden Eintrag mit dieser Kennung. Aus einer alten Datei kann so ein Paar
+	// entstehen; dann war ein `schliessen` stiller Datenverlust.
+	const ablage = {
+		version: 1,
+		naechsteId: 2,
+		eintraege: [
+			{ id: "anruf-1", von: "a", an: "b", thema: "ERSTER", stand: "offen", forks: [], stichworte: [], begonnen: 1 },
+			{ id: "anruf-1", von: "c", an: "d", thema: "DOPPELT", stand: "offen", forks: [], stichworte: [], begonnen: 2 }
+		]
+	}
+	const { ablage: neu } = modul.schliesseAnruf(ablage, "anruf-1", "Antwort", 9)
+	assert.equal(neu.eintraege.length, 2, "kein Eintrag darf verschwinden")
+	assert.equal(neu.eintraege[1].thema, "DOPPELT", "der zweite Eintrag darf nicht ueberschrieben werden")
+	assert.equal(neu.eintraege[1].stand, "offen")
+	assert.equal(neu.eintraege[0].stand, "erledigt")
+})
+
+test("MITTEL-3: kaputte Zusatzfelder machen die Suche nicht kaputt", () => {
+	// Gemessener Befund: `stichworte: 42` liess die Suche mit „is not iterable"
+	// werfen, die ganze Ablage war dann unbrauchbar. Ein `stichworte` als
+	// Zeichenkette wurde in Einzelzeichen zerlegt — die Suche nach „sperre"
+	// fand nichts, die nach „s" fand den Eintrag.
+	const ort = werkstatt()
+	try {
+		mkdirSync(dirname(ort.pfad), { recursive: true })
+		writeFileSync(ort.pfad, JSON.stringify({
+			version: 1,
+			naechsteId: 3,
+			eintraege: [
+				{ id: "anruf-1", von: "a", an: "b", thema: "Das Brett schreibt zu langsam", stand: "offen", stichworte: 42, begonnen: 1 },
+				{ id: "anruf-2", von: "c", an: "d", thema: "Ohne Stichwort im Thema", stand: "erledigt", stichworte: "sperre,zeitstempel", zusammenfassung: "Fertig", begonnen: 2 }
+			]
+		}))
+		const ablage = modul.ladeAblage(ort.pfad)
+		assert.equal(ablage.eintraege.length, 2, "kein Eintrag darf nur wegen eines kaputten Feldes verschwinden")
+		const treffer = modul.sucheAnrufe(ablage, "sperre")
+		assert.equal(treffer.length, 1, "das Stichwort aus der Zeichenkette muss gefunden werden")
+		assert.equal(treffer[0].id, "anruf-2")
+		assert.deepEqual(modul.findeAnruf(ablage, "anruf-1").stichworte, ["42"], "eine Zahl wird zu einem Stichwort, nicht zu einem Absturz")
+	} finally {
+		ort.aufraeumen()
+	}
+})
+
+test("MITTEL-4: ein verworfener Eintrag steht im Protokoll, nicht nur im Nichts", () => {
+	// Frueher verschwand ein kaputter Eintrag beim naechsten Schreiben spurlos.
+	// Jetzt steht er im Protokoll, wie es `team-board.mjs` seit jeher tut.
+	const ort = werkstatt()
+	const vorher = process.env.DSH_HOME
+	try {
+		process.env.DSH_HOME = ort.heim
+		const pfad = modul.anrufPfad()
+		mkdirSync(dirname(pfad), { recursive: true })
+		writeFileSync(pfad, JSON.stringify({
+			version: 1,
+			naechsteId: 3,
+			eintraege: [
+				{ id: "anruf-1", von: "a", an: "b", thema: "heil", stand: "offen", forks: [], stichworte: [], begonnen: 1 },
+				{ id: 42, thema: "kaputt: die Kennung ist keine Zeichenkette" }
+			]
+		}))
+		const ablage = modul.ladeAblage(pfad)
+		assert.equal(ablage.eintraege.length, 1)
+		const protokoll = readFileSync(modul.protokollPfad(), "utf8")
+		assert.match(protokoll, /1 malformed entries skipped/u, "der verworfene Eintrag muss im Protokoll stehen")
+	} finally {
+		if (vorher === undefined) delete process.env.DSH_HOME
+		else process.env.DSH_HOME = vorher
+		ort.aufraeumen()
+	}
+})
+
+test("der ECHTE defineTool nimmt beide Werkzeuge an, und der Werkzeugpfad benutzt die Sperre", async () => {
+	// Zwei Befunde auf einmal, beide gemessen:
+	//
+	// NIEDRIG-7: Der alte Rauchtest prueft nur `typeof apply === "function"` und
+	// blieb gruen, auch als apply gar nichts mehr tat (Mutant M3). Genau dieser
+	// Test haette HOCH-1 fangen muessen — die ungueltige Werkzeugdefinition.
+	//
+	// NIEDRIG-6: Der alte Sperr-Test rief `mitSperre` selbst auf und konnte
+	// nicht scheitern. Dieser Test schickt eine eigene Sperre in das Modul und
+	// misst, ob der Werkzeugpfad sie wirklich benutzt.
+	const { createRequire } = await import("node:module")
+	const kandidaten = []
+	try {
+		kandidaten.push(createRequire(import.meta.url).resolve("@deepseek-ai/dsh-tools/lib/index.js"))
+	} catch { /* liegt nicht im Suchpfad des Repos */ }
+	for (const basis of [
+		"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+		join(homedir(), ".npm-global", "lib", "node_modules", "@deepseek-ai", "dsh", "node_modules"),
+		"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules"
+	]) {
+		kandidaten.push(join(basis, "@deepseek-ai", "dsh-tools", "lib", "index.js"))
+	}
+	const werkzeugPfad = kandidaten.find((pfad) => existsSync(pfad))
+	if (werkzeugPfad === undefined) {
+		throw new Error("der Werkzeug-Rahmen @deepseek-ai/dsh-tools ist nicht auffindbar; ohne ihn prueft dieser Test einen nachgebauten Rahmen — das soll LAUT scheitern, nicht still")
+	}
+	await import(werkzeugPfad)
+
+	const ort = werkstatt()
+	try {
+		const registriert = []
+		const sperren = []
+		const ctx = {
+			logger: { info() {}, warn() {} },
+			effect(fn) {
+				fn()
+				return () => {}
+			},
+			tools: {
+				register: (definition) => {
+					registriert.push(definition)
+					return () => {}
+				}
+			},
+			get: () => undefined
+		}
+		modul.apply(ctx, {
+			pfad: ort.pfad,
+			sperre: (pfad, aktion) => {
+				sperren.push(pfad)
+				return aktion()
+			}
+		})
+		// apply laedt den Kernbaustein asynchron; ihm einen Moment geben.
+		for (let i = 0; i < 150 && registriert.length < 2; i += 1) {
+			await new Promise((fertig) => setTimeout(fertig, 20))
+		}
+		assert.equal(registriert.length, 2, "beide Werkzeuge muessen vom echten Kern angenommen werden (HOCH-1)")
+
+		const anrufWerkzeug = registriert.find((w) => w.name === "team_anruf")
+		assert.ok(anrufWerkzeug !== undefined, "team_anruf fehlt unter den angemeldeten Werkzeugen")
+		const ergebnis = await anrufWerkzeug.execute(
+			{ aktion: "oeffnen", an: "session-b", thema: "Eine Frage an die andere Abteilung" },
+			{ agent: { id: "session-a" } }
+		)
+		assert.equal(ergebnis.ok, true, "oeffnen scheiterte: " + ergebnis.note)
+		assert.ok(
+			sperren.length >= 1,
+			"der Werkzeugpfad muss die Sperre benutzen; ohne sie verliert gleichzeitiges Schreiben Eintraege"
+		)
+	} finally {
+		ort.aufraeumen()
+	}
 })

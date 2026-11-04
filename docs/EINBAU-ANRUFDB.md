@@ -117,3 +117,62 @@ vorzulegen statt zu verschweigen. Noch kein Commit — der Patch ist nicht da.
 3. Sichten, ob sie etwas über den Plan hinaus entschieden hat.
 4. Version hochziehen, packen, Release, Einbau ins Profil.
 5. Erst nach dem Red-Team-Pass einbauen — bis dahin bleibt es im Repo.
+---
+
+## Nachtrag 2026-11-04: der erste Red-Team-Pass und was daraus wurde
+
+Der erste Pass hat **STOPP** gegeben. Er ist im Sitzungsverlauf dokumentiert und
+in `patches/team-anruf.mjs` an den betroffenen Stellen zitiert. Hier steht, was
+er gefunden hat und was daraus geworden ist, damit der **zweite** Pass nicht
+dieselben Löcher suchen muss.
+
+### Das sechste Kriterium, das oben fehlt
+
+Die fünf Kriterien weiter oben sind nicht falsch, aber sie waren unvollständig:
+**Keines von ihnen fragte, ob der echte Kern die Werkzeugdefinition überhaupt
+annimmt.** Genau dort lag der Absturz.
+
+Sechstes Kriterium, ab jetzt bei jedem solchen Patch:
+
+> **Nimmt der echte `defineTool` die Definition an?** Nicht „sieht richtig aus“,
+> sondern gemessen: den `defineTool` aus der Installation laden, `apply` mit
+> einem Cordis-Kontext aufrufen und zählen, wie viele Werkzeuge ankommen.
+> Erwartet: zwei, `team_anruf` und `team_anrufe`.
+
+Der Grund, warum das nötig ist: Die Schema-Sprache des Kerns verlangt bei jedem
+Objekt ausdrücklich `additionalProperties: true` oder `false`. Fehlt es, wirft
+`defineTool` — und wenn die Registrierung in einer asynchronen Selbstausführung
+ohne `catch` steht, wird daraus eine unbehandelte Ablehnung, und Node beendet den
+Host mit Exit 1. Ein Patch, der aussieht wie eine Funktion, tötet dann `dsh web`
+beim Start.
+
+### Die Befunde und ihre Behebung
+
+| Befund | Behebung | Test, der jetzt scheitern kann |
+|---|---|---|
+| **HOCH-1** Schema ungültig, Ablehnung unbehandelt → Host-Exit | `additionalProperties: true`; Registrierung in `try/catch` mit Meldung; `.catch` an der Selbstausführung | „der ECHTE defineTool nimmt beide Werkzeuge an“ |
+| **HOCH-2** `naechsteId` hinter vergebenen Kennungen → ein `schliessen` traf mehrere Einträge | `naechsteFreieNummer` beim Laden; Kollision wird laut abgelehnt; `ersetzeErsten` statt `map` | „die naechste Kennung liegt nie hinter einer vergebenen“, „ein schliessen trifft nur EINEN Eintrag“ |
+| **MITTEL-3** ein kaputtes Feld machte die ganze Suche unbrauchbar | `normalisiereEintrag` beim Laden: `stichworte`, `forks`, `begonnen`, `zusammenfassung` | „kaputte Zusatzfelder machen die Suche nicht kaputt“ |
+| **MITTEL-4** verworfener Eintrag verschwand spurlos | `protokolliere` nach `~/.dsh/.tm/teams-plus/logs/team-anruf.log`, wie beim Brett | „ein verworfener Eintrag steht im Protokoll“ |
+| **NIEDRIG-6** Sperr-Test konnte nicht scheitern | zehn **echte Kindprozesse**; die Sperre wird über `apply(ctx, { sperre })` hereingereicht und im Werkzeugpfad gemessen | „… und der Werkzeugpfad benutzt die Sperre“ |
+| **NIEDRIG-7** Rauchtest prüfte nur `typeof apply` | derselbe Test wie HOCH-1: echter Rahmen, echter `apply`, echter Aufruf | siehe oben |
+| **NIEDRIG-10** stilles Nichts ohne `defineTool` | Meldung ins Protokoll; `ladeKern` mit Installations-Rückfall wie beim Brett | sichtbar im Protokoll |
+
+### Was ausdrücklich NICHT geändert wurde
+
+- **`warning`-Feld:** Der Auftrag an den ersten Pass behauptete, § 6b verlange
+  eines. Das war falsch. § 6b verlangt „laut gemeldet, nicht als leeres
+  Verzeichnis“ — das Modul wirft und antwortet mit `ok: false` samt Pfad und
+  Grund. Kein Feld ergänzt.
+- **Wer schließen darf (MITTEL-5):** offen. Die Spec entscheidet es nicht.
+- **Umlaut-Faltung (NIEDRIG-8):** offen.
+- **`stand: abgebrochen` (NIEDRIG-9):** in der Spec, aber von keiner Aktion
+  erreichbar. Offen.
+
+### Stand
+
+`npm test`: **214/214 grün**. Fünf Mutationen wurden gefahren (Schema-Feld
+entfernt, Sperre umgangen, Kennungsrechnung zurückgedreht, Normalisierung
+ausgelassen, Protokoll stummgeschaltet); jede machte den zugehörigen Test rot.
+
+**Eingebaut ist weiterhin nichts.** Der zweite Pass steht aus.

@@ -57,7 +57,7 @@
  * sie enthält Gespräche, die stattgefunden haben. Siehe docs/EINBAU-ANRUFDB.md.
  */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -92,6 +92,30 @@ export function anrufPfad() {
 	return join(dshHeim(), ".tm", "teams-plus", "state", "anrufe.json");
 }
 
+/** Der Protokollpfad. E1: unter `.tm/teams-plus`, nicht in `~/.dsh/logs`. */
+export function protokollPfad() {
+	return join(dshHeim(), ".tm", "teams-plus", "logs", "team-anruf.log");
+}
+
+/**
+ * Eine Zeile ins Protokoll. Ein fehlendes Verzeichnis oder Recht darf nie werfen.
+ *
+ * WARUM ES DAS GIBT (Red-Team-Befund MITTEL-4, 2026-11-04): Ohne Protokoll
+ * verschwand ein kaputter Eintrag beim naechsten Schreiben spurlos — niemand
+ * konnte hinterher sagen, dass er je da war. `team-board.mjs` schreibt an
+ * dieser Stelle `warn N malformed entries skipped`; diese Abweichung war im
+ * Modulkopf nicht begruendet und ist hiermit aufgehoben.
+ */
+function protokolliere(text) {
+	try {
+		const pfad = protokollPfad();
+		mkdirSync(dirname(pfad), { recursive: true });
+		appendFileSync(pfad, `${new Date().toISOString()} ${text}\n`);
+	} catch {
+		/* Protokoll ist Beiwerk; es darf nie einen Anruf verhindern. */
+	}
+}
+
 /** Eine leere Ablage. */
 export function leereAblage() {
 	return { version: 1, naechsteId: 1, eintraege: [] };
@@ -114,6 +138,58 @@ export function istEintrag(wert) {
 	if (typeof wert.thema !== "string") return false;
 	if (STAENDE.includes(wert.stand) === false) return false;
 	return true;
+}
+
+/**
+ * Einen heilen Eintrag so herrichten, dass er die Suche nicht umbringt.
+ *
+ * WARUM DAS NOETIG IST (Red-Team-Befund MITTEL-3, 2026-11-04, gemessen):
+ * Ein Eintrag mit `stichworte: 42` liess `sucheAnrufe` mit „is not iterable"
+ * werfen — die ganze Ablage war dann nicht mehr durchsuchbar, und die Antwort
+ * sah wie „nichts gefunden" aus statt wie „kaputt". Ein `stichworte` als
+ * Zeichenkette wurde in EINZELZEICHEN zerlegt: die Suche nach „sperre" fand
+ * nichts, die nach „s" fand den Eintrag. Ein fehlendes `forks` liess
+ * `trageFork` werfen. Genau das Gegenteil dessen, was der Kommentar ueber
+ * `istEintrag` verspricht.
+ *
+ * Repariert wird, nicht verworfen: ein Gespraech mit einem kaputten Feld ist
+ * immer noch ein Gespraech.
+ */
+export function normalisiereEintrag(wert) {
+	const forks = Array.isArray(wert.forks)
+		? wert.forks.filter((f) => typeof f === "string" && f.trim().length > 0).map((f) => f.trim())
+		: [];
+	return {
+		...wert,
+		forks,
+		stichworte: pruefeStichworte(wert.stichworte),
+		begonnen: Number.isFinite(wert.begonnen) ? wert.begonnen : 0,
+		zusammenfassung: typeof wert.zusammenfassung === "string" ? wert.zusammenfassung : ""
+	};
+}
+
+/**
+ * Die naechste freie Anruf-Nummer.
+ *
+ * **HOCH-2 des Red-Team-Berichts, gemessen:** Stand `naechsteId` auf 1, obwohl
+ * schon `anruf-1` und `anruf-2` in der Datei lagen, bekam der naechste Anruf
+ * wieder `anruf-1`. Ein `schliessen` traf danach ZWEI Eintraege und ersetzte
+ * beide durch denselben — stiller Datenverlust, Antwort `ok: true`. Und das
+ * passiert nicht nur bei Handbearbeitung: fehlt das Feld, setzte der Lader es
+ * auf 1.
+ *
+ * Deshalb gilt: die Nummer liegt nie hinter einer vergebenen.
+ */
+export function naechsteFreieNummer(gespeichert, eintraege) {
+	let hoechste = 0;
+	for (const eintrag of eintraege) {
+		const treffer = /^anruf-(\d+)$/u.exec(eintrag.id ?? "");
+		if (treffer === null) continue;
+		const nummer = Number(treffer[1]);
+		if (Number.isSafeInteger(nummer) && nummer > hoechste) hoechste = nummer;
+	}
+	const ausDatei = Number.isSafeInteger(gespeichert) && gespeichert > 0 ? gespeichert : 1;
+	return Math.max(ausDatei, hoechste + 1);
 }
 
 /**
@@ -142,9 +218,15 @@ export function ladeAblage(pfad = anrufPfad()) {
 			`the call register ${pfad} does not hold a register (expected { eintraege: [...] }) — it was NOT treated as empty`
 		);
 	}
-	const eintraege = daten.eintraege.filter(istEintrag);
-	const naechsteId = Number.isSafeInteger(daten.naechsteId) && daten.naechsteId > 0 ? daten.naechsteId : 1;
-	return { version: 1, naechsteId, eintraege };
+	const eintraege = [];
+	let verworfen = 0;
+	for (const wert of daten.eintraege) {
+		if (istEintrag(wert)) eintraege.push(normalisiereEintrag(wert));
+		else verworfen += 1;
+	}
+	// Ein verworfener Eintrag ist nicht still (MITTEL-4): er steht im Protokoll.
+	if (verworfen > 0) protokolliere(`warn ${verworfen} malformed entries skipped in ${pfad}`);
+	return { version: 1, naechsteId: naechsteFreieNummer(daten.naechsteId, eintraege), eintraege };
 }
 
 /**
@@ -198,6 +280,10 @@ export function oeffneAnruf(ablage, { von, an, thema, stichworte, jetzt = Date.n
 	if (absender === ziel) throw new Error("a call needs two different sessions; both were the same");
 	const gegenstand = pruefeText(thema, "thema", 200);
 	const id = `anruf-${ablage.naechsteId}`;
+	// HOCH-2: Eine doppelte Kennung ist Datenverlust, kein Schoenheitsfehler.
+	if (ablage.eintraege.some((eintrag) => eintrag.id === id)) {
+		throw new Error(`the call id ${JSON.stringify(id)} is already taken; the register was NOT written`);
+	}
 	const eintrag = {
 		id,
 		von: absender,
@@ -221,6 +307,22 @@ export function findeAnruf(ablage, id) {
 }
 
 /**
+ * Ersetzt GENAU den ersten Eintrag mit dieser Kennung.
+ *
+ * Die alte Fassung schrieb `map((e) => (e.id === id ? neu : e))` und traf damit
+ * jeden Eintrag mit dieser Kennung. Solange Kennungen eindeutig sind, ist das
+ * dasselbe; liegen aus einer alten Datei zwei gleiche da, ist es Datenverlust
+ * (HOCH-2, gemessen 2026-11-04). Diese Fassung kann nur einen treffen.
+ */
+export function ersetzeErsten(ablage, id, neu) {
+	const stelle = ablage.eintraege.findIndex((eintrag) => eintrag.id === id);
+	if (stelle < 0) return ablage;
+	const eintraege = [...ablage.eintraege];
+	eintraege[stelle] = neu;
+	return { ...ablage, eintraege };
+}
+
+/**
  * Eine Fork-Kennung nachtragen. Doppelt genannt ist kein Fehler: dieselbe
  * Fork-Kennung zweimal ist „steht schon da", nicht „falsch".
  */
@@ -231,7 +333,7 @@ export function trageFork(ablage, id, fork) {
 	if (eintrag.forks.includes(kennung)) return { ablage, eintrag };
 	const neu = { ...eintrag, forks: [...eintrag.forks, kennung] };
 	return {
-		ablage: { ...ablage, eintraege: ablage.eintraege.map((e) => (e.id === id ? neu : e)) },
+		ablage: ersetzeErsten(ablage, id, neu),
 		eintrag: neu
 	};
 }
@@ -249,7 +351,7 @@ export function schliesseAnruf(ablage, id, zusammenfassung, jetzt = Date.now()) 
 	if (eintrag === undefined) throw new Error(`no call with id ${JSON.stringify(id)}`);
 	const neu = { ...eintrag, stand: "erledigt", zusammenfassung: text, geschlossen: jetzt };
 	return {
-		ablage: { ...ablage, eintraege: ablage.eintraege.map((e) => (e.id === id ? neu : e)) },
+		ablage: ersetzeErsten(ablage, id, neu),
 		eintrag: neu
 	};
 }
@@ -300,27 +402,80 @@ export const inject = ["tools", "agents"];
 
 /** Ein Kern-Baustein, einmal geladen. */
 let werkzeugBaustein;
-let nachrichtenBaustein;
 
-async function ladeKern(paket) {
-	try {
-		return await import(paket);
-	} catch {
-		return undefined;
+/**
+ * Die Basis-Ordner der dsh-Installation, in der Reihenfolge der Wahrscheinlichkeit.
+ *
+ * Die Kernpakete wohnen NUR in der Installation. Ein nackter Import findet sie
+ * im Repo nicht — und dann steht das Werkzeug still, ohne dass jemand es merkt
+ * (Red-Team-Befund NIEDRIG-10). Der Weg ist aus `team-board.mjs` und
+ * `send-to-session.mjs` uebernommen, wo er sich im Betrieb bewaehrt hat.
+ */
+function kernBasis() {
+	const basis = new Set();
+	const fuegen = (pfad) => {
+		if (typeof pfad !== "string" || pfad.length === 0) return;
+		if (existsSync(pfad)) basis.add(pfad);
+	};
+	const laufend = process.argv[1];
+	if (typeof laufend === "string" && laufend.length > 0) {
+		const teile = laufend.split("/");
+		const bei = teile.lastIndexOf("node_modules");
+		if (bei > 0) fuegen(teile.slice(0, bei + 1).join("/"));
 	}
+	fuegen("/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules");
+	fuegen(join(homedir(), ".npm-global/lib/node_modules/@deepseek-ai/dsh/node_modules"));
+	fuegen("/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules");
+	return basis;
 }
 
-export function apply(ctx) {
+/** Laedt einen Kernbaustein ueber alle bekannten Ablageformen. */
+async function ladeKern(paket) {
+	const unterpfad = paket.replace("@deepseek-ai/", "");
+	const kandidaten = [paket];
+	for (const basis of kernBasis()) {
+		kandidaten.push(join(basis, "@deepseek-ai", unterpfad, "lib", "index.js"));
+		kandidaten.push(join(basis, "dsh", "node_modules", "@deepseek-ai", unterpfad, "lib", "index.js"));
+	}
+	for (const kandidat of kandidaten) {
+		try {
+			return await import(kandidat);
+		} catch { /* naechster Kandidat */ }
+	}
+	return undefined;
+}
+
+/**
+ * Das Modul anmelden.
+ *
+ * @param ctx - Cordis-Kontext des Loader-Eintrags.
+ * @param optionen - nur fuer Tests: `{ pfad, sperre }` lenkt Ablage und Sperre um.
+ *   Ohne sie gilt die echte Ablage und `mitSperre` aus `send-to-session.mjs`.
+ *   Die Umlenkung ist noetig, weil der Werkzeugpfad sonst gar nicht pruefbar ist
+ *   (Red-Team-Befund NIEDRIG-6) — und genau dort sitzt die Sperre.
+ */
+export function apply(ctx, optionen = {}) {
+	const sperre = typeof optionen.sperre === "function" ? optionen.sperre : mitSperre;
+	const melden = (stufe, text) => {
+		protokolliere(text);
+		try {
+			const logger = ctx.logger;
+			if (logger !== undefined && typeof logger[stufe] === "function") logger[stufe](`team-anruf: ${text}`);
+		} catch { /* Ein fehlendes Protokoll darf den Start nie stoeren. */ }
+	};
+
 	ctx.effect(() => {
 		let abgemeldet = false;
 		let abRegister;
 
 		(async () => {
 			werkzeugBaustein ??= await ladeKern("@deepseek-ai/dsh-tools");
-			nachrichtenBaustein ??= await ladeKern("@deepseek-ai/dsh-llm");
 			if (abgemeldet) return;
 			const defineTool = werkzeugBaustein?.defineTool;
-			if (typeof defineTool !== "function") return;
+			if (typeof defineTool !== "function") {
+				melden("warn", "der Werkzeug-Baustein (defineTool) ist nicht auffindbar; die Werkzeuge stehen nicht zur Verfuegung");
+				return;
+			}
 
 			const jsonOutput = (schema) => ({
 				schema,
@@ -369,7 +524,10 @@ export function apply(ctx) {
 						additionalProperties: false,
 						properties: {
 							ok: { type: "boolean", required: true },
-							anruf: { type: "object" },
+							// HOCH-1: der Kern verlangt bei jedem Objekt ausdruecklich
+							// `additionalProperties`; ohne das Feld lehnt `defineTool` die
+							// ganze Definition ab und der Host stirbt beim Laden.
+							anruf: { type: "object", additionalProperties: true },
 							note: { type: "string", required: true }
 						}
 					}),
@@ -383,10 +541,10 @@ export function apply(ctx) {
 					execute: async (args, exec) => {
 						const absender = exec?.agent?.id;
 						if (typeof absender !== "string") return { ok: false, note: "no calling agent" };
-						const pfad = anrufPfad();
+						const pfad = optionen.pfad ?? anrufPfad();
 						const aktion = args?.aktion;
 						try {
-							const ergebnis = await mitSperre(pfad, () => {
+							const ergebnis = await sperre(pfad, () => {
 								const ablage = ladeAblage(pfad);
 								if (aktion === "oeffnen") {
 									const { ablage: neu, eintrag } = oeffneAnruf(ablage, {
@@ -461,7 +619,7 @@ export function apply(ctx) {
 					}),
 					isConcurrencySafe: () => true,
 					execute: async (args) => {
-						const pfad = anrufPfad();
+						const pfad = optionen.pfad ?? anrufPfad();
 						try {
 							const ablage = ladeAblage(pfad);
 							let treffer = sucheAnrufe(ablage, args?.suche);
@@ -488,8 +646,19 @@ export function apply(ctx) {
 				})
 			];
 
-			abRegister = abläufe.map((definition) => ctx.tools.register(definition));
-		})();
+			try {
+				abRegister = abläufe.map((definition) => ctx.tools.register(definition));
+				melden("info", `Werkzeuge ${WERKZEUG} und ${WERKZEUG_LISTE} registriert`);
+			} catch (fehler) {
+				// HOCH-1: Eine abgelehnte Definition darf den Host nicht toeten.
+				melden("warn", `Werkzeuge konnten nicht angemeldet werden: ${fehler instanceof Error ? fehler.message : String(fehler)}`);
+			}
+		})().catch((fehler) => {
+			// HOCH-1: Was hier abgelehnt wird, ist eine unbehandelte Ablehnung —
+			// und die beendet nach Node-Regel den ganzen Host (Exit 1). Das darf
+			// eine fehlerhafte Werkzeugdefinition nie mehr ausloesen.
+			melden("warn", "Werkzeuge konnten nicht angemeldet werden: " + (fehler instanceof Error ? fehler.message : String(fehler)));
+		});
 
 		return () => {
 			abgemeldet = true;
