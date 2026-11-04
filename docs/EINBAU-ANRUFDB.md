@@ -97,3 +97,23 @@ Datei im Repo.
 
 Deshalb: Wer den Einbau zurücknimmt, nimmt den **Eintrag** zurück, nicht die
 Datei. Die Datei im Repo darf bleiben und weiter verbessert werden.
+
+---
+
+## Stand 2026-11-04, 05:55 — was fertig ist, was läuft
+
+**Fertig:**
+- Der Plan (§ 6b, Commit `dcdf569`)
+- Die Einbau- und Rücknahme-Anleitung samt der fünf Pass-Kriterien
+  (`docs/EINBAU-ANRUFDB.md`, Commit `f08741e`)
+
+**Läuft:** Eine Fachkraft baut `patches/team-anruf.mjs` und `test/team-anruf.test.mjs`.
+Auftrag mit WRITE-SCOPE, fünf Pflichttests und der Auflage, Abweichungen
+vorzulegen statt zu verschweigen. Noch kein Commit — der Patch ist nicht da.
+
+**Nächster Schritt, wenn sie abliefert:**
+1. Abnahme: Tests selbst laufen lassen, die Gegenprobe zur Suche selbst fahren.
+2. Prüfen, ob `mitSperre` wirklich benutzt wird und ob eine kaputte Datei laut meldet.
+3. Sichten, ob sie etwas über den Plan hinaus entschieden hat.
+4. Version hochziehen, packen, Release, Einbau ins Profil.
+5. Erst nach dem Red-Team-Pass einbauen — bis dahin bleibt es im Repo.
