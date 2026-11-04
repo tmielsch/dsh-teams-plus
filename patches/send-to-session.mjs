@@ -806,6 +806,69 @@ export function bremseVerbuche(zustand, absenderId, zielId, jetzt = Date.now(), 
 }
 
 /**
+ * Fuehrt diese Sitzung ein Team? Entscheidet, ob eine Wurzelsitzung geweckt
+ * werden darf (Nachtrag 2026-11-04, siehe Kommentar (4) an der Zustellung).
+ *
+ * **Das Problem, das diese Funktion loest.** Die Regel lautete „jede
+ * Wurzelsitzung bekommt inject" — und in diesem Team-Modell ist auch der
+ * Abteilungsleiter eine Wurzelsitzung, weil er die oberste Ebene seines Teams
+ * ist und keinen Eltern-Eintrag hat. Folge: Zwei Abteilungsleiter konnten sich
+ * gegenseitig nicht wecken. Die Nachricht lag im Posteingang, bis der Mensch
+ * selbst etwas tippte. Gemessen am 2026-11-04 04:18 im Protokoll.
+ *
+ * **Die Unterscheidung ist messbar, nicht geraten.** `listMembers` liefert den
+ * Lead und seine Mitglieder — also mindestens einen Eintrag (den Lead). Wer
+ * genau einen hat, hatte nie ein Teammitglied: das ist eine reine Unterhaltung
+ * des Menschen. Wer mehr hat, fuehrt ein Team.
+ *
+ * Nimmt entweder die fertige Liste oder eine Funktion, die sie holt (dann wird
+ * ein Fehler zu `false`). Wirft nie — daran haengt die Zustellung.
+ *
+ * @param listeOderHoler - Array von Mitgliedern, oder eine Funktion dafuer.
+ * @returns true, wenn die Sitzung mehr als nur sich selbst im Roster hat.
+ */
+export function istAbteilungsleiter(listeOderHoler) {
+	let mitglieder = listeOderHoler;
+	if (typeof listeOderHoler === "function") {
+		try {
+			mitglieder = listeOderHoler();
+		} catch {
+			return false;
+		}
+	}
+	if (!Array.isArray(mitglieder)) return false;
+	return mitglieder.length > 1;
+}
+
+/**
+ * Fuehrt diese Sitzung ein Team? Entscheidet, ob eine Wurzelsitzung geweckt
+ * werden darf (Nachtrag 2026-11-04, siehe Kommentar (4) an der Zustellung).
+ *
+ * Ein Abteilungsleiter ist in diesem Modell eine Wurzelsitzung: er hat keinen
+ * Eltern-Eintrag. Von der Sitzung des Menschen unterscheidet ihn nur, dass er
+ * Teammitglieder hat. listMembers liefert den Lead und seine Mitglieder —
+ * genau ein Eintrag bedeutet: nie ein Team gehabt, also reine Unterhaltung.
+ *
+ * Steht auf MODUL-Ebene, nicht in apply: Die Zustellung liegt in
+ * defineWerkzeug, einer eigenen Funktion, und sieht den apply-Scope nicht.
+ *
+ * @param dienst - der Dienst-Zugriff (ctx.get ohne Werfen), oder etwas anderes.
+ * @param ziel - der Ziel-Agent.
+ * @returns true, wenn der Team-Dienst mehr als nur den Lead kennt.
+ */
+export function hatTeammitglieder(dienst, ziel) {
+	const teams = typeof dienst === "function" ? dienst("agentTeams") : undefined;
+	if (teams === undefined || teams === null) return false;
+	return istAbteilungsleiter(() => {
+		try {
+			return typeof teams.listMembers === "function" ? teams.listMembers(ziel) : undefined;
+		} catch {
+			return undefined;
+		}
+	});
+}
+
+/**
  * Welche Zustellart gilt?
  *
  * `auto` schaut auf den lebenden Zustand des Ziels: laeuft es, geht die
@@ -890,6 +953,7 @@ export function apply(ctx, optionen = {}) {
 	const dienst = (name) => {
 		try { return ctx.get(name); } catch { return undefined; }
 	};
+
 
 	ctx.effect(() => {
 		let abgemeldet = false;
@@ -981,6 +1045,7 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 				additionalProperties: false,
 				properties: {
 					delivered: { type: "boolean", required: true },
+					woke: { type: "boolean" },
 					to: { type: "string" },
 					mode: { type: "string" },
 					sessions: { type: "array" },
@@ -1057,7 +1122,7 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 					return { delivered: false, note: `${kettenPruefung.befund}: ${kettenPruefung.text}` };
 				}
 
-				// (4) Die Wurzelsitzung ist die, mit der der Mensch spricht.
+				// (4) Wurzelsitzungen: nur die SITZUNG DES MENSCHEN bleibt unweckbar.
 				//
 				// **Korrektur 2026-10-31 (Red-Team-Befund HOCH-2).** Hier stand, `steer`
 				// sei erlaubt, weil es „ohne eine Runde zu oeffnen" ankomme. Das ist
@@ -1067,10 +1132,32 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 				// turn" (`dsh-agent/types/runtime-types.d.ts:194`). Die EINZIGE
 				// Zustellart ohne Wecken ist `inject` (`:812-814`).
 				//
-				// Folge: eine Wurzelsitzung bekommt `inject` — die Nachricht liegt dann
-				// im Posteingang, bis der Mensch selbst etwas tippt. Das ist gewollt: ein
-				// fremder Agent darf die Sitzung des Menschen nicht in eine Runde ziehen.
-				// Der Preis steht in der Antwort: die Nachricht kann warten.
+				// **Korrektur 2026-11-04 (gemessen im Betrieb).** Die Regel lautete
+				// „jede Wurzelsitzung bekommt inject". Das ist zu grob: In diesem
+				// Team-Modell ist AUCH DER ABTEILUNGSLEITER eine Wurzelsitzung — er ist
+				// die oberste Ebene seines Teams und hat keinen Eltern-Eintrag. Folge:
+				// Zwei Abteilungsleiter konnten sich gegenseitig NICHT wecken. Gemessen
+				// am 2026-11-04 04:18 im Protokoll:
+				//
+				//   ziel ist eine Wurzelsitzung; modus auf inject begrenzt (weckt nicht)
+				//   zugestellt ... an=session-a6141134-... modus=inject
+				//
+				// Die Nachricht lag danach im Posteingang und wurde nie gelesen, bis
+				// der Mensch selbst etwas tippte. Genau das darf nicht sein: der Mensch
+				// soll nicht der Ausloeser jeder Antwort sein.
+				//
+				// DIE NEUE UNTERSCHEIDUNG, und sie ist messbar:
+				//   Wurzel MIT Teammitgliedern  = arbeitender Abteilungsleiter -> weckbar
+				//   Wurzel OHNE Teammitglieder  = die Sitzung des Menschen      -> inject
+				//
+				// Der Unterschied ist nicht geraten: `listMembers` liefert den Lead und
+				// seine Mitglieder. Wer nie ein Teammitglied hatte, hat dort genau einen
+				// Eintrag — eine reine Unterhaltung des Menschen. Wer eins hatte, fuehrt
+				// ein Team und ist im Sinne dieses Pakets ein Abteilungsleiter.
+				//
+				// Der Preis bleibt sichtbar: eine Sitzung des Menschen, in der er selbst
+				// Teammitglieder gestartet hat, wird dadurch weckbar. Das ist gewollt —
+				// dort arbeitet ein Team, nicht nur der Mensch.
 				let istWurzel = false;
 				try {
 					istWurzel = typeof dienstAgenten.roots === "function"
@@ -1081,9 +1168,14 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 					melden("warn", `roots() warf (${String(fehler)}); der Wurzelschutz greift fuer diesen Aufruf nicht`);
 					istWurzel = false;
 				}
+				const fuehrtTeam = istWurzel ? hatTeammitglieder(dienst, ziel) : false;
 				const gewuenscht = loeseModus(args.mode, ziel);
-				const modus = istWurzel ? "inject" : gewuenscht;
-				if (istWurzel) melden("info", `ziel ist eine Wurzelsitzung; modus auf inject begrenzt (weckt nicht)`);
+				const modus = istWurzel && !fuehrtTeam ? "inject" : gewuenscht;
+				if (istWurzel && !fuehrtTeam) {
+					melden("info", `ziel ist eine Wurzelsitzung OHNE Teammitglieder (reine Menschen-Sitzung); modus auf inject begrenzt (weckt nicht)`);
+				} else if (istWurzel && fuehrtTeam) {
+					melden("info", `ziel ist ein Abteilungsleiter (Wurzel mit Teammitgliedern); modus ${modus} weckt`);
+				}
 
 				const inhalt = baueInhalt(args.message, absenderAgent.id, absenderAgent.session?.cwd);
 				const quelle = baueQuelle(absenderAgent.id, zielId);
@@ -1107,11 +1199,23 @@ function defineWerkzeug(ctx, melden, zustand, pfad, dienst, defineTool) {
 				}
 
 				melden("info", `zugestellt von=${absenderAgent.id} an=${zielId} modus=${modus} "${kurz(args.message)}"`);
+				// `woke` sagt die Wahrheit ueber die Wirkung, nicht nur ueber die Zustellung.
+				//
+				// **Nachtrag 2026-11-04.** Bis hierher meldete die Antwort `delivered: true`
+				// auch dann, wenn nur `inject` zugestellt wurde — die Nachricht lag dann im
+				// Posteingang und wurde nie gelesen, bis der Mensch selbst etwas tippte.
+				// Der Absender glaubte, geweckt zu haben. Das ist die schlimmste Art
+				// falscher Auskunft: sie sieht wie Erfolg aus. Genau das ist am 2026-11-04
+				// passiert (Protokoll 04:18, `modus=inject`, `delivered: true`).
+				const woke = modus !== "inject";
 				return {
 					delivered: true,
+					woke,
 					to: zielId,
 					mode: modus,
-					note: `delivered to ${zielId} (${modus}); the target was told the message comes from an agent`
+					note: woke
+						? `delivered to ${zielId} (${modus}): the target was woken and will start or continue a turn. The target was told the message comes from an agent.`
+						: `delivered to ${zielId} (inject): the message is in the inbox but the target was NOT woken — it will only be read when the human types in that session.`
 				};
 			});
 
