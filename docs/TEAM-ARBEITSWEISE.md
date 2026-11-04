@@ -441,3 +441,79 @@ Reihenfolge:
 eine Wurzel mit Teammitgliedern geweckt wird und eine ohne nur `inject` bekommt.
 Die Sätze zum Fork-Kanal fehlen dort noch — **das ist die nächste Änderung**, und
 sie ist klein.
+---
+
+## 6b. Die Anrufdatenbank — Plan und Entscheidungen (2026-11-04)
+
+**Der Zweck.** Eine Session soll nachsehen können, ob dasselbe Thema schon einmal
+zwischen zwei Abteilungen besprochen wurde — und was dabei herauskam. Ohne das
+beginnt jedes Gespräch bei null, auch wenn die Antwort seit drei Wochen im
+Verzeichnis steht.
+
+### Was gespeichert wird
+
+Ein **Eintrag** ist ein Anruf, nicht ein Gesprächsschritt:
+
+| Feld | Bedeutung |
+|---|---|
+| `id` | Anruf-Kennung, `anruf-<n>` (fortlaufend, in der Datei geführt) |
+| `von` / `an` | Sitzungs-Kennungen der beiden Abteilungsleiter |
+| `thema` | ein Satz, wonach man später sucht (nicht der ganze Text) |
+| `begonnen` | Zeitstempel |
+| `stand` | `offen`, `erledigt`, `abgebrochen` |
+| `forks` | die Fork-Kennungen beider Seiten (sobald bekannt) |
+| `zusammenfassung` | das Ergebnis, **auf beiden Seiten gleich** |
+| `stichworte` | Liste für die Suche — ohne sie findet man nur, was man exakt benennt |
+
+### Wo sie liegt
+
+`~/.dsh/.tm/teams-plus/state/anrufe.json` — neben `send-to-session.json` und
+`board.json`, im Datenordner, den `dsh-links.json` schon kennt. **Nicht** ins
+Projekt, weil ein Anruf zwei Abteilungen betrifft und damit keiner von beiden
+gehört.
+
+Format: `{ "version": 1, "naechsteId": 1, "eintraege": [...] }`, geschrieben wie
+das Brett — vorläufige Datei plus `renameSync`, dazu `mitSperre` aus
+`send-to-session.mjs`.
+
+### Wie man sie benutzt
+
+Zwei Werkzeuge, im Paket `@tmielsch/dsh-teams-plus`:
+
+- **`team_anruf`** — schreiben und lesen in einem Werkzeug, weil beides zusammen
+  gebraucht wird:
+  - `aktion: "oeffnen"` mit `an` und `thema` → legt den Anruf mit `stand: offen` an
+    und gibt die `id` zurück.
+  - `aktion: "fork"` mit `id` und `fork` → trägt eine Fork-Kennung nach.
+  - `aktion: "schliessen"` mit `id` und `zusammenfassung` → setzt `stand: erledigt`
+    und den Text.
+  - `aktion: "lesen"` mit `id` → den ganzen Eintrag.
+- **`team_anrufe`** — nachschlagen:
+  - ohne Angabe: alle Einträge mit `id`, `thema`, `stand`, Datum.
+  - mit `suche`: Volltext über `thema`, `zusammenfassung` und `stichworte`.
+
+**Die Suche ist der Punkt**, nicht das Anlegen. Ein Verzeichnis, das man nur
+befüllt und nie abfragt, ist eine Ablage, keine Datenbank.
+
+### Die eiserne Regel
+
+Ein Eintrag wird **erst geschlossen**, wenn die Zusammenfassung vorliegt. Ein
+offener Anruf ohne Ergebnis ist sichtbar (`stand: offen`) und stört damit — genau
+so soll es sein. Ein stiller offener Anruf wäre dasselbe Muster wie der Wecker,
+der nicht weckte.
+
+### Tests mit Gegenprobe (jeder Punkt muss scheitern können)
+
+1. Anlegen, Lesen, Fork nachtragen, Schliessen — der ganze Lauf.
+2. Die Suche findet über `stichworte`, was im `thema` nicht steht.
+3. Zwei Schreiber gleichzeitig verlieren keinen Eintrag (Sperre).
+4. Eine kaputte Datei wird laut gemeldet und nicht als leeres Verzeichnis
+   ausgegeben.
+5. Gegenprobe am Code: die Suche ausbauen (immer alle Treffer) → Test 2 rot.
+
+### Was ausdrücklich NICHT dazugehört
+
+- Kein Red-Team-Pass in diesem Schritt — gebaut, getestet, dokumentiert wird;
+  eingebaut erst nach Pass (Regel 1). Der Einbau braucht ohnehin einen Neustart.
+- Keine Verknüpfung in die Sitzungen selbst. Die Anrufdatenbank ist eine Datei,
+  die man liest; sie hängt sich nicht in den Prompt und weckt niemanden.
