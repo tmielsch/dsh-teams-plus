@@ -209,6 +209,10 @@ nichts.
 > Jede Session muss sich bewusst sein, **dass ihr Kontext flüchtig ist** und dass sie in einem Team
 > ist. Was sie nicht aufschreibt oder weitergibt, ist beim nächsten Schritt weg.
 
+**„Weitergibt" heißt nicht „an alle schickt".** Der Satz meint: eine Erkenntnis muss aus dem flüchtigen
+Kontext heraus in eine Datei oder an den, der sie braucht. Für eine **Regel** heißt das in die Spec
+oder in `AGENTS.md` — nicht in einen Rundruf (siehe den Abschnitt „Was nicht per Nachricht läuft").
+
 Das ist wörtlich gemeint: Der Kontext einer Session wird verdichtet, und die Verdichtung ist ein
 Verlust. Wer eine Erkenntnis im Kopf behält, verliert sie. Wer sie ins Team schreibt, behält sie.
 
@@ -216,7 +220,8 @@ Verlust. Wer eine Erkenntnis im Kopf behält, verliert sie. Wer sie ins Team sch
 
 1. **Vor dem Handeln fragen: Wer ist zuständig?** Wer selbst arbeitet, ohne zu prüfen, ob eine
    Arbeitsgruppe dafür existiert, bricht die Ordnung.
-2. **Abgeschlossenes wird berichtet, nicht behalten.** An den Vorgesetzten, mit Beleg.
+2. **Abgeschlossenes wird berichtet, nicht behalten.** An den Vorgesetzten, mit Beleg — an **ihn**,
+   nicht an das ganze Team. Ein Rundruf ist kein Bericht.
 3. **Entscheidungen werden nicht geraten.** Gehört eine Entscheidung dem Menschen, wird gefragt — und
    wenn keine Antwort kommt, wird **gewartet**, nicht entschieden.
 4. **Melden, was offen blieb.** Ein Bericht, der nur Erfolge nennt, ist ein unvollständiger Bericht.
@@ -224,6 +229,41 @@ Verlust. Wer eine Erkenntnis im Kopf behält, verliert sie. Wer sie ins Team sch
    funktioniert, so: …".
 6. **Der nächste, der das liest, braucht den Kontext, den du gerade hast.** Nicht mehr und nicht
    weniger.
+7. **Regeln reisen in Dateien, nicht in Nachrichten.** Eine geänderte Regel wird an **einer** Stelle
+   eingetragen — in der Spec oder in `AGENTS.md`, mit Datum und im Wortlaut des Menschen. Sie wird
+   **nicht** an die Teammitglieder verschickt. Siehe den Abschnitt darunter.
+
+### Was nicht per Nachricht läuft (Anordnung des Menschen 2026-11-04)
+
+Der Mensch, wörtlich:
+
+> „Es ist übertrieben dumm, dass Regeländerungen für das Projekt in Teamnachrichten geschickt werden.
+> […] Dafür ist doch die AGENTS da, dafür wird das doch injected. Das ist so eine Zeitverschwendung
+> und eine Energieverschwendung, unnötige Kommunikation zwischen den ganzen Teammitgliedern. […]
+> Einfach nur sinnloser Bloat."
+
+**Der Grund ist mechanisch, nicht Geschmack.** `AGENTS.md` wird in **jede** Sitzung injiziert. Eine
+Nachricht erreicht **eine** Sitzung, einmal, und ist danach weg — sie kostet einen Turn beim Absender,
+einen Turn beim Empfänger und liegt nach der nächsten Verdichtung als Ballast im Verlauf. Eine Regel,
+die in `AGENTS.md` oder in der Spec steht, gilt dagegen für alle und für jede neue Sitzung ohne
+einen einzigen Turn. Wer eine Regel verteilt, statt sie einzutragen, bezahlt Kommunikation für etwas,
+das umsonst zu haben wäre.
+
+**Deshalb gilt:**
+
+| Was | Wohin |
+|---|---|
+| Eine geänderte Projektregel | **Spec oder `AGENTS.md`**, mit Datum und im Wortlaut des Menschen — nie per Nachricht |
+| Ein Ergebnis, das jemand braucht | an den **Vorgesetzten**, mit Beleg (Netiquette 2) — nicht an alle |
+| Eine konkrete Frage an genau eine Sitzung | Nachricht an **diese** Sitzung |
+| Ein Auftrag | an den, der ihn ausführt |
+
+**Nicht** als Nachricht: Regeländerungen, Rundrufe, „zur Info", Bestätigungen des Empfangs
+(„habe ich bekommen"), und alles, was ein anderer ohnehin beim nächsten Lesen der Datei sieht.
+
+**Drei Sitzungen werden von einer Regeländerung nicht benachrichtigt:** Wer sie braucht, liest sie —
+dafür ist die Datei da. Und wer sie nicht liest, dem hilft auch die Nachricht nicht, weil sie in
+seinem Kontext verdampft.
 
 ### Die harte Grenze
 

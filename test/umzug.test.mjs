@@ -470,6 +470,48 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 	}
 })
 
+test('der Zeiger verspricht "wie miteinander gesprochen wird" — und die volle Fassung haelt es', () => {
+	// Der Fehler, den dieser Test verhindert (gefunden 2026-11-04): Der Zeiger in
+	// AGENTS.md sagt woertlich, in der vollen Fassung stehe, "wie miteinander
+	// gesprochen wird". Dort stand nur, wie Karten heissen. Wer dem Zeiger folgte,
+	// fand die Kommunikationsregeln NICHT — und erfand sie sich, unter anderem
+	// als Rundnachrichten an alle Teammitglieder.
+	// Der Zeiger bricht den Satz um ("... wie\nmiteinander gesprochen wird"), also
+	// ueber den Umbruch hinweg pruefen — sonst sucht der Test nach einer Zeile,
+	// die es nie gab.
+	const zeiger = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.md'), 'utf8').replace(/\s+/gu, ' ')
+	assert.ok(
+		zeiger.includes('wie miteinander gesprochen wird'),
+		'die Praemisse dieses Tests gilt nicht mehr: der Zeiger verspricht das Gespraech nicht mehr'
+	)
+
+	const text = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.voll.md'), 'utf8')
+	assert.ok(
+		/^#{2,3} .*gesprochen wird/miu.test(text),
+		'die volle Fassung hat keinen Abschnitt ueber das Gespraech — genau das Versprechen des Zeigers fehlt'
+	)
+
+	// Die Regel selbst, an beiden Stellen, mit dem Datum der Anordnung.
+	const spec = readFileSync(join(PAKET, 'docs', 'TEAM-ARBEITSWEISE.md'), 'utf8')
+	for (const [name, datei] of [['volle Fassung', text], ['Spec', spec]]) {
+		assert.ok(
+			datei.includes('Regeln reisen in Dateien, nicht in Nachrichten'),
+			`${name}: die Regel gegen Regel-Rundrufe fehlt`
+		)
+		assert.ok(
+			datei.includes('2026-11-04'),
+			`${name}: die Anordnung traegt kein Datum`
+		)
+	}
+
+	// Und die Netiquette hat den Punkt, nicht nur der Fliesstext.
+	assert.match(
+		spec,
+		/7\. \*\*Regeln reisen in Dateien/u,
+		'die Netiquette hat den siebten Punkt nicht'
+	)
+})
+
 test('der Anweisungstext ist ein Zeiger, die volle Fassung traegt den neuen Namen', () => {
 	// Die Quelle ist seit dem Zeiger-Umbau die kurze Anweisung, nicht mehr der volle Text.
 	// Sie muss die volle Fassung nennen und darf den alten Namen nicht tragen.

@@ -86,6 +86,37 @@ erklärt der Agent es vollständig und in ganzen Sätzen: Abteilung = Teamsitzun
 Gruppenleiter mit seinen Facharbeitern; gemeinsame Aufgaben = Stand der Arbeit, den Teams Plus anzeigt;
 Facharbeiter = Unteragenten, die im Auftrag des Gruppenleiters arbeiten.
 
+### 7. Wie miteinander gesprochen wird
+
+**Diese Datei verspricht es oben, und bis zum 2026-11-04 stand es hier nicht** — wer den Zeiger aus
+`AGENTS.md` las, fand nur Namen und Karten. Deshalb steht es jetzt hier.
+
+**Die Regel, die am meisten Zeit spart: Regeln reisen in Dateien, nicht in Nachrichten.**
+
+Eine geänderte Projektregel gehört in die Spec oder in `AGENTS.md`, mit Datum und im Wortlaut des
+Menschen. Sie wird **nicht** an die Teammitglieder geschickt. `AGENTS.md` wird in jede Sitzung
+injiziert; eine Nachricht erreicht eine Sitzung, einmal, und kostet zwei Turns. Der Mensch hat das
+am 2026-11-04 angeordnet, wörtlich: *„Einfach nur sinnloser Bloat."*
+
+**Was eine Nachricht ist:**
+- eine konkrete Frage an genau eine Sitzung,
+- ein Auftrag an den, der ihn ausführt,
+- ein Ergebnis an den Vorgesetzten (siehe `docs/TEAM-ARBEITSWEISE.md`, § 7, Netiquette 2).
+
+**Was keine Nachricht ist:**
+- eine Regeländerung, ein Rundruf, „zur Info",
+- die Bestätigung, dass man etwas bekommen hat („habe ich bekommen") — das ist eine Nachricht an
+  niemanden,
+- das Weiterreichen einer Nachricht, weil man selbst sie erhalten hat.
+
+**Wer mit wem (Stufung aus § 6 der Spec):** innerhalb einer Abteilung frei; abteilungsübergreifend
+über die Abteilungsleiter; eine Frage („sitzt jemand an diesem Thema?") ist die einzige Sache, für
+die es später einen direkten Weg geben soll.
+
+**Was das technische Drosseln nicht löst:** `stille-nachrichten` bremst die Menge (20/s plus
+Summenzeile). Es bremst nicht die Nachricht, die man besser gar nicht geschickt hätte. Das leistet
+nur diese Regel.
+
 ### 6. Was Teams Plus nicht ändert
 
 Rollen (`rolle` bei `delegate_task`), Specs, Ziele und Abnahmen laufen wie zuvor. Dieser Abschnitt regelt nur
