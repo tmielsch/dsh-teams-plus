@@ -177,7 +177,7 @@ Was daraus folgt — drei Möglichkeiten:
 klein, aber wichtig: Nicht der Facharbeiter forkt, sondern der Empfänger. Der Facharbeiter schickt nur
 die Meldung. Damit bleibt die Kontrolle dort, wo sie hingehört.
 
-**Diese Entscheidung ist offen** (Frage 4).
+**Entschieden: B.** Das vollstaendige Protokoll steht in § 6a — Ablauf, Begruendung und was noch fehlt.
 
 ### Direkte Kommunikation im Team
 
@@ -363,3 +363,81 @@ Die Reihenfolge, in der das gebaut werden sollte — nicht alles auf einmal:
 Für alles gilt `AGENTS.md` Regel 1: **nichts ohne Red-Team-Pass integrieren.** Und die Lehre aus dem
 letzten Pass: Ein Text, der live gestellt wird, bevor er geprüft ist, ist kein Entwurf — er ist eine
 Entscheidung.
+
+---
+
+## 6a. Fork-Kommunikation — ENTSCHIEDEN, Protokoll (2026-11-04)
+
+**Der Widerspruch, der bis heute in dieser Datei stand:** In der Tabelle der
+offenen Fragen (Frage 4) war Variante **B** längst entschieden, im Text von § 6
+stand aber weiter *„Diese Entscheidung ist offen (Frage 4)."* Wer den Text las
+statt die Tabelle, baute nichts. Das ist korrigiert: **B gilt, und hier steht,
+wie es abläuft.**
+
+### Der Zweck
+
+Zwei Abteilungsleiter wollen ein Fachgespräch führen, **ohne** dass es in ihren
+Hauptsitzungen landet. Jede Hauptsitzung führt ihr Team weiter; das Gespräch
+läuft in einem abgekapselten Kanal, und am Ende steht eine Zusammenfassung in
+beiden Hauptsitzungen.
+
+### Der Ablauf, Schritt für Schritt
+
+Gegeben: A ruft B an. Beide sind Abteilungsleiter (Wurzelsitzungen mit Team).
+
+1. **A schickt B eine Nachricht** über `send_to_session` mit `mode: "auto"`.
+   Seit 2026-11-04 weckt das B wirklich (vorher blieb es als `inject` liegen —
+   siehe `7cc6036`). Die Nachricht enthält den Anlass und den Vorschlag eines
+   Gesprächs.
+2. **B antwortet mit einem Fork von sich.** B startet `subagent` mit
+   `context: "fork"` — der Fork erbt Bs Kontext, ist aber ein eigenes Kind.
+   **B nennt A die Kennung dieses Forks.**
+3. **A forkt sich ebenfalls** (`context: "fork"`) und schickt **seine**
+   Fork-Kennung an Bs Fork.
+4. **Die beiden Forks sprechen miteinander.** Sie sind der abgekapselte Kanal:
+   `send_to_session` zwischen ihnen, ohne dass eine Hauptsitzung belastet wird.
+   Im Fork darf gearbeitet werden — dort gelten die Rollengrenzen nicht.
+5. **Am Ende schickt jeder Fork seiner eigenen Hauptsitzung eine
+   Zusammenfassung.** Damit steht das Ergebnis in beiden Abteilungen, und die
+   Zwischenschritte sind weg.
+
+### Warum es so herum läuft und nicht anders
+
+Ein Fork ist im Harness **immer ein Kind der eigenen Session**
+(`parentAgentOptionsForDelegation(parent)` bindet jedes Kind an den Agenten, der
+es startet). Eine Session kann **keine fremde Session forken**. Deshalb kann A
+nicht „B forken" — nur B kann einen Fork von B machen.
+
+Das ist keine Einschränkung, die man umgehen müsste: Es ist die Rollenverteilung,
+die ohnehin richtig ist. Wer den Kanal öffnet, ist der Angerufene.
+
+### Was noch fehlt, und es ist der nächste Bau
+
+**Die Anrufdatenbank.** Der Mensch will sie: Fork-Kennungen, Anruf-Kennungen und
+Zusammenfassungen an einem Ort, damit eine Session nachsehen kann, ob dasselbe
+Problem schon einmal besprochen wurde. Ohne sie funktioniert der Ablauf oben,
+aber jede Wiederholung beginnt bei null.
+
+Bis dahin gilt: **die Zusammenfassungen gehören aufs Team-Board** (`team_note`),
+nicht in eine Nachricht. Das ist der Ort, der einen Neustart überlebt und den
+man lesen kann, ohne jemanden zu wecken.
+
+### Die Vorkommunikation — und warum sie bisher nicht ankam
+
+Der Mensch hat das Wort benutzt, und er hat recht: Was hilft ein Protokoll, das
+in einer Datei steht, die niemand liest, wenn er es braucht?
+
+**Die Regel muss zu dem Zeitpunkt ankommen, an dem sie gebraucht wird** — nicht
+als Datei, die man aufschlägt. Drei Stellen sind dafür geeignet, in dieser
+Reihenfolge:
+
+1. **Im Werkzeugtext von `send_to_session`**: dort, wo ein Agent die Nachricht
+   abschickt, steht ein Satz, der auf den Fork-Weg verweist.
+2. **Im Werkzeugtext von `spawn_teammate`**: dort, wo ein Team entsteht.
+3. **Als Abschnitt im Systemprompt**, den ein Patch einhängt — so wie
+   `stille-nachrichten` es mit seiner Regel macht.
+
+**Punkt 1 ist gebaut** (siehe `7cc6036`): Der Werkzeugtext nennt jetzt, dass
+eine Wurzel mit Teammitgliedern geweckt wird und eine ohne nur `inject` bekommt.
+Die Sätze zum Fork-Kanal fehlen dort noch — **das ist die nächste Änderung**, und
+sie ist klein.
