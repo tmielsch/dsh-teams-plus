@@ -21,7 +21,8 @@
  *
  * WAS EIN EINTRAG IST — ein Anruf, kein Gesprächsschritt
  *   id            anruf-<n>, fortlaufend, in der Datei geführt
- *   von / an      Sitzungs-Kennungen der beiden Abteilungsleiter
+ *   von / an      Absender und Empfaenger (von klopft an, an wird angerufen);
+ *                 beide duerfen die Zusammenfassung schicken
  *   thema         ein Satz, wonach man später sucht
  *   stand         offen | erledigt | abgebrochen
  *   begonnen      Zeitstempel (ms seit Epoche)
@@ -301,24 +302,34 @@ export function speichereAblage(ablage, pfad = anrufPfad()) {
  * `grosse` und `groesse` jeweils denselben Eintrag.
  */
 export function faltFormen(text) {
-	const klein = String(text ?? "").toLowerCase();
+	const klein = String(text ?? "").normalize("NFC").toLowerCase();
+	// Warum ß NICHT auf das einzelne `s` gefaltet wird — Auflage 2 des dritten
+	// Passes, gemessen: Mit der Einzel-S-Variante fand die Suche nach „Maß"
+	// sieben Eintraege, von denen vier nichts damit zu tun hatten (Maschine,
+	// Master-Branch, Maske, Masterplan). „Öl" fand sechs falsche Treffer
+	// (Kontrolle, holen, Solange, Volk). „schön" fand „schon".
+	//
+	// Die Anforderung des Menschen — mit und ohne Umlaut dasselbe — verliert
+	// dabei nichts: `ß` und `ss` bleiben gleich (`Straße` / `Strasse`), und
+	// Umlaute behalten beide Formen. Nur die ERFUNDENE dritte Schreibweise
+	// „grose" faellt weg, und die hat niemand verlangt.
 	const stellen = [
 		["ä", ["a", "ae"]],
 		["ö", ["o", "oe"]],
 		["ü", ["u", "ue"]],
-		["ß", ["s", "ss"]]
+		["ß", ["ss"]]
 	];
 	let formen = [klein];
 	for (const [zeichen, ersatz] of stellen) {
-		const neu = [];
+		const neue = [];
 		for (const form of formen) {
 			if (form.includes(zeichen) === false) {
-				neu.push(form);
+				neue.push(form);
 				continue;
 			}
-			for (const e of ersatz) neu.push(form.split(zeichen).join(e));
+			for (const e of ersatz) neue.push(form.split(zeichen).join(e));
 		}
-		formen = neu;
+		formen = neue;
 	}
 	return [...new Set(formen)];
 }
@@ -435,8 +446,9 @@ export function trageFork(ablage, id, fork) {
 }
 
 /**
- * Einen Anruf schliessen. **Ohne Zusammenfassung ist das verboten** — das ist
- * die eiserne Regel aus § 6b.
+ * Einen Anruf schliessen. **Ohne Zusammenfassung ist das verboten** — WENN
+ * geschlossen wird, muss ein Ergebnis vorliegen. (Ein Anruf muss aber nicht
+ * geschlossen werden; er ruht einfach. Siehe Modulkopf.)
  *
  * Ein zweites Schliessen ueberschreibt die Zusammenfassung. Kein Verlauf je
  * Fassung: zwei Wahrheiten laufen irgendwann auseinander (Modulkopf).
@@ -599,8 +611,10 @@ export function apply(ctx, optionen = {}) {
 						"`oeffnen` needs `an` (the other session id) and `thema` (one line, what it is about), plus optional",
 						"`stichworte` — the words you would SEARCH for later, not the words of the topic. Returns the call id.",
 						"`fork` carries a fork id into an open call (both sides, as they become known).",
-						"`schliessen` needs `id` and `zusammenfassung`. THE IRON RULE: a call is closed only WITH a summary.",
-						"  A call left open stays visible as `offen` and keeps bothering you — that is intended.",
+						"`schliessen` needs `id` and `zusammenfassung`, and only the two sessions of the call (`von` or `an`)",
+						"  may close it. IF you close it, you must give a summary — a closed call without one is an empty field.",
+						"  A call does NOT have to be closed. It simply rests as `offen` until someone uses it again;",
+						"  nothing nags you about it.",
 						"`lesen` returns one call in full.",
 						"",
 						"SEARCH: use `team_anrufe` (see below). Looking is the point of this register, not filling it."
@@ -657,7 +671,7 @@ export function apply(ctx, optionen = {}) {
 										stichworte: args.stichworte
 									});
 									speichereAblage(neu, pfad);
-									return { ok: true, anruf: eintrag, note: `opened ${eintrag.id}; close it only with a summary` };
+									return { ok: true, anruf: eintrag, note: `opened ${eintrag.id}; it rests until someone closes it with a summary` };
 								}
 								if (aktion === "fork") {
 									const { ablage: neu, eintrag } = trageFork(ablage, args.id, args.fork);
@@ -700,8 +714,8 @@ export function apply(ctx, optionen = {}) {
 						"Without `suche` you get every entry (id, topic, state, date). With `suche` it is a full-text search",
 						"over topic, summary AND keywords — the keywords are why you find what you did not name exactly.",
 						"",
-						"Entries with state `offen` are calls that were never closed with a summary. They stay visible on",
-						"purpose: a call without an outcome is not an outcome."
+						"Calls with state `offen` are simply resting — that is normal, not a fault. Nobody has to close them.",
+						"Only a call that WAS closed carries a summary."
 					].join("\n"),
 					parameters: {
 						suche: { type: "string", description: "Free text. Empty or omitted returns everything." },
@@ -741,7 +755,7 @@ export function apply(ctx, optionen = {}) {
 								eintraege: zeilen,
 								note: zeilen.length === 0
 									? "the register holds no matching call"
-									: `${zeilen.length} call(s); open ones have no summary yet`
+									: `${zeilen.length} call(s)`
 							};
 						} catch (fehler) {
 							// Eine kaputte Ablage wird LAUT gemeldet, nicht als leer ausgegeben.

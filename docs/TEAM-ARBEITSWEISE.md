@@ -522,6 +522,18 @@ also von `von` oder `an`. Eine dritte Sitzung löst sie nicht aus.
 4. Eine kaputte Datei wird laut gemeldet und nicht als leeres Verzeichnis
    ausgegeben.
 5. Gegenprobe am Code: die Suche ausbauen (immer alle Treffer) → Test 2 rot.
+6. Umlaute: mit Umlaut, mit UE und ohne findet dasselbe (`lösung`, `losung`,
+   `loesung`, `LÖSUNG`; `Größe`, `grosse`, `groesse`; `Straße`, `strasse`) —
+   **und die Gegenrichtung: die Faltung findet nicht zu viel.** `Maß` darf
+   `Maschine` nicht finden. Gemessen am 2026-11-04: mit einer ß→s-Faltung fand
+   `Maß` vier falsche Treffer von sieben.
+7. Nur die beiden Gesprächsteilnehmer schließen (`von` oder `an`); eine dritte
+   Sitzung wird abgewiesen, und der Eintrag bleibt unverändert offen.
+
+**Unvermeidbare Folge der Umlaut-Regel:** Wer „mit und ohne Umlaut dasselbe“
+will, bekommt `ö` → `o`, und damit findet `schon` auch `schön`. Das ist kein
+Fehler, sondern die Anforderung selbst; ein Test hält es fest, damit es nicht
+später „repariert“ wird.
 
 ### Was ausdrücklich NICHT dazugehört
 

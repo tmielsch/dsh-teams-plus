@@ -171,8 +171,8 @@ beim Start.
 
 ### Stand
 
-`npm test`: **214/214 grün**. Fünf Mutationen wurden gefahren (Schema-Feld
+`npm test`: **219/219 grün**. Fünf Mutationen wurden gefahren (Schema-Feld
 entfernt, Sperre umgangen, Kennungsrechnung zurückgedreht, Normalisierung
 ausgelassen, Protokoll stummgeschaltet); jede machte den zugehörigen Test rot.
 
-**Eingebaut ist weiterhin nichts.** Der zweite Pass steht aus.
+**Eingebaut ist weiterhin nichts.** Der dritte Pass gab FREIGABE MIT AUFLAGEN; die Auflagen sind erfuellt.

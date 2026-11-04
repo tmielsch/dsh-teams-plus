@@ -408,6 +408,110 @@ test("Umlaute: mit Umlaut, mit UE und ohne finden dasselbe", () => {
 	}
 })
 
+test("die Texte, die das Modell liest, tragen die neue Regel — nicht die alte", async () => {
+	// HOCH-1 des dritten Passes, gemessen: Spec und Modulkopf waren nachgezogen,
+	// die BESCHREIBUNGSTEXTE der beiden Werkzeuge nicht. Da stand weiter
+	// „THE IRON RULE: a call is closed only WITH a summary", „keeps bothering
+	// you — that is intended" und „a call without an outcome is not an outcome".
+	//
+	// Das ist die Ausgabe, die das Modell tatsaechlich liest — der Modulkopf
+	// interessiert es nicht. Ein Text, der dem Modell eine Regel sagt, die der
+	// Mensch aufgehoben hat, ist ein Fehler, auch wenn kein Codepfad ihn prueft.
+	const { createRequire } = await import("node:module")
+	const kandidaten = []
+	try {
+		kandidaten.push(createRequire(import.meta.url).resolve("@deepseek-ai/dsh-tools/lib/index.js"))
+	} catch { /* liegt nicht im Suchpfad */ }
+	for (const basis of [
+		"/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+		join(homedir(), ".npm-global", "lib", "node_modules", "@deepseek-ai", "dsh", "node_modules"),
+		"/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules"
+	]) {
+		kandidaten.push(join(basis, "@deepseek-ai", "dsh-tools", "lib", "index.js"))
+	}
+	const rahmen = kandidaten.find((pfad) => existsSync(pfad))
+	if (rahmen === undefined) assert.fail("der Werkzeug-Rahmen ist nicht auffindbar")
+	await import(rahmen)
+
+	const ort = werkstatt()
+	try {
+		const registriert = []
+		const ctx = {
+			logger: { info() {}, warn() {} },
+			effect(fn) { fn(); return () => {} },
+			tools: { register: (d) => { registriert.push(d); return () => {} } },
+			get: () => undefined
+		}
+		modul.apply(ctx, { pfad: ort.pfad, sperre: (_p, aktion) => aktion() })
+		for (let i = 0; i < 150 && registriert.length < 2; i += 1) {
+			await new Promise((fertig) => setTimeout(fertig, 20))
+		}
+		assert.equal(registriert.length, 2)
+
+		const alle = registriert.map((w) => w.description ?? "").join("\n")
+		// Die alte Regel darf nirgends mehr stehen.
+		for (const verboten of [
+			"IRON RULE",
+			"keeps bothering",
+			"a call without an outcome is not an outcome",
+			"close it only with a summary"
+		]) {
+			assert.equal(
+				alle.includes(verboten),
+				false,
+				`der veraltete Text ${JSON.stringify(verboten)} steht noch in der Werkzeugbeschreibung`
+			)
+		}
+		// Und die neue Regel steht da.
+		assert.match(alle, /does NOT have to be closed/u, "die Beschreibung muss sagen, dass ein Anruf nicht geschlossen werden muss")
+		assert.match(alle, /resting|rests/u, "die Beschreibung muss den ruhenden Kanal nennen")
+		assert.match(alle, /von`? or `?an|only the two sessions/u, "die Beschreibung muss die Teilnehmer-Regel nennen")
+	} finally {
+		ort.aufraeumen()
+	}
+})
+
+test("Umlaute: die Faltung findet NICHT zu viel", () => {
+	// Auflage 2 des dritten Passes, gemessen: Die erste Fassung faltete ß auch
+	// auf das einzelne `s`. Damit fand die Suche nach „Maß" sieben Eintraege,
+	// von denen vier nichts damit zu tun hatten (Maschine, Master-Branch, Maske,
+	// Masterplan); „Öl" fand sechs falsche Treffer (Kontrolle, holen, Solange,
+	// Volk); „schön" fand „schon".
+	//
+	// Die Zusicherungen im Test oben sind alle `length === 1` — sie koennen nur
+	// durch FEHLENDE Treffer rot werden. Deshalb steht hier die Gegenrichtung:
+	// was NICHT gefunden werden darf.
+	const ablage = modul.leereAblage()
+	const a = modul.oeffneAnruf(ablage, { von: "a", an: "b", thema: "Die Maschine läuft", jetzt: 1 })
+	const b = modul.oeffneAnruf(a.ablage, { von: "c", an: "d", thema: "Master-Branch aufräumen", jetzt: 2 })
+	const c = modul.oeffneAnruf(b.ablage, { von: "e", an: "f", thema: "Das Maß der Dinge", jetzt: 3 })
+	const d = modul.oeffneAnruf(c.ablage, { von: "g", an: "h", thema: "Es ist schon fertig", jetzt: 4 })
+
+	// "Maß" darf nur den Maß-Eintrag finden, nicht Maschine oder Master-Branch.
+	const mass = modul.sucheAnrufe(d.ablage, "Maß")
+	assert.equal(mass.length, 1, `"Maß" darf nur einen Treffer haben, hatte aber ${mass.length}`)
+	assert.equal(mass[0].thema, "Das Maß der Dinge")
+
+	// "schon" findet "schon" — und, als FOLGE der Anforderung, auch "schön".
+	// Das ist keine Nachlaessigkeit, sondern unvermeidbar: wer "mit und ohne
+	// Umlaut dasselbe" will, bekommt ö→o, und damit wird aus "schön" ein
+	// "schon". Der Test haelt das fest, damit es nicht spaeter als Fehler
+	// gemeldet und dann "repariert" wird.
+	const schon = modul.sucheAnrufe(d.ablage, "schon")
+	assert.ok(schon.length >= 1, "schon muss den eigenen Eintrag finden")
+	assert.equal(
+		modul.sucheAnrufe(d.ablage, "schön").length,
+		1,
+		"die Umlaut-Faltung macht aus schön ein schon — bekannte Folge, kein Fehler"
+	)
+
+	// Und die Anforderung bleibt erfuellt: Straße und Strasse sind dasselbe.
+	const e = modul.oeffneAnruf(d.ablage, { von: "i", an: "j", thema: "Die Straße sperren", jetzt: 5 })
+	for (const suche of ["straße", "strasse", "STRASSE"]) {
+		assert.equal(modul.sucheAnrufe(e.ablage, suche).length, 1, `"${suche}" muss die Straße finden`)
+	}
+})
+
 test("nur die beiden Gespraechsteilnehmer duerfen einen Anruf schliessen", async () => {
 	// Entscheidung des Menschen 2026-11-04: „Diese Summary kommt dann halt fuer
 	// beide, kann aber von beiden Gespraechsteilnehmern getriggert werden."
