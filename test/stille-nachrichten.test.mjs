@@ -149,3 +149,81 @@ test("auch der Weg ueber agent_id liefert ein schemakonformes Ergebnis", async (
 	const text = teile.map((teil) => teil.text ?? "").join(" ");
 	assert.match(text, /kind1/u, "der Hinweis nennt die Kind-Sitzung — im Text");
 });
+
+/* -----------------------------------------------------------------------------
+ * Der Hinweis ist pro DEFINITION geteilt, nicht pro Aufruf (`letzterHinweis` im
+ * Patch). Im Betrieb gemessen am 2026-11-05: ein normaler Aufruf OHNE quiet-Feld
+ * gab die Hinweiszeile eines FRUEHEREN quiet-Aufrufs in derselben Definition
+ * zurueck — „quiet: die Nachricht ging nur an \"toolchain-audit\"", waehrend der
+ * target exakt „workflow-expert" war; und mit ausdruecklich `quiet: false`
+ * geschrieben, dieselbe Zeile. Die Zustellung landete am richtigen Ziel, die
+ * Anzeige nannte einen fremden Namen, und auch der Empfinger sah die falsche
+ * Adresse (seine eigene stille Zustellung stand in der geteilten Variable).
+ * Diese Tests lassen den Fehler nicht zurueck: ein normaler Aufruf rendert nur,
+ * was ihm gehoert.
+ * --------------------------------------------------------------------------- */
+
+/** Zwei Aufrufe an EINER Definition: erst still an `experte`, dann ein normaler
+ *  an `auditor`. Jede Anzeige wird direkt nach IHRER Zustellung gerendert — der
+ *  Hinweis ist pro Definition geteilt, ein spaeteres Rendern rueckt an der
+ *  Vergangenheit, genau das ist der Defekt. Der Team-Dienst protokolliert seinen
+ *  Aufruf, damit die Zustellung gemessen wird und nicht nur die Anzeige. */
+async function zweiAufrufe(definition, zweiter) {
+	const zustaellungen = [];
+	erweitereDefinition(definition, {
+		protokoll: () => {},
+		teams: () => ({
+			membership: () => ({ name: "lead" }),
+			sendMessage: async (_sender, optionen) => {
+				zustaellungen.push(optionen.target);
+				return { messageId: `m-${zustaellungen.length}` };
+			}
+		})
+	});
+
+	const stille = await definition.execute(
+		{ target: "experte", message: "hallo unter vier Augen", quiet: true },
+		{ agent: { id: "s" } }
+	);
+	const stilleText = definition.output
+		.render({ target: "experte" }, stille)
+		.map((teil) => teil.text ?? "")
+		.join(" ");
+
+	const normale = await definition.execute(zweiter, { agent: { id: "s" } });
+	const normaleText = definition.output
+		.render(zweiter, normale)
+		.map((teil) => teil.text ?? "")
+		.join(" ");
+
+	return { stilleText, normaleText, zustaellungen };
+}
+
+test("ein normaler Aufruf nach einer stillen rendert den fremden Hinweis NICHT", async () => {
+	const definition = nachbau();
+	const zweiter = { target: "auditor", message: "ganz normal, ohne quiet" };
+	const { normaleText, zustaellungen } = await zweiAufrufe(definition, zweiter);
+
+	assert.deepEqual(zustaellungen, ["experte"], "die stille Zustellung geht an ihren eigenen target; ein normaler Aufruf laeuft durch die Grund-execute und nicht durch den Team-Dienst");
+	assert.ok(!/quiet/u.test(normaleText), `ein normaler Aufruf darf keinen fremden Hinweis rendiern: ${normaleText}`);
+	assert.ok(!/experte/u.test(normaleText), "der Empfinger des frueheren stillen Aufrufs darf nicht in dieser Anzeige stehen");
+	assert.match(normaleText, /delivered/u, "Positivkontrolle: die Grundanzeige selbst bleibt stehen");
+});
+
+test("POSITIVKONTROLLE: der stille Aufruf rendert seinen eigenen Hinweis weiter", async () => {
+	const definition = nachbau();
+	const { stilleText } = await zweiAufrufe(definition, { target: "auditor", message: "ganz normal" });
+
+	assert.match(stilleText, /quiet/u, "der stille Aufruf muss seinen eigenen Hinweis zeigen — sonst beweist der erste Test nur das Loeschen");
+	assert.match(stilleText, /experte/u, "und er nennt seinen eigenen Empfinger");
+});
+
+test("ein Aufruf mit quiet:false nach einer stillen rendert den fremden Hinweis NICHT", async () => {
+	const definition = nachbau();
+	const zweiter = { target: "auditor", message: "quiet explizit false", quiet: false };
+	const { normaleText, stilleText } = await zweiAufrufe(definition, zweiter);
+
+	assert.ok(!/quiet:/u.test(normaleText), `bei quiet:false darf kein Hinweis stehen, der von einem frueheren Aufruf stammt: ${normaleText}`);
+	assert.match(normaleText, /delivered/u, "Positivkontrolle: die Grundanzeige bleibt stehen");
+	assert.match(stilleText, /quiet:/u, "Gegenprobe: dieselbe Definition zeigt dem stillen Aufruf seinen Hinweis — das Loeschen gilt allein dem normalen Aufruf");
+});

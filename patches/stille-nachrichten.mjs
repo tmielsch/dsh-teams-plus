@@ -288,7 +288,20 @@ export function erweitereDefinition(definition, umgebung) {
 	}
 
 	definition.execute = async function (args, exec) {
-		if (args.quiet !== true) return grundExecute.call(this, args, exec);
+		// Der Hinweis ist pro DEFINITION geteilt, nicht pro Aufruf (`letzterHinweis`
+		// oben). Im Betrieb gemessen am 2026-11-05: ein normaler Aufruf ohne `quiet`
+		// gab die Hinweiszeile eines frueheren quiet-Aufrufs in derselben Scope-Definition
+		// zurueck — „quiet: die Nachricht ging nur an \"toolchain-audit\"", gesendet an
+		// einen anderen Empfinger, mit und ohne gesetztes Feld. Die Zustellung war
+		// richtig, die Anzeige nicht, und auch der Empfinger sah die falsche Adresse
+		// (seine eigene stille Zustellung stand in der geteilten Variable).
+		// Ein normaler Aufruf rendert also nur, was ihm gehoert: der Hinweis wird vor
+		// der Grund-execute geleert. Der ruhende Zweig braucht das nicht — dort schreibt
+		// execute den Hinweis frisch.
+		if (args.quiet !== true) {
+			letzterHinweis = "";
+			return grundExecute.call(this, args, exec);
+		}
 		const nachricht = args?.message;
 		if (typeof nachricht !== "string" || nachricht.length === 0) {
 			throw new Error("`message` fehlt: eine Nachricht ohne Text kann nicht zugestellt werden.");
