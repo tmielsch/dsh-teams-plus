@@ -143,6 +143,23 @@ const SHA256_ABWEICHEND = {
 	//  (3) die Prompt-Regel wurde ueber das Agenten-OBJEKT geschluesselt und bei jeder
 	//      Neuerzeugung erneut eingetragen, ohne den alten Eintrag abzumelden — die Regel stand
 	//      in der Test-Sitzung mehr als 20-mal im System-Prompt.
+	// (5) am 2026-11-05: `letzterHinweis = "";` im Nicht-quiet-Zweig der execute.
+	//      Der Hinweis ist pro DEFINITION geteilt, nicht pro Aufruf; Zeile 291 gab die
+	//      Grund-execute zurueck, ohne die Variable zu leeren, und `render` (Zeile 282-287)
+	//      liest sie beim Anzeigen. Im Betrieb gemessen, an mir und am Lead: der Lead sandte
+	//      zweimal an "workflow-expert" (`team-message-b7d7a880`, `team-message-e32146e7` — das
+	//      Feld einmal nicht geschrieben, einmal ausdruecklich `quiet: false`) und bekam jedesmal
+	//      „quiet: die Nachricht ging nur an \"toolchain-audit\""; seine drei frueheren Sends
+	//      (`a4e0a049`, `bdce4d14`, `3a70ed24`) waren echte Fehlzustellungen — sie stehen nicht in
+	//      seinem Posteingang. Seine zwei Testfaelle an ihm (`team-message-e0228b9f` ohne Feld,
+	//      `team-message-cd4e1092` mit `quiet: true`) kamen bei ihm BEIDE als normale
+	//      Team-Nachrichten ohne quiet-Anzeige an — die Zustellung landete am richtigen Ziel, die
+	//      Anzeige war auf beiden Seiten falsch (sein Unteragent `77e0c90c` empfing Fall 2 mit
+	//      dem Vermerk und derselben falschen Adresse). Die Zeile in Zeile 291 wird vor der
+	//      Grund-execute geleert; der ruhende Zweig braucht das nicht, weil execute dort den
+	//      Hinweis frisch schreibt. Beleg: test/stille-nachrichten.test.mjs, drei neue Faelle mit
+	//      Positivkontrolle und Gegenprobe; Mutationsprobe: die Klar-Zeile herausgenommen, die
+	//      Faelle 6 und 8 fallen (6 bestanden / 2 fehlgeschlagen), wiederhergestellt 8 bestanden.
 	// (4) am 2026-11-04: das Ergebnis der stillen Nachricht trug ein Feld `note`.
 	//      Das Ausgabeschema von `send_message` hat `additionalProperties: false` und
 	//      kennt nur `messageId` — der Kern verwarf deshalb JEDES Ergebnis:
@@ -163,7 +180,7 @@ const SHA256_ABWEICHEND = {
 	//      Modell-Input (Spawn-Prompt und System-Sektion). Die Sektion traegt sie allein;
 	//      Begruendung und gemessener Beleg stehen bei `kaskadenRegelTraeger`;
 	//  (3) die Drossel-Summenzeile wird jetzt auch bei Ruhe geschrieben (Timer mit unref).
-	'stille-nachrichten.mjs': 'e2b8dbb41695cd6dfb8a2abe8adc26c56f5192ce53ec5230b5b832e440db85bc'
+	'stille-nachrichten.mjs': '7cfb2a709c2c458f8d4550712425b21d3214cc638e4e97c4b1be40b0516a018b'
 }
 
 /**
