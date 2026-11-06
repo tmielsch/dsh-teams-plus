@@ -569,6 +569,30 @@ test('Befehle werden nicht bestaetigt: die Regel steht im Zeiger, in der vollen 
 	assert.ok(rohZeiger.length < 2000, `der Zeiger ist mit ${rohZeiger.length} Zeichen kein Zeiger mehr`)
 })
 
+test('die Anweisungsdateien sind eigenstaendig: kein Verweis auf docs/ oder „die Spec“, den ein Agent in einem fremden Projekt nicht aufloesen kann', () => {
+	// Gemessen am 2026-11-06: voll.md verwies dreimal auf docs/TEAM-ARBEITSWEISE.md. Diese Datei wird
+	// aber NICHT ausgeliefert (package.json "files" fuehrt docs/ nicht) und liegt weder unter
+	// ~/.dsh/.tm/teams-plus noch auf dem Server. Eine andere Sitzung hat es als Loch gemeldet: sie
+	// suchte den Pfad in einem anderen Projekt und fand ihn nicht. Was ein Agent lesen soll, muss in
+	// der Datei stehen, die er tatsaechlich bekommt.
+	for (const name of ['teams-plus-agents.md', 'teams-plus-agents.voll.md']) {
+		const text = readFileSync(join(PAKET, 'agents', name), 'utf8')
+		const treffer = text.match(/docs\/[A-Za-z0-9_.-]+|der Spec\b|\bSpec, §|§ ?\d+ der Spec/gu) ?? []
+		assert.deepEqual(treffer, [], `${name}: Verweis ins Leere: ${treffer.join(' | ')}`)
+	}
+
+	// Und die Auslieferung: wuerde docs/ mitgeliefert, waere der Verweis in Ordnung. Er ist es nicht.
+	const paket = JSON.parse(readFileSync(join(PAKET, 'package.json'), 'utf8'))
+	assert.ok(!paket.files.includes('docs'), 'docs/ wird jetzt ausgeliefert — dann darf diese Pruefung gelockert werden, aber nur bewusst')
+
+	// Der Fall, der gefehlt hat: eine Betriebs-Banalitaet ist keine Nachricht, und zwar im Zeiger,
+	// weil nur der in JEDE Sitzung kommt.
+	const zeiger = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.md'), 'utf8').replace(/\s+/gu, ' ')
+	const voll = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.voll.md'), 'utf8').replace(/\s+/gu, ' ')
+	assert.ok(zeiger.includes('Worker ist geweckt'), 'der Zeiger nennt die Banalitaet „Worker ist geweckt“ nicht')
+	assert.ok(voll.includes('Worker ist geweckt'), 'die volle Fassung nennt die Banalitaet „Worker ist geweckt“ nicht')
+})
+
 test('der Anweisungstext ist ein Zeiger, die volle Fassung traegt den neuen Namen', () => {
 	// Die Quelle ist seit dem Zeiger-Umbau die kurze Anweisung, nicht mehr der volle Text.
 	// Sie muss die volle Fassung nennen und darf den alten Namen nicht tragen.

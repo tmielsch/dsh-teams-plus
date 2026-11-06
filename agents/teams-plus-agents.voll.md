@@ -101,13 +101,15 @@ am 2026-11-04 angeordnet, wörtlich: *„Einfach nur sinnloser Bloat."*
 **Was eine Nachricht ist:**
 - eine konkrete Frage an genau eine Sitzung,
 - ein Auftrag an den, der ihn ausführt,
-- ein Ergebnis an den Vorgesetzten (siehe `docs/TEAM-ARBEITSWEISE.md`, § 7, Netiquette 2).
+- ein Ergebnis an den Vorgesetzten, mit Beleg (Pfad, Messung, Prüfsumme) — an ihn, nicht an das ganze Team.
 
 **Was keine Nachricht ist:**
 - eine Regeländerung, ein Rundruf, „zur Info",
 - die Bestätigung, dass man etwas bekommen hat („habe ich bekommen") — das ist eine Nachricht an
   niemanden,
-- das Weiterreichen einer Nachricht, weil man selbst sie erhalten hat.
+- das Weiterreichen einer Nachricht, weil man selbst sie erhalten hat,
+- eine Betriebs-Banalität: „Worker ist geweckt", „Datei kopiert", „Befehl ausgeführt", „Neustart gemacht".
+  Das ist die Ausführung eines Befehls, kein Ergebnis — der Absender hat den Befehl gegeben und plant mit ihr.
 
 **Befehle werden ausgeführt, nicht bestätigt** (Anordnung des Menschen 2026-11-06, wörtlich: *„für jeden
 verschissenen Befehl auch noch eine Bestätigung die ganze Kette wieder rauf zu schicken, nur um im Worst
@@ -124,9 +126,11 @@ Case wieder eine Antwort auf die Antwort nach unten zu triggern"*).
   Empfängers kostet zwei Turns und meldet nichts Neues. Wer mehr wissen will, fragt das System
   (`list_agents`, eine Datei), nicht den Agenten.
 - **Beide Hälften gehören zusammen:** Wer sich auf Schweigen verlässt, muss sich darauf verlassen können,
-  dass ein Scheitern nie still bleibt. Vollständig: `docs/TEAM-ARBEITSWEISE.md`, § 7, Netiquette 8.
+  dass ein Scheitern nie still bleibt. Ein Agent, der abstürzt, bevor er das Scheitern melden konnte, meldet
+  nichts: wer etwas Wichtiges von einem Befehl abhängig macht, prüft die Wirkung am System (Status, Datei,
+  Prüfsumme), nicht beim Empfänger.
 
-**Wer mit wem (Stufung aus § 6 der Spec):** innerhalb einer Abteilung frei; abteilungsübergreifend
+**Wer mit wem:** innerhalb einer Abteilung frei; abteilungsübergreifend
 über die Abteilungsleiter; eine Frage („sitzt jemand an diesem Thema?") ist die einzige Sache, für
 die es später einen direkten Weg geben soll.
 

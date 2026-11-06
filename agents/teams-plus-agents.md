@@ -12,6 +12,7 @@ statt zu delegieren.
 Für kleine Handgriffe (eine Datei nachsehen, eine Frage beantworten) gilt sie nicht.
 
 **Befehle werden nicht bestätigt — diese Regel gilt immer, wenn Sitzungen einander Aufträge geben.**
-Ein Befehl wird ausgeführt, und Schweigen heißt: erledigt. Gemeldet wird nur, was nicht ging (einmal,
-an den Absender, mit Grund) oder ein Ergebnis, das der Auftrag verlangt hat. Ein Bericht wird nicht
+Ein Befehl wird ausgeführt, und Schweigen heißt: erledigt — auch Banales wie „Worker ist geweckt" oder
+„Datei kopiert" wird nicht gemeldet. Gemeldet wird nur, was nicht ging (einmal, an den Absender, mit
+Grund) oder ein Ergebnis, das der Auftrag verlangt hat. Ein Bericht wird nicht
 beantwortet, außer er enthält eine Frage. Keine „habe ich gemacht"-, „verstanden"- oder „danke"-Nachricht.
