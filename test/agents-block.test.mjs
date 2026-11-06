@@ -21,6 +21,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdir
 import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { baueBlock } from '../scripts/agents-block.mjs'
 
 const PAKET = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SKRIPT = join(PAKET, 'scripts', 'agents-block.mjs')
@@ -299,7 +300,13 @@ test('~/.dsh/AGENTS.md bleibt unberuehrt (Pruefsumme vor und nach dem Test gleic
 	try {
 		copyFileSync(echt, ort.target)
 		const status = rufe(ort, '--status')
-		assert.equal(status.status, text.includes(BEGIN) ? 0 : 1, 'der status gegen eine Kopie ist unstimmig')
+		// --status meldet 0 nur, wenn der Block DA UND AKTUELL ist. „Da" allein genuegt nicht: aendert sich
+		// der Zeiger im Paket (2026-11-06: Regel „Befehle werden nicht bestaetigt"), steht der alte Block
+		// weiter in der Datei und ist veraltet — bis jemand `--install` ausfuehrt. Der Test hatte beides
+		// gleichgesetzt und wurde dadurch bei JEDER Aenderung des Zeigers rot, obwohl nichts kaputt war.
+		const quelle = readFileSync(QUELLE, 'utf8')
+		const aktuell = text.includes(baueBlock(quelle))
+		assert.equal(status.status, aktuell ? 0 : 1, 'der status gegen eine Kopie ist unstimmig')
 		if (alt) assert.match(status.stdout, /alter PROJECTOS-Block vorhanden/u)
 	} finally {
 		ort.aufraeumen()

@@ -109,6 +109,23 @@ am 2026-11-04 angeordnet, wörtlich: *„Einfach nur sinnloser Bloat."*
   niemanden,
 - das Weiterreichen einer Nachricht, weil man selbst sie erhalten hat.
 
+**Befehle werden ausgeführt, nicht bestätigt** (Anordnung des Menschen 2026-11-06, wörtlich: *„für jeden
+verschissenen Befehl auch noch eine Bestätigung die ganze Kette wieder rauf zu schicken, nur um im Worst
+Case wieder eine Antwort auf die Antwort nach unten zu triggern"*).
+
+- **Ein Befehl wird ausgeführt, und Schweigen heißt: erledigt.** Weist der Team Lead einen Abteilungsleiter
+  an, einen Worker zu wecken, dann weckt der Leiter ihn und meldet **nichts** zurück. Keine „habe ich
+  gemacht"-, keine „verstanden"-, keine „danke"-Nachricht, weder hinauf noch hinunter.
+- **Gemeldet wird nur, was nicht geschah** (einmal, an den Absender, mit Grund und Beleg) **oder ein Ergebnis,
+  das der Auftrag verlangt hat** (Plan, Messung, Bild, Pfad). Der Empfänger, der einen Befehl für falsch oder
+  unausführbar hält, sagt das einmal, statt still abzuweichen.
+- **Ein Bericht wird nicht beantwortet,** außer er enthält eine Frage oder verlangt eine Entscheidung.
+- **Warum:** `send_message` liefert die Zustellbestätigung (`messageId`) im selben Turn selbst; eine Quittung des
+  Empfängers kostet zwei Turns und meldet nichts Neues. Wer mehr wissen will, fragt das System
+  (`list_agents`, eine Datei), nicht den Agenten.
+- **Beide Hälften gehören zusammen:** Wer sich auf Schweigen verlässt, muss sich darauf verlassen können,
+  dass ein Scheitern nie still bleibt. Vollständig: `docs/TEAM-ARBEITSWEISE.md`, § 7, Netiquette 8.
+
 **Wer mit wem (Stufung aus § 6 der Spec):** innerhalb einer Abteilung frei; abteilungsübergreifend
 über die Abteilungsleiter; eine Frage („sitzt jemand an diesem Thema?") ist die einzige Sache, für
 die es später einen direkten Weg geben soll.

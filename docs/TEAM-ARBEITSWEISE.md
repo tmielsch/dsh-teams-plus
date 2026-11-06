@@ -221,7 +221,8 @@ Verlust. Wer eine Erkenntnis im Kopf behält, verliert sie. Wer sie ins Team sch
 1. **Vor dem Handeln fragen: Wer ist zuständig?** Wer selbst arbeitet, ohne zu prüfen, ob eine
    Arbeitsgruppe dafür existiert, bricht die Ordnung.
 2. **Abgeschlossenes wird berichtet, nicht behalten.** An den Vorgesetzten, mit Beleg — an **ihn**,
-   nicht an das ganze Team. Ein Rundruf ist kein Bericht.
+   nicht an das ganze Team. Ein Rundruf ist kein Bericht. Berichtet wird ein **Ergebnis** (ein Plan, eine
+   Messung, ein Pfad), nicht die **Ausführung eines Befehls** — siehe Netiquette 8.
 3. **Entscheidungen werden nicht geraten.** Gehört eine Entscheidung dem Menschen, wird gefragt — und
    wenn keine Antwort kommt, wird **gewartet**, nicht entschieden.
 4. **Melden, was offen blieb.** Ein Bericht, der nur Erfolge nennt, ist ein unvollständiger Bericht.
@@ -232,6 +233,10 @@ Verlust. Wer eine Erkenntnis im Kopf behält, verliert sie. Wer sie ins Team sch
 7. **Regeln reisen in Dateien, nicht in Nachrichten.** Eine geänderte Regel wird an **einer** Stelle
    eingetragen — in der Spec oder in `AGENTS.md`, mit Datum und im Wortlaut des Menschen. Sie wird
    **nicht** an die Teammitglieder verschickt. Siehe den Abschnitt darunter.
+8. **Befehle werden ausgeführt, nicht bestätigt.** Wer einen Befehl gibt, verlässt sich darauf, dass er
+   ausgeführt wird. **Schweigen heißt: erledigt.** Gemeldet wird nur, was nicht geschah, oder ein
+   Ergebnis, das der Auftrag ausdrücklich verlangt hat. Siehe den Abschnitt „Befehle werden ausgeführt,
+   nicht bestätigt".
 
 ### Was nicht per Nachricht läuft (Anordnung des Menschen 2026-11-04)
 
@@ -264,6 +269,60 @@ das umsonst zu haben wäre.
 **Drei Sitzungen werden von einer Regeländerung nicht benachrichtigt:** Wer sie braucht, liest sie —
 dafür ist die Datei da. Und wer sie nicht liest, dem hilft auch die Nachricht nicht, weil sie in
 seinem Kontext verdampft.
+
+### Befehle werden ausgeführt, nicht bestätigt (Anordnung des Menschen 2026-11-06)
+
+Der Mensch, wörtlich:
+
+> „Was wir brauchen, ist ein Anweisungsupdate, so dass Agent Teams sich einfach darauf verlassen können,
+> dass Dinge passieren und zurückgemeldet werden. Wenn ein TL einen AG-Leiter anweist, einen Worker zu
+> wecken, dann ist das etwas, das nicht wieder zurückgemeldet werden muss. Das können wir uns in Agent
+> Teams nicht leisten: für jeden verschissenen Befehl auch noch eine Bestätigung die ganze Kette wieder
+> rauf zu schicken, nur um im Worst Case wieder eine Antwort auf die Antwort nach unten zu triggern."
+
+**Der Vertrag, auf den sich jedes Teammitglied verlassen darf:**
+
+1. **Ein Befehl wird ausgeführt.** Wer ihn gibt, plant mit der Ausführung, ohne auf eine Quittung zu warten.
+2. **Schweigen heißt: erledigt.** Es gibt keine „habe ich gemacht"-Nachricht, keine „verstanden"-Nachricht
+   und keine „danke"-Nachricht — weder hinauf noch hinunter.
+3. **Gemeldet wird in genau zwei Fällen.** Erstens, wenn es **nicht** ging: der Befehl ist unausführbar, das
+   Werkzeug hat einen Fehler geliefert, die Voraussetzung fehlt — dann einmal, an den Absender, mit Grund und
+   Beleg. Zweitens, wenn der Auftrag ein **Ergebnis** verlangt hat (einen Plan, eine Messung, ein Bild, einen
+   Pfad): das ist ein Bericht nach Netiquette 2, keine Quittung.
+4. **Ein Bericht wird nicht beantwortet,** es sei denn, er enthält eine Frage oder verlangt eine
+   Entscheidung. Eine Antwort auf einen Bericht, die nichts entscheidet, ist der Anfang der Kette nach
+   unten.
+
+| Fall | Meldung? |
+|---|---|
+| Der Team Lead weist einen Abteilungsleiter an, einen Worker zu wecken | **keine** — der Leiter weckt ihn, fertig |
+| Der Abteilungsleiter hat den Worker geweckt | **keine** |
+| Der Weckruf scheitert (Worker nicht auffindbar, Fehler des Werkzeugs) | **ja**, einmal, an den Absender, mit der Fehlermeldung — das ist die Ausnahme, keine Quittung |
+| Auftrag „entwirf einen Plan", „miss das", „liefere das Bild" | **ja** — das Ergebnis ist der Zweck des Auftrags |
+| Befehl „unterbrich", „stell das Modell um", „schick die Datei", „starte" | **keine** |
+| Der Empfänger hält den Befehl für falsch oder unausführbar | **ja**, einmal, mit Grund — statt still abzuweichen |
+| Ein Bericht trifft ein | **keine Antwort**, außer er enthält eine Frage oder verlangt eine Entscheidung |
+
+**Warum das mechanisch trägt und nicht nur Geschmack ist.** `send_message` liefert die Zustellbestätigung
+selbst: Der Kern beschreibt das Werkzeug mit *„Returns delivery confirmation, not the agent's answer"*
+(`dsh-tool-subagent-control/lib/types/index.js`), und das Ergebnis trägt die `messageId`. Der Absender hat sein
+„angekommen" also im selben Turn aus dem Werkzeugergebnis, umsonst. Eine Quittung des Empfängers meldet ihm
+nichts Neues und kostet zwei Turns. Will der Absender mehr wissen — läuft der Worker gerade? —, fragt er das
+**System** (`list_agents`, den Stand einer Datei), nicht den Agenten.
+
+**Die Kette nach unten.** Jede Quittung ist selbst eine Nachricht, und auf jede Nachricht kann eine Antwort
+folgen („danke für die Bestätigung"). Im schlimmsten Fall pendelt das zwischen zwei Sitzungen, jede Runde zwei
+Turns, ohne dass irgendetwas entschieden wird. `stille-nachrichten` bremst die **Menge** (20 Zeilen je
+Sekunde plus Summenzeile); die Regel verhindert die **erste** Quittung, und ohne die erste gibt es keine
+Kette.
+
+**Beide Hälften gehören zusammen.** Wer sich auf „Schweigen heißt erledigt" verlässt, muss sich darauf
+verlassen können, dass ein Scheitern **nie still bleibt**. Deshalb ist die Meldung des Scheiterns kein
+Gegensatz zu dieser Regel, sondern ihre Bedingung.
+
+**Die ehrliche Grenze.** Ein Agent, dessen Sitzung abstürzt oder dessen Turn endet, bevor er das Scheitern
+gemeldet hat, meldet nichts. Das kann kein Text erzwingen. Wer etwas Wichtiges von einem Befehl abhängig
+macht, prüft die Wirkung **am System** — Status, Datei, Prüfsumme —, statt den Empfänger zu fragen.
 
 ### Die harte Grenze
 

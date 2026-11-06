@@ -539,6 +539,36 @@ test('der Zeiger verspricht "wie miteinander gesprochen wird" — und die volle 
 	)
 })
 
+test('Befehle werden nicht bestaetigt: die Regel steht im Zeiger, in der vollen Fassung und in der Spec', () => {
+	// Anordnung des Menschen 2026-11-06: ein Befehl wird ausgefuehrt, Schweigen heisst
+	// erledigt, gemeldet wird nur ein Scheitern oder ein verlangtes Ergebnis. Der Grund fuer
+	// DREI Stellen: nur der Zeiger wird in JEDE Sitzung injiziert; ein Worker, der nie in
+	// die volle Fassung schaut, kennt die Regel sonst nicht. Die volle Fassung und die Spec
+	// tragen Begruendung und Tabelle.
+	const flach = (text) => text.replace(/\s+/gu, ' ')
+	const zeiger = flach(readFileSync(join(PAKET, 'agents', 'teams-plus-agents.md'), 'utf8'))
+	const voll = flach(readFileSync(join(PAKET, 'agents', 'teams-plus-agents.voll.md'), 'utf8'))
+	const spec = flach(readFileSync(join(PAKET, 'docs', 'TEAM-ARBEITSWEISE.md'), 'utf8'))
+
+	for (const [name, text] of [['Zeiger', zeiger], ['volle Fassung', voll], ['Spec', spec]]) {
+		assert.ok(text.includes('Schweigen heißt: erledigt'), `${name}: der Kernsatz „Schweigen heißt: erledigt“ fehlt`)
+	}
+
+	// Beide Haelften gehoeren zusammen: wer sich auf Schweigen verlaesst, muss sich darauf
+	// verlassen koennen, dass ein Scheitern nie still bleibt.
+	for (const [name, text] of [['Zeiger', zeiger], ['volle Fassung', voll], ['Spec', spec]]) {
+		assert.ok(/was nicht ging|nicht geschah|\*\*nicht\*\* ging/u.test(text), `${name}: die Ausnahme „Scheitern wird gemeldet“ fehlt — ohne sie ist Schweigen gefaehrlich`)
+	}
+
+	// Der Mensch hat die Regel am 2026-11-06 angeordnet; das Datum steht in Spec und voller Fassung.
+	assert.ok(spec.includes('2026-11-06') && voll.includes('2026-11-06'), 'die Anordnung traegt kein Datum')
+	assert.ok(spec.includes('8. **Befehle werden ausgeführt, nicht bestätigt.**'), 'die Netiquette hat den achten Punkt nicht')
+
+	// Der Zeiger bleibt ein Zeiger: er wird in jede Sitzung injiziert und muss kurz sein.
+	const rohZeiger = readFileSync(join(PAKET, 'agents', 'teams-plus-agents.md'), 'utf8')
+	assert.ok(rohZeiger.length < 2000, `der Zeiger ist mit ${rohZeiger.length} Zeichen kein Zeiger mehr`)
+})
+
 test('der Anweisungstext ist ein Zeiger, die volle Fassung traegt den neuen Namen', () => {
 	// Die Quelle ist seit dem Zeiger-Umbau die kurze Anweisung, nicht mehr der volle Text.
 	// Sie muss die volle Fassung nennen und darf den alten Namen nicht tragen.
