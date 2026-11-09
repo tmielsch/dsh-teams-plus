@@ -1,0 +1,85 @@
+{
+ "szenario": "a",
+ "leadZuege": 0,
+ "eingang": [
+  {
+   "ms": 1590,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Antworte nur mit dem Wort: bereit.\"}]"
+  },
+  {
+   "ms": 10751,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Gang 1: Antworte nur mit dem Wort: ok1.\"}]"
+  },
+  {
+   "ms": 19789,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Gang 2: Antworte nur mit dem Wort: ok2.\"}]"
+  },
+  {
+   "ms": 28828,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Gang 3: Antworte nur mit dem Wort: ok3.\"}]"
+  }
+ ],
+ "extra": {},
+ "verbrauch": {
+  "lead": {
+   "uncachedInputTokens": 0,
+   "outputTokens": 0,
+   "cacheReadTokens": 0,
+   "cacheWriteTokens": 0
+  },
+  "kind": {
+   "uncachedInputTokens": 114,
+   "outputTokens": 98,
+   "cacheReadTokens": 33029,
+   "cacheWriteTokens": 0
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 10704,
+   "art": "nach-start",
+   "leadZuege": 0,
+   "eingang": 0
+  },
+  {
+   "ms": 19755,
+   "art": "mensch-gang",
+   "i": 1,
+   "leadZuege": 0,
+   "eingangLead": 0
+  },
+  {
+   "ms": 28792,
+   "art": "mensch-gang",
+   "i": 2,
+   "leadZuege": 0,
+   "eingangLead": 0
+  },
+  {
+   "ms": 37831,
+   "art": "mensch-gang",
+   "i": 3,
+   "leadZuege": 0,
+   "eingangLead": 0
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T21:56:37.968Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T21:56:38.111Z selbsttest ok",
+  "2026-11-09T21:56:40.765Z verworfen empfaenger=lead-real-1794261399585 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T21:56:49.696Z verworfen empfaenger=lead-real-1794261399585 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T21:56:58.350Z verworfen empfaenger=lead-real-1794261399585 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T21:57:07.551Z verworfen empfaenger=lead-real-1794261399585 art=subagent-settled grund=\"normal fertig im Team-Modus\""
+ ],
+ "goalAwaitLog": [
+  "2026-11-09T21:56:38.111Z start Werkzeug registriert"
+ ]
+}

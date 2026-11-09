@@ -30,7 +30,7 @@ const {
 	apply, entscheide, istAbschlussOhneBefund, istTeamModus, notschalterGedrueckt, notschalterPfad,
 	pruefeAbschluss, selbsttest, umwickleSend, wurzelVon, leseBericht, hatBericht, schreibeBericht,
 	baueBerichtWerkzeug, baueStandWerkzeug, HINWEIS_OHNE_BERICHT, protokollPfad,
-	uebernehmeGespraech, pruefeSendMessage, baueAuftragWerkzeug, baueFrageWerkzeug, HINWEIS_SEND_MESSAGE, HINWEIS_OHNE_ZIELBRIEF, uebernahmenPfad, fragenPfad, leseUebernahmen
+	uebernehmeGespraech, pruefeSendMessage, baueAuftragWerkzeug, baueFrageWerkzeug, HINWEIS_SEND_MESSAGE, HINWEIS_OHNE_ZIELBRIEF, uebernahmenPfad, fragenPfad, leseUebernahmen, baueFrageText
 } = M
 
 const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms))
@@ -546,4 +546,32 @@ test('24. Gegenprobe: eine Kopie ohne Entwaffnen lässt die Übernahme wirkungsl
 	}
 	assert.deepEqual(lauf(M), ['disarm', 'pause'])
 	assert.deepEqual(lauf(mut), ['pause'], 'die Kopie entwaffnet nicht')
+})
+
+test('25. Fremde Wiederbewaffnung während die Pause aussteht (laufende Runde): sofort wieder entwaffnet, keine Freigabe-Meldung', async () => {
+	leereUebernahmen()
+	const s = baueSzene(); s.ziele.set(s.worker, ziel('g25')); s.worker.status = 'running'
+	const p = startePlugin(s); await warte(300)
+	s.worker.send(mensch(), 'next-turn', true)
+	assert.deepEqual(p.aufrufe.map((a) => a[0]), ['disarm'])
+	const gesteuertVor = s.exp.gesteuert.length
+	// goal-await oder ein anderer Wecker schaltet das Ziel scharf, die Runde läuft noch
+	p.ausloesen('goal/changed', { agent: s.worker, change: { operation: 'resume', goal: { id: 'g25', objective: 'x' } } })
+	assert.deepEqual(p.aufrufe.map((a) => a[0]), ['disarm', 'disarm'], 'erneut entwaffnet')
+	assert.equal(s.exp.gesteuert.length, gesteuertVor, 'keine Freigabe-Meldung')
+	// Nach dem Ende der Runde wird pausiert; erst DANN zählt ein resume als Freigabe des Menschen
+	s.worker.status = 'inactive'; p.ausloesen('agent/status', { agent: s.worker, status: 'inactive' })
+	assert.deepEqual(p.aufrufe.map((a) => a[0]).slice(-1), ['pause'])
+	p.ausloesen('goal/changed', { agent: s.worker, change: { operation: 'resume', goal: { id: 'g25', objective: 'Neu' } } })
+	assert.equal(s.exp.gesteuert.length, gesteuertVor + 1, 'jetzt ist es die Freigabe')
+	p.abbau()
+})
+
+test('26. Fragetext: nennt den NAMEN des Fragenden (nicht die Kennung) und verbietet Dank- und Bestätigungsketten', () => {
+	const text = baueFrageText('exp', 'Wie viele Zeilen?')
+	assert.match(text, /ask_question\(empfaenger: "exp"\)/)
+	assert.match(text, /only if you have information to give/)
+	assert.match(text, /Do not send thanks/)
+	assert.ok(text.endsWith('Wie viele Zeilen?'))
+	assert.doesNotMatch(text, /[0-9a-f]{8}-[0-9a-f]{4}/, 'keine Sitzungs-Kennung')
 })

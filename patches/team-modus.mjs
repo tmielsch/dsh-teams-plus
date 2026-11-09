@@ -647,6 +647,17 @@ export function baueAuftragWerkzeug({ defineTool, umgebung }) {
 	});
 }
 
+/**
+ * Der Text, der beim Empfänger einer Frage ankommt. Er nennt den NAMEN des Fragenden (nicht die Sitzungs-Kennung,
+ * denn `ask_question` nimmt Namen) und sagt, wann nicht zu antworten ist, damit aus Frage und Dank keine Kette wird.
+ * (Gemessen im Probelauf mit echtem Modell: ohne diesen Satz bedankte sich das Mitglied für die Antwort, und der Lead
+ * wurde dafür ein weiteres Mal geweckt.)
+ */
+export function baueFrageText(fragenderName, text) {
+	return `[Question from ${fragenderName}. Answer with ask_question(empfaenger: "${fragenderName}") only if you have information to give. ` +
+		`Do not send thanks, confirmations or follow-up offers. send_message is not available in Team mode.]\n\n${text}`;
+}
+
 /** Baut `ask_question`. */
 export function baueFrageWerkzeug({ defineTool, umgebung, fragen = fragenPfad() }) {
 	return defineTool({
@@ -792,11 +803,13 @@ export function apply(ctx, optionen = {}) {
 		}
 		return undefined;
 	};
+	const nameDesMitglieds = (a) => {
+		try { return findeMitglied(umgebung, a, "").zeilen.find((z) => z.id === a.id)?.name ?? a.id; } catch { return a.id; }
+	};
 	umgebung.sendeFrage = async (absender, zielName, text, signal) => {
 		const dienst = hole("agentTeams");
 		if (dienst === undefined) throw new Error("agentTeams service is not available");
-		const kopf = `[Question from ${absender.id} — answer it with ask_question(empfaenger: "${(findeMitglied(umgebung, absender, absender.id).zeile ?? {}).name ?? "lead"}"); send_message is not available in Team mode]\n\n`;
-		await dienst.sendMessage(absender, { target: zielName, content: [{ type: "text", text: kopf + text }], signal: signal ?? new AbortController().signal });
+		await dienst.sendMessage(absender, { target: zielName, content: [{ type: "text", text: baueFrageText(nameDesMitglieds(absender), text) }], signal: signal ?? new AbortController().signal });
 	};
 
 	ctx.effect(() => {
@@ -834,9 +847,6 @@ export function apply(ctx, optionen = {}) {
 				if (erg.uebernommen) sichereUebernahmen();
 			} catch (fehler) { melden("warn", `Gesprächsübernahme: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
 			return entscheide(agent, nachricht, umgebung);
-		};
-		const nameDesMitglieds = (a) => {
-			try { return findeMitglied(umgebung, a, "").zeilen.find((z) => z.id === a.id)?.name ?? a.id; } catch { return a.id; }
 		};
 
 		const umwickle = (agent) => {
@@ -889,6 +899,15 @@ export function apply(ctx, optionen = {}) {
 		// 2. Ziel-Ereignisse: Abschluss (Bericht zustellen) und Blockade (melden).
 		abmelder.push(ctx.on("goal/changed", ({ agent, change }) => {
 			try {
+				if (change?.operation === "resume" && uebernahmen.get(agent.id)?.pauseOffen === true) {
+					// Das Ziel wurde wieder scharf geschaltet, obwohl die Pause noch aussteht (die laufende Runde läuft noch). Das
+					// kann nur ein anderer Wecker sein (etwa goal-await bei einer eingehenden Nachricht oder beim Fristablauf);
+					// der Mensch kann ein noch nicht pausiertes Ziel nicht „fortsetzen“. Also: sofort wieder entwaffnen,
+					// keine Freigabe-Meldung.
+					ctx.goals.disarm(agent);
+					protokolliere(`wiederbewaffnung abgewehrt agent=${agent.id} ziel=${change.goal?.id}`);
+					return;
+				}
 				if (change?.operation === "resume" && uebernahmen.has(agent.id)) {
 					const eintrag = uebernahmen.get(agent.id);
 					uebernahmen.delete(agent.id);

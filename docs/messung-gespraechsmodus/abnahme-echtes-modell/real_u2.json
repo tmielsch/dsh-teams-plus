@@ -1,0 +1,826 @@
+{
+ "szenario": "u2",
+ "leadZuege": 2,
+ "eingang": [
+  {
+   "ms": 1597,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Antworte nur mit dem Wort: bereit.\"}]"
+  },
+  {
+   "ms": 2364,
+   "an": "kind",
+   "art": "goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_round>\\nObjective: \\\"Test des Wartens. Rufe SOFORT das Werkzeug await_goal_depen"
+  },
+  {
+   "ms": 9033,
+   "an": "LEAD",
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"Mensch hat Kommunikation mit Agent exp übernommen, stand by\"}]"
+  },
+  {
+   "ms": 9036,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Hallo, hier spricht der Mensch. Antworte nur mit dem Wort: gehört.\"}]"
+  },
+  {
+   "ms": 55171,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Noch eine Nachricht, schreibe eine ausführliche Antwort von mindestens 200 Wörtern übe"
+  },
+  {
+   "ms": 55175,
+   "an": "LEAD",
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"Mensch hat exp freigegeben, Ziel lautet jetzt: Test des Wartens. Rufe SOFORT das Werkz"
+  }
+ ],
+ "extra": {
+  "zielRundenNachMensch": 0,
+  "zielRundenVorMensch": 1,
+  "kindLaeufeNachMensch": 1,
+  "lauefeNachMenschMs": [
+   9037
+  ],
+  "tMensch": 8974,
+  "wartetSeit": 4972,
+  "nachFreigabe": [
+   {
+    "ms": 55175,
+    "an": "LEAD",
+    "art": "plugin:@tmielsch/dsh-teams-plus",
+    "text": "[{\"type\":\"text\",\"text\":\"Mensch hat exp freigegeben, Ziel lautet jetzt: Test des Wartens. Rufe SOFORT das Werkz"
+   }
+  ]
+ },
+ "verbrauch": {
+  "lead": {
+   "uncachedInputTokens": 452,
+   "outputTokens": 1030,
+   "cacheReadTokens": 42349,
+   "cacheWriteTokens": 0
+  },
+  "kind": {
+   "uncachedInputTokens": 405,
+   "outputTokens": 243,
+   "cacheReadTokens": 33632,
+   "cacheWriteTokens": 0
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1696,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 1696,
+   "art": "ziel-angelegt",
+   "id": "goal-6813c2f4-f150-41e8-bb78-4e210bb0aad6",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 1947,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 2955,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 3966,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 4972,
+   "art": "verlauf",
+   "lebt": false
+  },
+  {
+   "ms": 4972,
+   "art": "kind-tot-vor-warten"
+  },
+  {
+   "ms": 4972,
+   "art": "wartet",
+   "seit": 4972,
+   "lebt": false
+  },
+  {
+   "ms": 8974,
+   "art": "vor-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 9032,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "pause",
+   "phase": "paused",
+   "akt": "disarmed"
+  },
+  {
+   "ms": 9033,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 9039,
+   "art": "mensch-gesendet",
+   "lebt": true,
+   "status": "running",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 9541,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 10043,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 10544,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 11045,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 11547,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 12047,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 12547,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 13048,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 13549,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 14048,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 14548,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 15049,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 15550,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 16051,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 16551,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 17052,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 17553,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 18054,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 18555,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 19056,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 19557,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 20058,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 20559,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 21061,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 21562,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 22063,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 22565,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 23067,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 23568,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 24069,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 24570,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 25071,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 25573,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 26074,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 26574,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 27075,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 27576,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 28077,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 28578,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 29079,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 29581,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 30082,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 30583,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 31084,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 31585,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 32086,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 32588,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 33089,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 33590,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 34090,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 34590,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 35091,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 35591,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 36092,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 36594,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 37095,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 37597,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 38098,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 38598,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 39100,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 39602,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 40103,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 40604,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 41106,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 41608,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 42109,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 42610,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 43110,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 43612,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 44113,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 44613,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 45113,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 45614,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 46116,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 46616,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 47118,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 47619,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 48120,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 48621,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 49123,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 49624,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 50124,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 50625,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 51126,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 51628,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 52130,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 52631,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 53132,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 53632,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 54134,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 54635,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 55137,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 55174,
+   "art": "vor-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 55175,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 55178,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "resume",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 55178,
+   "art": "freigegeben",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 55680,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 56182,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 56683,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 57186,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 57686,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 58189,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 58690,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 59192,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 59693,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 60194,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 60695,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 61197,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 61698,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 62199,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 62700,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 63200,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T21:53:39.158Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T21:53:39.296Z selbsttest ok",
+  "2026-11-09T21:53:44.221Z verworfen empfaenger=lead-real-1794261220777 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T21:53:48.310Z uebernommen agent=5fa3bb89-988b-4dc1-84a6-494b109fa93e name=exp ziel=goal-6813c2f4-f150-41e8-bb78-4e210bb0aad6 laeuft=false",
+  "2026-11-09T21:53:50.738Z verworfen empfaenger=lead-real-1794261220777 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T21:54:34.452Z freigegeben agent=5fa3bb89-988b-4dc1-84a6-494b109fa93e name=exp ziel=goal-6813c2f4-f150-41e8-bb78-4e210bb0aad6"
+ ],
+ "goalAwaitLog": [
+  "2026-11-09T21:53:39.296Z start Werkzeug registriert",
+  "2026-11-09T21:53:43.202Z warten agent=5fa3bb89-988b-4dc1-84a6-494b109fa93e ziel=goal-6813c2f4-f150-41e8-bb78-4e210bb0aad6 frist=30s bedingung=\"Nachricht des Menschen\" von=lead"
+ ]
+}

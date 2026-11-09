@@ -1,0 +1,113 @@
+{
+ "szenario": "f",
+ "leadZuege": 1,
+ "eingang": [
+  {
+   "ms": 1598,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Antworte nur mit dem Wort: bereit.\"}]"
+  },
+  {
+   "ms": 2201,
+   "an": "kind",
+   "art": "goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_round>\\nObjective: \\\"Test des Abschlusses. Schritt 1: Rufe get_goal auf. Schritt"
+  },
+  {
+   "ms": 8816,
+   "an": "LEAD",
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"[Schlussbericht — Agent a1e4ca72-61fe-4c1c-a553-e7efe5fa68b6, Ziel erreicht]\\n\\nFertig"
+  },
+  {
+   "ms": 8821,
+   "an": "kind",
+   "art": "tool-goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_complete>\\nObjective: \\\"Test des Abschlusses. Schritt 1: Rufe get_goal auf. Schr"
+  }
+ ],
+ "extra": {
+  "werkzeuge": [
+   "tool/call: {\"turn\":2,\"step\":1,\"callId\":\"call_7fc2fcc1b86745caa5ff4ce9\",\"name\":\"get_goal\",\"arguments\":\"{}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"goal\\\":{\\\"id\\\":\\\"goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9\\\",\\\"revision\\\":1,\\\"objective\\\":\\\"Test des Abschlusses. Schritt 1: Rufe get_goal auf. Schritt 2: Rufe update_goal mit action='complete' auf (mit der goal_id und revision aus get_goal), OHNE vorher einen Bericht gesc",
+   "tool/call: {\"turn\":2,\"step\":2,\"callId\":\"call_d3470b73539842bbb734f9a7\",\"name\":\"update_goal\",\"arguments\":\"{\\\"goal_id\\\":\\\"goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9\\\",\\\"revision\\\":1,\\\"action\\\":\\\"complete\\\"}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"Error: Team mode: a goal cannot be completed until you have written its report. Call goal_report with your closing report (what was achieved, evidence such as paths and measurements, what is left open), then call update_goal with action complete again.\"}]",
+   "tool/call: {\"turn\":2,\"step\":3,\"callId\":\"call_f8b56390e494453e9eb49016\",\"name\":\"goal_report\",\"arguments\":\"{\\\"bericht\\\":\\\"Fertig: Test bestanden.\\\"}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"gespeichert\\\":true,\\\"zielId\\\":\\\"goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9\\\",\\\"hinweis\\\":\\\"Report stored. Now call update_goal with action complete; the report is then delivered to your supervisor.\\\"}\"}]",
+   "tool/call: {\"turn\":2,\"step\":4,\"callId\":\"call_63637fe9bfdb4c6ebaa3cb61\",\"name\":\"get_goal\",\"arguments\":\"{}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"goal\\\":{\\\"id\\\":\\\"goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9\\\",\\\"revision\\\":1,\\\"objective\\\":\\\"Test des Abschlusses. Schritt 1: Rufe get_goal auf. Schritt 2: Rufe update_goal mit action='complete' auf (mit der goal_id und revision aus get_goal), OHNE vorher einen Bericht gesc",
+   "tool/call: {\"turn\":2,\"step\":5,\"callId\":\"call_2e95da00954443228924facf\",\"name\":\"update_goal\",\"arguments\":\"{\\\"action\\\":\\\"complete\\\",\\\"goal_id\\\":\\\"goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9\\\",\\\"revision\\\":1}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"goal\\\":{\\\"id\\\":\\\"goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9\\\",\\\"revision\\\":2,\\\"objective\\\":\\\"Test des Abschlusses. Schritt 1: Rufe get_goal auf. Schritt 2: Rufe update_goal mit action='complete' auf (mit der goal_id und revision aus get_goal), OHNE vorher einen Bericht gesc"
+  ]
+ },
+ "verbrauch": {
+  "lead": {
+   "uncachedInputTokens": 154,
+   "outputTokens": 165,
+   "cacheReadTokens": 8031,
+   "cacheWriteTokens": 0
+  },
+  "kind": {
+   "uncachedInputTokens": 742,
+   "outputTokens": 474,
+   "cacheReadTokens": 51731,
+   "cacheWriteTokens": 0
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1712,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 1712,
+   "art": "ziel-angelegt",
+   "id": "goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9"
+  },
+  {
+   "ms": 2713,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 7718,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 8816,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 8819,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "complete",
+   "phase": "complete",
+   "akt": "disarmed"
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T22:01:47.526Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T22:01:47.664Z selbsttest ok",
+  "2026-11-09T22:01:53.771Z bericht gespeichert agent=a1e4ca72-61fe-4c1c-a553-e7efe5fa68b6 ziel=goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9 zeichen=23",
+  "2026-11-09T22:01:56.460Z bericht zugestellt agent=a1e4ca72-61fe-4c1c-a553-e7efe5fa68b6 ziel=goal-2510bbd5-d17f-47e4-b919-a7c0b92211e9"
+ ],
+ "goalAwaitLog": [
+  "2026-11-09T22:01:47.664Z start Werkzeug registriert"
+ ]
+}
