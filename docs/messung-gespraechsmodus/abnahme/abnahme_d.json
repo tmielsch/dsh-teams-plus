@@ -1,0 +1,126 @@
+{
+ "szenario": "d",
+ "N": 3,
+ "leadZuege": 5,
+ "angekommen": [
+  {
+   "ms": 4158,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:give_task:{\\\"empfaenger\\\":\\\"exp\\\",\\\"maxrunden\\\":3}]]\"}]"
+  },
+  {
+   "ms": 5964,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:give_task:{\\\"empfaenger\\\":\\\"exp\\\",\\\"zielbrief\\\":\\\"mach mal\\\",\\\"maxrunden\\\":3}]]\"}]"
+  },
+  {
+   "ms": 7773,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:give_task:{\\\"empfaenger\\\":\\\"exp\\\",\\\"zielbrief\\\":\\\"Zweck: Teil des Probe-Ziels. Gegen"
+  },
+  {
+   "ms": 9628,
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"[Ziel blockiert — Agent 7ac2695a-e60b-4e97-87f9-eb82f91bf209]\\n\\nZweck: Teil des Probe-Ziels. Ge"
+  },
+  {
+   "ms": 12080,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:give_task:{\\\"empfaenger\\\":\\\"exp\\\",\\\"zielbrief\\\":\\\"Zweck: Teil des Probe-Ziels. Gegen"
+  }
+ ],
+ "extra": {
+  "ohneBrief": [
+   "[{\"type\":\"text\",\"text\":\"Error: give_task needs a goal brief (parameter `zielbrief`) and a round limit (`maxrunden`). Write the brief so the recipient can work without the conversation: purpose (which higher goal it serves), subject (what exactly, with paths and numbers), limits (what is theirs, what they must not touch), instructions, acceptance (measurements with target values), reporting duties. If you only want to"
+  ],
+  "zuKurz": [
+   "[{\"type\":\"text\",\"text\":\"Error: give_task needs a goal brief (parameter `zielbrief`) and a round limit (`maxrunden`). Write the brief so the recipient can work without the conversation: purpose (which higher goal it serves), subject (what exactly, with paths and numbers), limits (what is theirs, what they must not touch), instructions, acceptance (measurements with target values), reporting duties. If you only want to"
+  ],
+  "zielNachFehlern": {
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null
+  },
+  "mitBrief": [
+   "[{\"type\":\"text\",\"text\":\"{\\\"angelegt\\\":true,\\\"empfaenger\\\":\\\"exp\\\",\\\"zielId\\\":\\\"goal-0e5187b4-4aa3-4a57-8b79-f240ba8dd04a\\\",\\\"hinweis\\\":\\\"Goal created and started for the recipient. You are told through its closing report; use team_stand to look in without waking anyone.\\\"}\"}]"
+  ],
+  "zielNachAuftrag": {
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null
+  },
+  "zweiterAuftrag": [
+   "[{\"type\":\"text\",\"text\":\"Error: exp already has a goal (phase blocked). Wait for its report or ask it with ask_question.\"}]"
+  ]
+ },
+ "protokoll": [
+  {
+   "ms": 4158,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 5964,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 7773,
+   "art": "lead-zug",
+   "n": 3
+  },
+  {
+   "ms": 7866,
+   "art": "kind-lauf",
+   "n": 1
+  },
+  {
+   "ms": 8327,
+   "art": "kind-lauf",
+   "n": 2
+  },
+  {
+   "ms": 8768,
+   "art": "kind-lauf",
+   "n": 3
+  },
+  {
+   "ms": 9191,
+   "art": "kind-lauf",
+   "n": 4
+  },
+  {
+   "ms": 9628,
+   "art": "lead-zug",
+   "n": 4
+  },
+  {
+   "ms": 9709,
+   "art": "kind-lauf",
+   "n": 5
+  },
+  {
+   "ms": 12080,
+   "art": "lead-zug",
+   "n": 5
+  },
+  {
+   "ms": 12146,
+   "art": "kind-lauf",
+   "n": 6
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:47:06.606Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:47:06.817Z selbsttest ok",
+  "2026-11-09T20:47:08.857Z verworfen empfaenger=lead-probe-1794257228280 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:47:14.647Z auftrag von=lead-probe-1794257228280 an=exp ziel=goal-0e5187b4-4aa3-4a57-8b79-f240ba8dd04a maxrunden=3",
+  "2026-11-09T20:47:16.408Z blockade gemeldet agent=7ac2695a-e60b-4e97-87f9-eb82f91bf209 ziel=goal-0e5187b4-4aa3-4a57-8b79-f240ba8dd04a",
+  "2026-11-09T20:47:16.423Z verworfen empfaenger=lead-probe-1794257228280 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:47:16.940Z verworfen empfaenger=lead-probe-1794257228280 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:47:19.376Z verworfen empfaenger=lead-probe-1794257228280 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  ""
+ ]
+}

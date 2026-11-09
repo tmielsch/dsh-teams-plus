@@ -49,9 +49,19 @@
  * Konzept M4a), ist aber eine eigene Wurzel mit leerem Team und damit NICHT im Team-Modus.
  *
  * WAS DIESES MODUL NICHT TUT (hängt an offenen Fragen des Menschen, deshalb noch nicht gebaut)
- *  - Keine Gesprächsübernahme („Mensch hat … übernommen, stand by“, Anhalten durch Entwaffnen) — F3.
- *  - Kein `give_task`, kein `ask_question`, keine Sperre von `send_message` — F5 (Weg A, B oder C).
- *  - Kein Eingriff in den Kochmodus der Szene — F7.
+ *  6. GESPRÄCHSÜBERNAHME (F3, Entscheidung 2026-11-09 „zwingend“). Schreibt der Mensch (Quelle `user` mit `rpcId`) einem
+ *     Mitglied, dessen Ziel `active` ist, entwaffnet das Modul das Ziel in `Agent.send`, also VOR der Zustellung (`goals.disarm`).
+ *     Läuft gerade eine Runde, läuft sie zu Ende („angehalten, nicht abgebrochen“); sobald der Agent ruhig ist, wird das Ziel
+ *     pausiert. Der Vorgesetzte bekommt EINE Meldung „Mensch hat Kommunikation mit Agent <Name> übernommen, stand by“; weitere
+ *     Nachrichten des Menschen melden nichts. Setzt der Mensch das Ziel fort (`goal/changed` `resume`), kommt EINE Meldung
+ *     „Mensch hat <Name> freigegeben, Ziel lautet jetzt: <Wortlaut>“. Liste: `state/uebernahmen.json` (für den späteren Ticker).
+ *  7. KANÄLE (F5, Weg A). `give_task` (Pflicht: Zielbrief + maxrunden; legt das Ziel für den Empfänger an, weckt ihn bei Bedarf),
+ *     `ask_question` (still, ohne Ziel, auch an `mensch`), und ein Wächter, der das TEAM-Werkzeug `send_message` (Parameter
+ *     `target`) im Team-Modus ablehnt. Das Unteragenten-Werkzeug `send_message` (`agent_id`) und `send_to_session` bleiben frei.
+ *
+ * WAS DIESES MODUL NICHT TUT
+ *  - Kein Eingriff in den Kochmodus der Szene — F7 (steht in der AGENTS.md des Projekts, §0.3a).
+ *  - Kein ist-Leser für Fragen an den Menschen in der Web-GUI (Ticker, zweiter Schritt); die Fragen stehen in `state/fragen-an-mensch.jsonl`.
  *  - Es ändert keine Anweisungsdatei, schreibt nicht in die DSH-Installation und nicht in `~/.dsh/profiles/`.
  *
  * ROBUSTHEIT GEGEN UPDATES
@@ -590,8 +600,10 @@ export function baueAuftragWerkzeug({ defineTool, umgebung }) {
 		description: BESCHREIBUNG_AUFTRAG,
 		parameters: {
 			empfaenger: { type: "string", required: true, description: "Name of the teammate (see list_agents)." },
-			zielbrief: { type: "string", required: true, description: "The complete goal brief (purpose, subject, limits, instructions, acceptance, reporting duties)." },
-			maxrunden: { type: "integer", required: true, description: "Upper bound of work rounds for the goal." },
+			// Absichtlich NICHT `required`: fehlt ein Wert, soll das Modell unsere verständliche Meldung bekommen, nicht die
+			// knappe Schemameldung des Kerns („missing required property“) — gemessen in der Probe (Abnahme d).
+			zielbrief: { type: "string", description: "MANDATORY. The complete goal brief (purpose, subject, limits, instructions, acceptance, reporting duties)." },
+			maxrunden: { type: "integer", description: "MANDATORY. Upper bound of work rounds for the goal." },
 			aufgabenliste: { type: "string", description: "Optional todo items the recipient creates first, one per line." }
 		},
 		output: {
@@ -616,8 +628,12 @@ export function baueAuftragWerkzeug({ defineTool, umgebung }) {
 			const { zeilen, zeile } = findeMitglied(umgebung, absender, args?.empfaenger);
 			if (zeile === undefined) throw new Error(`unknown recipient "${args?.empfaenger}". Teammates: ${zeilen.map((z) => z.name).join(", ")}.`);
 			if (zeile.id === absender.id) throw new Error("give_task cannot go to yourself.");
-			const empfaenger = umgebung.agenten.get(zeile.id);
-			if (empfaenger === undefined) throw new Error(`${zeile.name} is not running (status ${zeile.status}). Wake it with ask_question first, then call give_task again.`);
+			let empfaenger = umgebung.agenten.get(zeile.id);
+			if (empfaenger === undefined && typeof umgebung.wecke === "function" && ["inactive", "running"].includes(zeile.status)) {
+				// Ein ruhendes Mitglied ist meist abgebaut (gemessen: Kind nach seinem Zug nicht mehr lebend); eine stille Nachricht weckt es.
+				try { empfaenger = await umgebung.wecke(absender, zeile, exec.signal); } catch (fehler) { protokolliere(`warn Wecken von ${zeile.name} gescheitert: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
+			}
+			if (empfaenger === undefined) throw new Error(`${zeile.name} is not running (status ${zeile.status}) and could not be woken. Try ask_question first, then call give_task again.`);
 			if (empfaenger.session?.header?.parentSession !== absender.id) throw new Error("give_task only goes DOWN: to your own direct teammates or workers. To report upward use goal_report.");
 			if (umgebung.uebernommen(zeile.id)) throw new Error(`${zeile.name} is talking to the human right now; the human decides when it is released. Try again after the release message.`);
 			const vorhanden = umgebung.ziel(empfaenger);
@@ -765,6 +781,17 @@ export function apply(ctx, optionen = {}) {
 	const sichereUebernahmen = () => schreibeUebernahmen([...uebernahmen.values()]);
 	umgebung.uebernommen = (id) => uebernahmen.has(id);
 	umgebung.erzeugeZiel = (agent, anfrage) => ctx.goals.create(agent, anfrage);
+	umgebung.wecke = async (absender, zeile, signal) => {
+		const dienst = hole("agentTeams");
+		if (dienst === undefined) return undefined;
+		await dienst.sendMessage(absender, { target: zeile.name, content: [{ type: "text", text: "[Wake-up note from " + absender.id + ": a goal with a task brief follows in a moment. Do nothing until it arrives.]" }], signal: signal ?? new AbortController().signal });
+		for (let i = 0; i < 30; i += 1) {
+			const lebend = ctx.agents.get(zeile.id);
+			if (lebend !== undefined) return lebend;
+			await new Promise((fertig) => setTimeout(fertig, 150));
+		}
+		return undefined;
+	};
 	umgebung.sendeFrage = async (absender, zielName, text, signal) => {
 		const dienst = hole("agentTeams");
 		if (dienst === undefined) throw new Error("agentTeams service is not available");
@@ -868,6 +895,14 @@ export function apply(ctx, optionen = {}) {
 					sichereUebernahmen();
 					stelleZu(agent, `Mensch hat ${eintrag.name} freigegeben, Ziel lautet jetzt: ${change.goal?.objective ?? "(unbekannt)"}`, nachrichtenBaustein);
 					protokolliere(`freigegeben agent=${agent.id} name=${eintrag.name} ziel=${change.goal?.id}`);
+					return;
+				}
+				if (change?.operation === "clear" && uebernahmen.has(agent.id)) {
+					const eintrag = uebernahmen.get(agent.id);
+					uebernahmen.delete(agent.id);
+					sichereUebernahmen();
+					stelleZu(agent, `Mensch hat ${eintrag.name} freigegeben; das Ziel wurde entfernt, ${eintrag.name} hat jetzt kein Ziel.`, nachrichtenBaustein);
+					protokolliere(`freigegeben (Ziel entfernt) agent=${agent.id} name=${eintrag.name}`);
 					return;
 				}
 				if (change?.operation !== "complete" && change?.operation !== "block") return;

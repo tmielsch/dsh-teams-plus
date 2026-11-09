@@ -1,0 +1,415 @@
+{
+ "szenario": "u",
+ "N": 3,
+ "leadZuege": 2,
+ "angekommen": [
+  {
+   "ms": 2465,
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"Mensch hat Kommunikation mit Agent exp übernommen, stand by\"}]"
+  },
+  {
+   "ms": 13191,
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"Mensch hat exp freigegeben, Ziel lautet jetzt: Probe-Ziel: lange Runden [[LONG]]\"}]"
+  }
+ ],
+ "extra": {
+  "vorMensch": {
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0
+  },
+  "rundenstartsNachMensch": 0,
+  "angekommenVorFreigabe": 1
+ },
+ "protokoll": [
+  {
+   "ms": 1655,
+   "art": "ziel-angelegt",
+   "id": "goal-b4860212-3d67-450a-8a86-5129a60487f1",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 2458,
+   "art": "vor-mensch",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0
+  },
+  {
+   "ms": 2465,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 2973,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "disarmed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 3474,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "disarmed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 3976,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "disarmed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 4479,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "disarmed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 4981,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "disarmed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 5483,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 5989,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 6491,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 6991,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 7493,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 7994,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 8495,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 8997,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 9498,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 10000,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 10504,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 11005,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 11506,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 12007,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 12509,
+   "art": "verlauf",
+   "status": "TOT",
+   "phase": null,
+   "aktivierung": null,
+   "runden": null,
+   "rundenstarts": 0,
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 12579,
+   "art": "kind-lauf",
+   "n": 1
+  },
+  {
+   "ms": 13191,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 13196,
+   "art": "freigegeben",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 13699,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 1,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 14200,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 1,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 14702,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 1,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 15204,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 1,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 15636,
+   "art": "kind-lauf",
+   "n": 2
+  },
+  {
+   "ms": 15705,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 2,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 16208,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 2,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 16709,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 2,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 17212,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 2,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 17713,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 2,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 18215,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 2,
+   "leadZuege": 2,
+   "angekommen": 2
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:49:51.445Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:49:51.569Z selbsttest ok",
+  "2026-11-09T20:49:54.017Z uebernommen agent=5e002126-516b-41a3-be3f-0385e38f7a2b name=exp ziel=goal-b4860212-3d67-450a-8a86-5129a60487f1 laeuft=true",
+  "2026-11-09T20:49:56.658Z pause nachgeholt agent=5e002126-516b-41a3-be3f-0385e38f7a2b ziel=goal-b4860212-3d67-450a-8a86-5129a60487f1",
+  "2026-11-09T20:49:56.687Z verworfen empfaenger=lead-probe-1794257393050 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:50:04.743Z freigegeben agent=5e002126-516b-41a3-be3f-0385e38f7a2b name=exp ziel=goal-b4860212-3d67-450a-8a86-5129a60487f1",
+  ""
+ ]
+}

@@ -1,0 +1,397 @@
+{
+ "szenario": "u",
+ "N": 3,
+ "leadZuege": 0,
+ "angekommen": [],
+ "extra": {
+  "vorMensch": {
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0
+  },
+  "rundenstartsNachMensch": 3,
+  "angekommenVorFreigabe": 0
+ },
+ "protokoll": [
+  {
+   "ms": 1658,
+   "art": "ziel-angelegt",
+   "id": "goal-0b1d4ee6-6b18-4ec4-b68a-44223946bc71",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 2461,
+   "art": "vor-mensch",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0
+  },
+  {
+   "ms": 2968,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 3470,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 3971,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 4473,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 4975,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 0,
+   "rundenstarts": 0,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 5119,
+   "art": "kind-lauf",
+   "n": 1
+  },
+  {
+   "ms": 5476,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 5977,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 6478,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 6980,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 7481,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 7983,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 1,
+   "rundenstarts": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 8159,
+   "art": "kind-lauf",
+   "n": 2
+  },
+  {
+   "ms": 8485,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 2,
+   "rundenstarts": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 8987,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 2,
+   "rundenstarts": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 9489,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 2,
+   "rundenstarts": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 9990,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 2,
+   "rundenstarts": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 10490,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 2,
+   "rundenstarts": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 10991,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 2,
+   "rundenstarts": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 11208,
+   "art": "kind-lauf",
+   "n": 3
+  },
+  {
+   "ms": 11495,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 11995,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 12499,
+   "art": "verlauf",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 13102,
+   "art": "resume-fehler",
+   "f": "GoalError: goal \"goal-0b1d4ee6-6b18-4ec4-b68a-44223946bc71\" is already active and armed"
+  },
+  {
+   "ms": 13605,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 14105,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 14607,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 15108,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 15610,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 16113,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 16615,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 17116,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 3,
+   "rundenstarts": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 17305,
+   "art": "kind-lauf",
+   "n": 4
+  },
+  {
+   "ms": 17618,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 4,
+   "rundenstarts": 4,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 18119,
+   "art": "nach-freigabe",
+   "status": "running",
+   "phase": "active",
+   "aktivierung": "armed",
+   "runden": 4,
+   "rundenstarts": 4,
+   "leadZuege": 0,
+   "angekommen": 0
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:47:24.721Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:47:24.882Z selbsttest ok",
+  ""
+ ]
+}
