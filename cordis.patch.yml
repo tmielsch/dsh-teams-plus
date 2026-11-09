@@ -47,3 +47,11 @@
     # Thema schon einmal besprochen wurde. Werkzeuge: team_anruf, team_anrufe.
     - id: team-anruf
       name: '@tmielsch/dsh-teams-plus/patches/team-anruf.mjs'
+    # Team-Modus (Konzept docs/KONZEPT-GESPRAECHSMODUS.md, Issue DSH-Verwaltung 121):
+    # im Team-Modus fallen die "finished"-Meldungen weg, ein Ziel schliesst nur mit
+    # Bericht ab, eine Menschen-Nachricht an ein Mitglied haelt dessen Ziel an
+    # (stand by), give_task/ask_question sind die Auftrags- und Fragekanael und
+    # send_message ist im Team-Modus gesperrt. Notschalter:
+    # ~/.dsh/.tm/teams-plus/team-modus.json mit {"aus": true}, ohne Neustart.
+    - id: team-modus
+      name: '@tmielsch/dsh-teams-plus/patches/team-modus.mjs'

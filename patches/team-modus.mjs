@@ -3,7 +3,8 @@
  * und ein Ziel lässt sich nur mit Bericht abschließen
  * ====================================================================================================
  *
- * STAND: Entwurf auf dem Zweig `umsetzung/team-modus`, NICHT eingespielt, nicht gemergt.
+ * STAND: Eingespielt als Bundel 0.8.5 auf main (2026-11-09); wirkt ab dem Neustart von dsh web,
+ * den nur der Mensch tut. Der Notschalter wirkt jederzeit ohne Neustart.
  * Konzept: `docs/KONZEPT-GESPRAECHSMODUS.md` (Abschnitte 3, 5.1, 5.3, 5.7, 7); Anlass: Issue
  * `tmielsch/DSH-Verwaltung` Nr. 121.
  *
