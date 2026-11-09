@@ -1,0 +1,287 @@
+{
+ "kindEreignisse": [
+  {
+   "art": "permission/preset",
+   "seq": 0
+  },
+  {
+   "art": "sandbox/mode",
+   "seq": 1
+  },
+  {
+   "art": "approval/policy",
+   "seq": 2
+  },
+  {
+   "art": "team/member",
+   "seq": 3
+  },
+  {
+   "art": "subagent/catalog",
+   "seq": 4
+  },
+  {
+   "art": "team/member",
+   "seq": 5
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 6
+  },
+  {
+   "art": "turn/start",
+   "seq": 7
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 8
+  },
+  {
+   "art": "step/start",
+   "seq": 9
+  },
+  {
+   "art": "system/message",
+   "seq": 10
+  },
+  {
+   "art": "user/message",
+   "seq": 11
+  },
+  {
+   "art": "user/message",
+   "seq": 12
+  },
+  {
+   "art": "user/message",
+   "seq": 13
+  },
+  {
+   "art": "request/header",
+   "seq": 14
+  },
+  {
+   "art": "request/context",
+   "seq": 15
+  },
+  {
+   "art": "assistant/message",
+   "seq": 16
+  },
+  {
+   "art": "step/end",
+   "seq": 17
+  },
+  {
+   "art": "turn/end",
+   "seq": 18,
+   "grund": "completed"
+  },
+  {
+   "art": "goal/change",
+   "seq": 19
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 20
+  },
+  {
+   "art": "turn/start",
+   "seq": 21
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 22
+  },
+  {
+   "art": "step/start",
+   "seq": 23
+  },
+  {
+   "art": "user/message",
+   "seq": 24
+  },
+  {
+   "art": "session/title",
+   "seq": 25
+  },
+  {
+   "art": "assistant/message",
+   "seq": 26
+  },
+  {
+   "art": "tool/call",
+   "seq": 27
+  },
+  {
+   "art": "tool/result",
+   "seq": 28
+  },
+  {
+   "art": "step/end",
+   "seq": 29
+  },
+  {
+   "art": "step/start",
+   "seq": 30
+  },
+  {
+   "art": "session/title-llm-request",
+   "seq": 31
+  },
+  {
+   "art": "assistant/message",
+   "seq": 32
+  },
+  {
+   "art": "step/end",
+   "seq": 33
+  },
+  {
+   "art": "turn/end",
+   "seq": 34,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 35
+  },
+  {
+   "art": "turn/start",
+   "seq": 36
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 37
+  },
+  {
+   "art": "step/start",
+   "seq": 38
+  },
+  {
+   "art": "user/message",
+   "seq": 39
+  },
+  {
+   "art": "assistant/message",
+   "seq": 40
+  },
+  {
+   "art": "tool/call",
+   "seq": 41
+  },
+  {
+   "art": "tool/result",
+   "seq": 42
+  },
+  {
+   "art": "step/end",
+   "seq": 43
+  },
+  {
+   "art": "step/start",
+   "seq": 44
+  },
+  {
+   "art": "assistant/message",
+   "seq": 45
+  },
+  {
+   "art": "step/end",
+   "seq": 46
+  },
+  {
+   "art": "turn/end",
+   "seq": 47,
+   "grund": "completed"
+  }
+ ],
+ "szenario": "sperre",
+ "N": 1,
+ "nachStart": {
+  "leadZuege": 1,
+  "eingang": 1,
+  "verworfen": 0
+ },
+ "ende": {
+  "leadZuege": 3,
+  "eingang": 3,
+  "verworfen": 0
+ },
+ "leadEingang": [
+  {
+   "ms": 1753,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 131419c1-77e5-4273-8edb-e98d72c18517 finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 131419c1-77e5-4273-8edb-e98d72c18517 finished and will do no further work unless you s"
+  },
+  {
+   "ms": 3850,
+   "art": "user",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Rufe an [[TOOL:update_goal:{\\\"goal_id\\\":\\\"goal-47de7ee5-ce9e-41fc-82b2-278bc7399aa9\\\",\\\"revision",
+   "quelle": "{\"kind\":\"user\"}"
+  },
+  {
+   "ms": 5358,
+   "art": "user",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Sende [[TOOL:send_message:{\\\"target\\\":\\\"exp\\\",\\\"message\\\":\\\"hallo\\\"}]]\"}]",
+   "quelle": "{\"kind\":\"user\"}"
+  }
+ ],
+ "extra": {
+  "sperre": {
+   "versuche": [],
+   "complete_ohne_bericht": [
+    "[{\"type\":\"text\",\"text\":\"Error: Ziel kann erst abgeschlossen werden, wenn ein Bericht geschrieben wurde.\"}]"
+   ],
+   "send_message": [
+    "[{\"type\":\"text\",\"text\":\"Error: Team-Modus: send_message ist hier nicht erlaubt. Nutze give_task oder ask_question.\"}]"
+   ],
+   "abgelehnt": [
+    "update_goal:complete",
+    "send_message"
+   ],
+   "werkzeuge": "keine list"
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1225,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1342,
+   "art": "teammate-angelegt",
+   "kindId": "131419c1-77e5-4273-8edb-e98d72c18517"
+  },
+  {
+   "ms": 1754,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 3842,
+   "art": "nach-start",
+   "leadZuege": 1,
+   "eingang": 1,
+   "verworfen": 0
+  },
+  {
+   "ms": 3851,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 5361,
+   "art": "lead-zug",
+   "n": 3
+  }
+ ]
+}

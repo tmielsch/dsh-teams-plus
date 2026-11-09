@@ -1,0 +1,113 @@
+{
+ "szenario": "abfangen",
+ "N": 3,
+ "nachStart": {
+  "leadZuege": 0,
+  "eingang": 1,
+  "verworfen": 1
+ },
+ "ende": {
+  "leadZuege": 0,
+  "eingang": 4,
+  "verworfen": 4
+ },
+ "leadEingang": [
+  {
+   "ms": 1369,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work unless you s"
+  },
+  {
+   "ms": 4369,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work unless you s"
+  },
+  {
+   "ms": 6900,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work unless you s"
+  },
+  {
+   "ms": 9425,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 9d3633a9-96e8-45ab-aa14-7327cfd7e8db finished and will do no further work unless you s"
+  }
+ ],
+ "extra": {},
+ "protokoll": [
+  {
+   "ms": 1227,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1365,
+   "art": "teammate-angelegt",
+   "kindId": "9d3633a9-96e8-45ab-aa14-7327cfd7e8db"
+  },
+  {
+   "ms": 3867,
+   "art": "nach-start",
+   "leadZuege": 0,
+   "eingang": 1,
+   "verworfen": 1
+  },
+  {
+   "ms": 6414,
+   "art": "mensch-gang",
+   "i": 1,
+   "vorher": {
+    "leadZuege": 0,
+    "eingang": 1,
+    "verworfen": 1
+   },
+   "nachher": {
+    "leadZuege": 0,
+    "eingang": 2,
+    "verworfen": 2
+   }
+  },
+  {
+   "ms": 8951,
+   "art": "mensch-gang",
+   "i": 2,
+   "vorher": {
+    "leadZuege": 0,
+    "eingang": 2,
+    "verworfen": 2
+   },
+   "nachher": {
+    "leadZuege": 0,
+    "eingang": 3,
+    "verworfen": 3
+   }
+  },
+  {
+   "ms": 11489,
+   "art": "mensch-gang",
+   "i": 3,
+   "vorher": {
+    "leadZuege": 0,
+    "eingang": 3,
+    "verworfen": 3
+   },
+   "nachher": {
+    "leadZuege": 0,
+    "eingang": 4,
+    "verworfen": 4
+   }
+  }
+ ]
+}

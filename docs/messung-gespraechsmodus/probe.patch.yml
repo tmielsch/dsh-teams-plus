@@ -1,0 +1,14 @@
+# Wegwerf-Overlay der Probe-Instanz: Attrappen-Modell, Treiber, ohne headless-runner
+- id: headless-runner
+  disabled: true
+- id: headless-startup
+  disabled: true
+- id: agent-default-model
+  config:
+    provider: probe
+    model: m
+- insert:
+    - id: probe-fake-llm
+      name: '/tmp/teams_plus_umbau/probe/fake-llm.mjs'
+    - id: probe-driver
+      name: '/tmp/teams_plus_umbau/probe/driver.mjs'
