@@ -1,0 +1,128 @@
+{
+ "kindEreignisse": [
+  {
+   "art": "permission/preset",
+   "seq": 0
+  },
+  {
+   "art": "sandbox/mode",
+   "seq": 1
+  },
+  {
+   "art": "approval/policy",
+   "seq": 2
+  },
+  {
+   "art": "team/member",
+   "seq": 3
+  },
+  {
+   "art": "subagent/catalog",
+   "seq": 4
+  },
+  {
+   "art": "team/member",
+   "seq": 5
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 6
+  },
+  {
+   "art": "turn/start",
+   "seq": 7
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 8
+  },
+  {
+   "art": "step/start",
+   "seq": 9
+  },
+  {
+   "art": "system/message",
+   "seq": 10
+  },
+  {
+   "art": "user/message",
+   "seq": 11
+  },
+  {
+   "art": "user/message",
+   "seq": 12
+  },
+  {
+   "art": "user/message",
+   "seq": 13
+  },
+  {
+   "art": "request/header",
+   "seq": 14
+  },
+  {
+   "art": "request/context",
+   "seq": 15
+  },
+  {
+   "art": "assistant/message",
+   "seq": 16
+  },
+  {
+   "art": "step/end",
+   "seq": 17
+  },
+  {
+   "art": "turn/end",
+   "seq": 18,
+   "grund": "completed"
+  }
+ ],
+ "szenario": "fehler",
+ "N": 1,
+ "nachStart": {
+  "leadZuege": 1,
+  "eingang": 1,
+  "verworfen": 0
+ },
+ "ende": {
+  "leadZuege": 1,
+  "eingang": 1,
+  "verworfen": 0
+ },
+ "leadEingang": [
+  {
+   "ms": 1407,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 98d9fbd2-cd87-48b1-9598-31f4edff16ce failed before it finished.\"},{\"type\":\"t",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 98d9fbd2-cd87-48b1-9598-31f4edff16ce failed before it finished.\",\"senderSessionId\":\"98"
+  }
+ ],
+ "extra": {},
+ "protokoll": [
+  {
+   "ms": 1229,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1398,
+   "art": "teammate-angelegt",
+   "kindId": "98d9fbd2-cd87-48b1-9598-31f4edff16ce"
+  },
+  {
+   "ms": 1408,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 13399,
+   "art": "nach-start",
+   "leadZuege": 1,
+   "eingang": 1,
+   "verworfen": 0
+  }
+ ]
+}

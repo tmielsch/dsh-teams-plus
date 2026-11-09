@@ -1,190 +1,338 @@
-# Konzept: Gesprächsmodus und ziel-getriebene Team-Kommunikation
+# Konzept: Team-Modus, Gesprächsübernahme und ziel-getriebene Team-Kommunikation
 
-Stand: 2026-11-09, Entwurf eines Unteragenten des Leads. **Nichts davon ist eingebaut.** Dies ist ein Konzept, kein Plan zur Freigabe: Der Mensch hat noch sechs Fragen zu beantworten (Abschnitt 9), und drei Annahmen sind noch nicht am laufenden System gemessen (Abschnitt 8).
+Stand: 2026-11-09 abends, **zweite Fassung** (die erste Fassung vom Nachmittag steht in der Git-Geschichte dieser Datei, Commit `a4ed921`). Entwurf eines Unteragenten des Leads. **Nichts davon ist eingebaut, es gibt keinen Patch-Code im Repo.** Gemessen wurde nur in einer Wegwerf-Probe-Instanz von DSH (Abschnitt 3); die Skripte dazu liegen als Beleg in `docs/messung-gespraechsmodus/`.
 
-Auslöser und Bestandsaufnahme: Issue `tmielsch/DSH-Verwaltung` Nr. 121 („Agent Teams: Abschlussmeldungen von Unteragenten wecken den Lead, auch während der Mensch direkt mit einem Experten spricht"), dort der Kommentar „Bestandsaufnahme".
+Auslöser und Bestandsaufnahme: Issue `tmielsch/DSH-Verwaltung` Nr. 121 („Agent Teams: Abschlussmeldungen von Unteragenten wecken den Lead, auch während der Mensch direkt mit einem Experten spricht“), dort Kommentar „Bestandsaufnahme“ und die Entscheidungen des Menschen.
 
-Ablage: diese Datei liegt im Repo `tmielsch/dsh-teams-plus` (Arbeitsordner `/Users/tmielsch/dsh-teams-plus/.worktrees/konzept-gespraechsmodus`, Zweig `konzept/gespraechsmodus`, nicht gepusht), neben den anderen Konzeptdateien in `docs/`.
+## 1. Was der Mensch entschieden hat (Wortlaut in `/tmp/entscheidungen_teamwork_2026-11-09.md` und `…_2_…md`, beide auch als Kommentar im Issue)
 
-## 0. Wortlaut des Menschen (2026-11-09 ca. 19:35, Spracheingabe, nur leicht geglättet)
+Das Konzept setzt diese Sätze um und deutet sie nicht um. Die tragenden Sätze:
 
-Er steht vollständig im Issue 121. Die Sätze, auf die sich dieses Konzept stützt:
+- Alles **non-destructive, als revertbarer Patch**.
+- Unterdrückt wird **nur, wenn `/team work` aktiv ist**; bei normaler DSH-Nutzung bleibt alles wie heute.
+- Im Team-Modus fallen **alle automatischen Statusmeldungen weg, ausgenommen Task-Updates**. Die unterdrückten Meldungen werden **verworfen, nicht gepuffert**. Gemeldet wird, was ein Agent selbst schreibt: Zwischenfazit bei erreichtem Ziel beziehungsweise abgeschlossenem Checkpoint.
+- **Fehler bleiben laut** („Legitime Status-Updates wie Critical Errors bitte auf jeden Fall behalten“); unterdrückt wird nur die Meldung, wenn ein Zug ohne Werkzeugaufruf einfach endet.
+- **Hijack:** „Ziel läuft, ich steere, das Ziel wird angehalten (nicht abgebrochen)“ wird übernommen, nicht automatisch neu ausgelöst. Der Lead bekommt dann genau eine Meldung „Mensch hat Kommunikation mit Agent XY übernommen, stand by“, und den Mitarbeiter erst zurück, wenn der Mensch das Ziel selbst fortsetzt (dann eine Meldung mit dem aktuellen Ziel-Wortlaut).
+- **Ohne Ziel wird nicht gearbeitet.** Bevorzugt: der Lead setzt dem Untergeordneten ein Ziel („die saubere Version“). Sonst eigene Werkzeuge (`give_task`, `ask_question`), und `send_message` wird im Team-Modus abgelehnt, mit Hinweis auf diese Kanäle.
+- **Pflichtbericht:** ein Ziel lässt sich nicht abschließen, solange kein Bericht geschrieben wurde.
+- **Mensch als Wildcard-Mitarbeiter:** nicht mehr Single Point of Entry über den Lead; jedes Teammitglied darf den Menschen direkt ansprechen. Der Lead übt passive Aufsicht (Orchestrierung, Qualitätskontrolle, Prüfer schicken). Der Mensch forkt den Lead als Berater; der Fork verliert das Team, behält den Kontext und darf an seinen Parent zurückmelden.
+- **Benachrichtigungen an den Menschen:** Leiste/Ticker in der Web-GUI mit den letzten Team-Nachrichten, scrollbar, Klick führt zur Sitzung; Fragen sichtbar machen, besonders bei `await_goal_dependency` auf eine Antwort des Menschen. Erst der Patch, dann der Ticker.
+- **Anweisungsdateien** dürfen umgeschrieben werden, mit der Auflage: „Vorsicht aber, dass dabei nichts subtil verloren geht von dem, was eigentlich erhalten bleiben sollte.“ Eingetragen wird erst nach Abnahme durch den Menschen. Unangetastet bleiben Spec-Regeln, Ablage, Sprache, Fragen und das Verbot, Dienste neu zu starten.
+- **Probe-Instanz, Merge auf `main` (kein Push), Löschen der entpackten Protokolle:** freigegeben.
 
-- „Es muss wirklich so etwas wie einen Schalter geben, der sagt: Okay, du bist jetzt im Gespräch mit dem Menschen, alle Team-Notifications, alles Agent-Teams-mäßige wird pausiert. Du bist gerade quasi aus diesem Agent-Team rausgenommen und komplett isoliert. Keine Tasks mehr, keine Notifications, gar nichts mehr. Nur noch das Gespräch mit dem Menschen. Bis dieses Gespräch zu einem Punkt gekommen ist, wo der Mensch das wieder freigibt.“
-- „Wenn ein Sub-Agent losgeschickt wird, etwas zu tun, darf das nicht ohne Goal passieren. Das Goal ist dann der einzige Motor, der dafür sorgt, dass das Team weiter am Laufen bleibt.“
-- „Und erst wenn das Goal abgeschlossen ist, wird an den Vorgesetzten gemeldet, vorher nicht. Und wenn ich ein Teammitglied direkt anschreibe, wird sofort das Goal pausiert. Und dann wird diese Status-Notification ausgeschaltet oder stumm geschaltet. Kann man vielleicht auch mit einem Schalter versehen, dass der Team Lead entscheiden kann, ob er diese Updates kriegen will oder nicht.“
-- „Eigentlich will ich in dem Rahmen bleiben, den DSH mit dem Plugin bietet.“
+## 2. Zusätzliche Anforderungen des Leads (als Anforderungen übernommen)
 
-## 1. Was die Messung ergeben hat (Kurzfassung der Bestandsaufnahme)
+Fehler bleiben laut (1); der Bericht bei erreichtem Ziel ist der selbstgeschriebene Text des Agenten (2); der Team-Modus gilt für den **ganzen Baum** unter dem Lead, auch für Facharbeiter gegenüber ihrem Experten (3); Rückgabe an den Lead mit aktuellem Ziel-Wortlaut (4); vergessene Gespräche: keine automatische Freigabe, im Ticker steht eine Liste „angehalten durch den Menschen, seit …“ ohne Nachricht an irgendwen (5); Anweisungsdateien mit Diff (6, Abschnitt 8); Aufsicht über Artefakte statt Nachrichten (7, Abschnitt 6.7); Entscheidungen trägt der Gesprächspartner in die Spec ein (8, Abschnitt 8); robust gegen DSH-Updates, Eingriff in den Kern nur wenn es als Plugin nicht geht, ein Schalter schaltet alles ab (9, Abschnitt 7); drei Maschinen (10, Abschnitt 9); Reihenfolge Patch vor Ticker (11); Abnahme in der Probe-Instanz (12, Abschnitt 10).
 
-Alle Zeilenangaben beziehen sich auf `/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/` (DSH 0.2.0-rc.2), gelesen, nichts verändert.
+## 3. Messungen in der Probe-Instanz (alles MESSUNG, mit Ort)
 
-1. **Die Meldung kommt aus dem Kern, nicht aus dem Plugin.** Text: `dsh-subagent/lib/index.js` Zeile 616. Auslöser `notifySettlement`: Zeilen 1254–1268.
-2. **Sie geht immer an das unmittelbare Elternteil** (`activation.parentSession`, Zeile 1257). Ein Teammitglied ist technisch ein fortsetzbarer Unteragent des Leads (Anbieter `spawn`, Kopfzeile seiner Sitzung: `parentSession` = Lead, `delegationDepth` 1). Deshalb trifft es den Lead und nicht „den Vorgesetzten der Arbeitsgruppe".
-3. **Jede Zustellung an das Kind setzt `announced = true`** (Zeilen 1837 und 1957), auch die Nachricht des Menschen aus dem Chat (`subagent.prompt`, Zeilen 3010–3053). Kommt das Kind danach zur Ruhe (Zeilen 1155–1206: Agent untätig, Eingangskorb leer, keine eigenen Kinder), wird es abgebaut und meldet dem Elternteil. **Jeder Gesprächsgang des Menschen mit dem Experten erzeugt also genau eine Meldung an den Lead.** Gemessen: 15 Meldungen am 2026-11-09 zwischen 17:14 und 19:22, 15 ausgelöste Lead-Züge, rund 6,42 Mio. Token Cache-Schreiben und 4,16 Mio. Token Cache-Lesen (elfmal war der Zwischenspeicher abgelaufen und der ganze Kontext von 545 000 bis 617 000 Token wurde neu geschrieben).
-4. **Ein Schalter im Kern existiert nicht.** Die Einstellungen von `dsh-subagent` sind nur `maxDepth` und `maxActiveSubagents` (Zeilen 2821–2823). Die Einstellungsoberfläche (`dsh-client-ui-settings-subagent`) hat denselben Umfang.
-5. **Ist das Elternteil untätig, wird die Meldung als `followup` zugestellt** (Zeile 1264 `parent.status === "idle" ? "queue" : "steer"`, dann Zeilen 863–875 `sendWaking`: ein Elternteil ohne eigene Aktivierung, wie der Lead als Wurzel, bekommt `parent.followup(message)`). `followup` öffnet einen eigenen Zug (`dsh-agent-loop/lib/index.js` Zeilen 797–810). Läuft der Lead gerade, kommt sie als `steer` in den nächsten Schritt.
-6. **Der gemeinsame Engpass aller Zustellungen ist `Agent.send(message, target, wakeup)`** (`dsh-agent/lib/types/runtime-types.d.ts`, öffentliche Agent-Schnittstelle; `followup`, `steer` und `inject` rufen es alle, `dsh-agent-loop/lib/index.js` Zeilen 800–810).
+**Aufbau (gemessen, nichts am laufenden System):** `dsh --profile probe`, Datenverzeichnis `DSH_HOME=/tmp/teams_plus_umbau/probe_home`, **kein Webserver und kein Port**, Profil aus der Vorlage `headless` plus Bündel `experimental-agent-team-profile`, Attrappen-Modell ohne Anbieter und ohne Kosten, ein Treiber-Plugin, das einen Lead und einen Experten anlegt und den Chat-Weg des Menschen (`subagents.prompt`, Quelle `user` mit `rpcId`) nachspielt. Jeder Lauf höchstens 90 s, danach `ps` ohne Rest. Das laufende `dsh web` (PID 65458 auf Port 3080, laut Lead PID 90805 beim Lead; beide sind unberührt) und alle anderen Dienste wurden weder gestartet noch gestoppt. Skripte und Ergebnisse: `docs/messung-gespraechsmodus/`.
 
-## 2. Die Bausteine, die DSH einem Plugin bietet (gemessen)
+| Nr. | Frage | Ergebnis | Wäre die Annahme falsch, käme hier etwas anderes heraus, weil … |
+|---|---|---|---|
+| M0 | Grundlinie: wie oft wird der Lead geweckt, wenn der Mensch N Mal mit dem Experten spricht? | N=2: **3 Lead-Züge** (1 nach dem Start des Experten, 1 je Gang), jede Meldung Art `subagent-settled`, Quelle Kern | der Kern keinen Weckruf pro Gang schickte |
+| M1 | Greift ein am Lead umwickeltes `Agent.send` bei der Kernmeldung? | **Ja.** Szenario „abfangen“, N=3: 4 Abschlussmeldungen kamen am Lead an (je `target: next-turn`, `wecken: true`), alle 4 verworfen, **Lead-Züge: 0** | die Kernmeldung `send` nicht passierte (sie geht über `followup`, das `send` ruft) |
+| M1b | Welche Zustände der Kernmeldung sind unterscheidbar? | Normal: Text „… **finished** and will do no further work …“. Abbruch (Unterbrechen): „… **was stopped** before it finished.“. Fehler im Modellaufruf (geworfen): „… **failed** before it finished.“. Unterscheidbar an `source.summary` | die Kernmeldung nur einen Text hätte |
+| M3 | Team-Nachricht Kind→Lead im Eingangskorb verworfen: wird sie erneut zugestellt? | Beobachtet 9 s lang (Szenario `briefkasten`): **kein** zweiter Versuch; die Nachricht blieb im Briefkasten `queued`. Quelltext (`dsh-experimental-agent-team/lib/index.js` 1985–1998): neuer Versuch erst bei `agent/created` (Start/Neuladen der Sitzung) | der Briefkasten sofort erneut zustellte |
+| M4a | Fork: Team, Wurzelstatus, Elternverweis | Fork ist **Wurzelsitzung** (`istWurzel: true`), `parentSession` = Lead; `listMembers(fork)` zeigt **nur sich selbst als Lead** (leeres Team: „verliert das Team“ stimmt); `sendMessage` an `exp`: „active teammate not found“ | der Fork das Team erbte |
+| M4b | Fork: Rückmeldung an den Parent | `subagents.sendMessage(fork, parent)` abgelehnt („not a resident continuable child“); `parent.inject(Nachricht mit Plugin-Quelle)` **geht**, weckt nicht. Heute vorhanden: Werkzeug `send_to_session` (Plugin), Wurzeln bekommen dort `inject` | der Kern die Rückmeldung zuließe |
+| M5 | Ziel und Mensch-Nachricht: wird „angehalten“? | **Nein, nicht auf der API-Ebene.** Ziel läuft (`active`/`armed`, Runden steigen), Nachricht mit `queue` **und** mit `steer` ändern daran nichts (Szenarien `ziel`, `zielsteer`: Runden stiegen weiter von 0 auf 5, Phase blieb `active`). **Anhalten geschieht nur beim Abbruch einer Zielrunde** (Unterbrechen/Stopp): dann `pause`, `paused`/`disarmed` (Szenarien `stopp`, `stopp2`) | die Nachricht des Menschen das Ziel pausierte |
+| M5b | Nach dem Stopp: Kind lebt? Fortsetzen? | Nach dem Stopp wird das Kind **abgebaut** („TOT“) und dem Lead als „was stopped“ gemeldet. Eine Nachricht des Menschen **weckt es kalt**, das Ziel bleibt `paused`/`disarmed`. `goals.resume` am lebenden Kind: `active`/`armed`, Runden laufen weiter (3 → 12 in 6 s) | `resume` bei abgebautem Kind ginge |
+| M5c | Geht das Fortsetzen durch den Menschen bequem? | Quelltext: die Zielleiste der GUI hat einen Fortsetzen-Knopf bei `paused` oder `active/disarmed` (`dsh-client-ui-goal/lib/client.js` 272). In der Sitzung eines **Teammitglieds** braucht er (a) das lebende Kind (Nachricht weckt es) und (b) den Patch `child-goal-resume` (eingespielt). **Zwei Schritte: erst schreiben, dann Knopf.** Am Browser nicht gemessen | — |
+| M6 | Lässt sich `send_message` im Team-Modus ablehnen? | **Ja, als Plugin, ohne Kern-Patch**: `ctx.tools.guard(...)` lehnte `send_message` ab mit „Team-Modus: send_message ist hier nicht erlaubt. Nutze give_task oder ask_question.“; das Modell bekommt das als Werkzeugfehler | der Wächter nicht griffe |
+| M7 | Lässt sich `update_goal(complete)` ohne Bericht ablehnen? | **Ja, als Plugin**: derselbe Wächter lehnte `complete` ohne Bericht ab („Ziel kann erst abgeschlossen werden, wenn ein Bericht geschrieben wurde.“) | der Wächter nicht griffe |
+| M8 | Ist das Ziel eines abgebauten Mitglieds billig lesbar (Aufsicht ohne Weckrufe)? | **Ja**: `sessionQuery.observeSession(kindId)` liefert die Projektion `goal` samt `phase`, `roundsStarted`, Zeitstempeln auch für abgebaute Kinder, ohne sie zu wecken. Dieselbe Projektion hat `todos`, `inbox`, `userQuestions`, `tokenUsage`, `agentTeam` | die Projektion nur lebende Agenten hätte |
 
-| Baustein | Was er kann | Fundstelle |
+**Befund, der eine Annahme des Menschen betrifft (M5):** Der Mensch sagte, wenn er steere, werde das Ziel „automatisch pausiert“, das sei die Funktion zum Übernehmen. Gemessen auf der Ebene des Kerns: **Eine Nachricht pausiert das Ziel nicht**; nur ein **Abbruch der laufenden Zielrunde** pausiert es (`dsh-goal-round-driver/lib/index.js` 213–225, `goal/changed` mit `pause`, Z. 234). Ob der Chat der GUI beim Senden während eines laufenden Zuges zuerst abbricht (und so die Pause auslöst), habe ich ohne Browser **nicht** gemessen. Im Protokoll von `strata-teamleiter` (2026-11-05 06:41) kam die Pause nicht vom Kern, sondern vom Teilnehmer selbst: Er rief auf Anweisung `update_goal(pause)` auf. Folge für das Konzept: Die Gesprächsübernahme darf sich **nicht** darauf verlassen, dass der Kern pausiert; das Plugin erkennt die Nachricht des Menschen selbst (Abschnitt 5.2).
+
+**Nicht gemessen (jeweils mit Weg):** (U1) Schrägstrich-Befehle im Chat eines Teammitglieds und der GUI-Knopf „Fortsetzen“ dort (Browser nötig, Probe ohne Webserver); (U2) ob ein neuer Versuch des Briefkastens nach einem Neustart die verworfene Team-Nachricht wieder zustellt (nur Quelltext); (U3) ob ein Fork das Ziel des Leads erbt (`goal/change` steht in der geerbten Vorgeschichte; `ctx.goals.get(fork)` nach dem Fork prüfen); (U4) ob `ctx.tools.restrict` das Team-`send_message` ausblendet (Quelltext: gilt nur für **globale** Werkzeuge, Eintragungen im Agenten-Scope bleiben sichtbar, `dsh-tools/lib/index.js` 2906–2927); (U5) das Verhalten eines echten Anbieterfehlers 402 (Issue #70: dort kam „stopped“, hier beim geworfenen Fehler „failed“; gemessen ist nur der geworfene Fehler).
+
+## 4. Begriffe
+
+- **Team-Modus** ist kein neuer Zustand, sondern liest den vorhandenen: Die Wurzelsitzung hat mindestens ein Teammitglied in Phase `active` (also nicht nach `/team rest`, Phase `resting`). Er gilt für den **ganzen Baum** unter dieser Wurzel (Eltern-Kette über `session.header.parentSession`, `liveLineage`-Muster, `dsh-subagent/lib/index.js` 1036–1048). Ein Fork ist eine neue Wurzel mit leerem Team und damit **nicht** im Team-Modus (M4a).
+- **Master-Schalter:** `~/.dsh/.tm/teams-plus/team-modus.json` mit `{"aus": true}` schaltet alles Folgende ab; ohne Datei oder mit `aus: false` gilt der Team-Modus wie oben (Vorschlag, Frage F1).
+- **Ziel-Zustand der Gesprächsübernahme:** `paused` oder entwaffnet (Frage F2 aus der ersten Runde: der Mensch hat „angehalten, nicht abgebrochen“ gesagt; beide erfüllen es, siehe 5.2).
+
+## 5. Fähigkeiten
+
+Einordnung je Fähigkeit: **Plugin** (wie `goal-await.mjs`, im Profil geladen), **Kern-Patch** (Textänderung unter `/opt/homebrew/...`, geht bei einem Update verloren), **geht nicht**.
+
+### 5.1 Meldungen im Team-Modus: nur Echtes bleibt (Plugin)
+
+Mechanik: das Plugin umwickelt `Agent.send` an jedem Agenten im Baum (`agent/created` plus beim Start `ctx.agents.list()`), gemessen in M1. Es wertet **Art und Zusammenfassung** der Nachricht aus (M1b):
+
+| Meldung | Im Team-Modus | Begründung |
 |---|---|---|
-| `agent/inbox/inserted`, `agent/inbox/claimed`, `agent/inbox/discarded`, `agent/status` | nur beobachten (Modus „emit"), nichts verhindern | `dsh-agent/lib/types/runtime-types.d.ts` 240–300 |
-| `agent/pre-step` (Modus „waterfall") | im letzten Moment vor einem Modellaufruf die angenommenen Nachrichten ersetzen oder den Schritt ablehnen (`{kind:"reject"}`: der Zug endet ohne Modellaufruf, die angenommene Nachricht wird weder verworfen noch als Sitzungsereignis geschrieben) | `runtime-types.d.ts` 296–310, `dsh-agent-loop/lib/index.js` 902–924 und 958–962 |
-| Der Dienst `ctx.goals` | `get`, `create`, `disarm`, `resume`, `pause`; **die Dienste prüfen keine menschliche Vollmacht**, die steckt erst im Werkzeug `update_goal` (`requireDirectHuman`, `dsh-tool-goal/lib/index.js` 93) | `dsh-goal/lib/index.js` 604–700 |
-| Ereignisse `goal/changed`, `goal/activation-changed` | beobachten, wann ein Kind ein Ziel anlegt, erreicht, blockiert oder entwaffnet wird | `dsh-goal/lib/index.js` 798 und 877 |
-| `Agent.send` selbst | öffentlich; ein Plugin kann es **am Agenten-Objekt** umwickeln und Nachrichten vor dem Eingangskorb abfangen (das Plugin tut das heute schon mit Werkzeug-Definitionen: `stille-nachrichten.mjs`, `delegate-send.mjs`) | `runtime-types.d.ts` Agent-Schnittstelle |
-| `ctx.commands.register` | Schrägstrich-Befehle, die ohne Modell ausgeführt werden | `dsh-commands/lib/index.js` 266, Beispiel `dsh-command-goal` |
-| Werkzeug-Definitionen umwickeln | neue Felder an `send_message`, `delegate_task` | `stille-nachrichten.mjs` 223–360 |
-| Zustand und Protokoll unter `~/.dsh/.tm/teams-plus/` | Entscheidung E1 der Repo-Spec | `ENTSCHEIDUNGEN.md` |
+| `subagent-settled`, Zusammenfassung „… **finished** and will do no further work …“ | **verwerfen** (nicht puffern) | das ist die „einfach nur eine Antwort geschickt“-Meldung des Menschen |
+| `subagent-settled` „… **was stopped** …“, „… **failed** …“, „… **ran out of room** …“, „… **declined** …“ und jede unbekannte Form | **durchlassen** | echte Fehler und kritische Zustände; unbekannte Form fällt auf „laut“ |
+| `team-message` / `agent-message` von einem Agenten (Zwischenfazit, Frage, `give_task`, `ask_question`, `goal_report`) | durchlassen | vom Agenten selbst geschrieben, das ist die gewollte Meldung |
+| Task-Updates (`team/task`) | durchlassen | ausdrücklich ausgenommen |
+| Nachrichten des Menschen (Art `user`) | immer durch | |
+| Blockade eines Ziels (`blocked`) | durchlassen | kritischer Zustand |
 
-Was **nicht** da ist: ein Ereignis oder eine Hook-Stelle in `notifySettlement`; ein Schalter für die Abschlussmeldung; ein Weg für ein Plugin, die Meldung am Ursprung (Kern) zu unterdrücken, ohne in interne Felder zu greifen (`ctx.subagents.continuations.activations`, nicht öffentlich dokumentiert).
+Wichtig (M3, U2): **Team-Nachrichten dürfen am Eingangskorb nicht verworfen werden**, weil sie im dauerhaften Briefkasten als „nicht zugestellt“ stehen bleiben und bei einem Neustart erneut kämen. Verworfen wird nur, was der Kern selbst erzeugt und nicht im Briefkasten ablegt: die „finished“-Meldung. Dass Agenten untereinander nichts Überflüssiges schicken, regeln die Kanäle in 5.5, nicht ein Filter.
 
-## 3. Warum die vorhandenen Werkzeuge das Problem nicht lösen
+Fehlerfall im Filter selbst: Ausnahme → durchlassen (fail open). Selbsttest beim Start: umwickelt `send` überhaupt, gibt es einen Treffer-Zähler im Protokoll (`~/.dsh/.tm/teams-plus/logs/team-modus.log`)?
 
-- **`quiet: true` an `send_message`** (`patches/stille-nachrichten.mjs`): setzt nur einen Text-Vermerk vor die Nachricht („antworte nicht dem Lead") und leitet den Absender an. Es betrifft **eine Nachricht eines Agenten an einen Agenten**. Die Abschlussmeldung ist keine Nachricht eines Agenten, sondern eine **Laufzeitmeldung des Kerns** (`subagent-settled`); die Nachricht des Menschen aus dem Chat läuft über `subagent.prompt`, nicht über `send_message`. Der Vermerk ist außerdem eine Bitte an ein Modell, keine Sperre. Das ist der Grund, warum es „nicht gereicht" hat.
-- **`goals.disarm` / `goals.resume` und `await_goal_dependency`** (`patches/goal-await.mjs`): nehmen einer Sitzung die Vollmacht, sich **selbst** eine nächste Zielrunde zu geben. Sie sagen nichts darüber, was **andere** dieser Sitzung zustellen. Die Abschlussmeldung weckt den Lead, auch wenn dessen Ziel entwaffnet ist (sie ist ein `followup`, keine Zielrunde). Außerdem entsteht beim Warten selbst eine Meldung: Wer auf `await_goal_dependency` wartet, wird untätig, kommt zur Ruhe und meldet dem Elternteil. (Gemessen: der Teamleiter rief das Werkzeug 14-mal in drei Tagen auf, der Lead bekam in denselben Tagen 98 Meldungen dieses Kindes; Warten erklärt also nur einen kleinen Teil.)
-- **`team_bremse`** (`patches/team-bremse.mjs`): begrenzt, wie viele Agenten mit scharfem Ziel gleichzeitig Zielrunden bekommen; wirkt nur **zwischen** Zügen und entwaffnet/weckt nur Ziele. Der Weckruf einer Nachricht „tritt synchron in `running` ein", bevor die Bremse hinsehen kann (Kopfkommentar des Patches). Sie ist eine Lastbegrenzung, kein Stummschalter.
-- **`send_to_session` mit `inject`** für Wurzelsitzungen: wirkt nur für Nachrichten **dieses Werkzeugs**, nicht für die Kernmeldung.
+Optionaler Kern-Patch (nur falls Messung U-später zeigt, dass das Umwickeln nicht trägt): eine Zeile in `notifySettlement` (`dsh-subagent/lib/index.js` 1254) vor dem Senden, die einen Plugin-Dienst fragt. Nach dem Stand der Messung **nicht nötig**.
 
-## 4. Die Fähigkeiten a bis g
+### 5.2 Gesprächsübernahme („direkt angeschrieben heißt angehalten“) (Plugin)
 
-Jede mit Einordnung: **Plugin** (wie `goal-await.mjs`, im Profil geladen, ohne Eingriff in die Installation), **Kern-Patch** (Textänderung an einer Datei unter `/opt/homebrew/...`, wie die bestehenden `allow-*`-Patches, geht bei jedem DSH-Update verloren und muss mit `teams-plus apply` wieder eingespielt werden), **geht nicht**.
+Gemessen (M5): Der Kern pausiert bei einer Nachricht nicht. Deshalb erkennt das Plugin die Übernahme selbst:
 
-### a) Gesprächsmodus
+1. **Auslöser:** eine Nachricht der Art `user` **mit `rpcId`** (Menschenweg über `subagents.prompt`, `dsh-subagent/lib/index.js` 3017–3021; die Startaufgabe hat keine `rpcId`, Z. 1739) trifft ein Kind im Baum, und das Kind hat ein Ziel mit Phase `active`.
+2. **Wirkung auf das Ziel:** `ctx.goals.pause(kind, ref)` **oder** `ctx.goals.disarm(kind)`. Der Mensch sagte „angehalten, nicht abgebrochen. Einfach die normale Funktion, wie es jetzt im Prinzip auch schon ist.“ Das entspricht dem **Pausieren** (`paused`, sichtbar „pausiert“ in der Zielleiste, Knopf „Fortsetzen“; aber `pause` bricht einen **laufenden Zug ab**, `dsh-goal-round-driver/lib/index.js` 234). `disarm` bricht nichts ab, zeigt aber keine „pausiert“-Anzeige (`active`, nur die Zielleiste zeigt Fortsetzen bei `active/disarmed`, `client.js` 272). Frage F2.
+3. **Genau eine Meldung an den Vorgesetzten** (bei Facharbeitern: an den Experten): „Mensch hat Kommunikation mit Agent XY übernommen, stand by“ (Text vom Plugin, nicht vom Modell; Art `plugin:@tmielsch/dsh-teams-plus`, damit der Kern sie als Zustellung ohne Berechtigung behandelt, wie `send-to-session.mjs` es festgelegt hat). Weitere Mensch-Nachrichten an dasselbe Kind lösen **keine** weitere Meldung aus, solange es angehalten ist.
+4. **Alle Kernmeldungen dieses Kindes an den Vorgesetzten werden stumm** („finished“ immer; „stopped/failed“ weiterhin laut, 5.1).
+5. **Rückgabe:** setzt der Mensch das Ziel fort (`goal/changed` mit `resume`, Zielleiste oder Befehl), geht **eine** Meldung an den Vorgesetzten: „Mensch hat Agent XY freigegeben, Ziel fortgesetzt“, mit dem **aktuellen Wortlaut** des Ziels (aus `ctx.goals.get`, nicht aus der Zeit der Übernahme, weil der Mensch es im Gespräch geändert haben kann).
+6. **Kein Fortsetzen durch Agenten:** ein pausiertes Ziel kann das Modell nicht selbst fortsetzen (`GOAL_TOOL_RESUME_PAUSED`; Patch `child-goal-resume` lockert nur für Kind-Sitzungen mit Auftrag des Elternteils oder Nachricht des Menschen). Das bleibt so.
+7. **Vergessene Gespräche (Lead-Punkt 5):** keine automatische Freigabe. Das Plugin führt in `~/.dsh/.tm/teams-plus/state/uebernahmen.json` eine Liste `{Sitzung, Name, seit}` aus den Übernahme- und Rückgabe-Ereignissen; der Ticker (Abschnitt 6.8) zeigt sie als „angehalten durch den Menschen, seit …“. Es geht keine Nachricht an irgendwen.
 
-**Einordnung: als Plugin machbar, mit zwei Vorbehalten; der kleinste Eingriff am Kern ist optional.**
+Wie der Mensch das Ziel eines Teammitglieds fortsetzt (Lead-Punkt 4, M5c): heute zwei Schritte (Nachricht schreiben, um das abgebaute Kind zu wecken; dann Knopf in der Zielleiste dieser Sitzung). Verbesserung als Plugin: ein Schrägstrich-Befehl `/uebernahme frei <name>`, der das Kind weckt und das Ziel fortsetzt (U1: ob Befehle im Teammitglied-Chat laufen, ist ungemessen; Alternative: Werkzeug für den Lead mit Menschenvollmacht ist verboten, siehe 5.2 Nr. 6).
 
-Was der Mensch will: eine Sitzung — auch der Lead — wird aus dem Team herausgenommen. Keine Teamnachrichten, keine Aufgaben, keine Abschlussmeldungen wecken sie, bis der Mensch freigibt.
+### 5.3 Melden erst bei erreichtem Ziel, Pflichtbericht (Plugin)
 
-Vorschlag (Stufe 1, nur Plugin):
+- **Eigenes Werkzeug `goal_report`** (Plugin-registriert): der Agent schreibt seinen Bericht (Text, Pfade/Belege). Das Plugin speichert ihn mit Ziel-Kennung und Revision (`~/.dsh/.tm/teams-plus/state/berichte/`) und stellt ihn **genau einmal** dem Vorgesetzten zu.
+- **Wächter auf `update_goal`:** `complete` wird abgelehnt, solange für `{Ziel-Kennung, Revision}` kein Bericht vorliegt (M7: Wächter greift ohne Kern-Patch). Der Hinweistext nennt `goal_report`.
+- Warum **nicht** ein Pflichtfeld `bericht` an `update_goal`: das Schema wird beim Registrieren einmal in JSON-Schema übersetzt (Erfahrung aus `delegate-send.mjs`, `required`-Liste und geteilte Eigenschafts-Objekte); ein zusätzliches Feld hängt an Kerninterna und hätte bei einem Update das Risiko eines ungültigen Schemas (der Anbieter lehnt es mit 400 ab). Der Wächter prüft den Zustand, nicht die Form.
+- Auch `blocked` wird gemeldet: der Kern setzt dort bereits eine Begründung (`blocked_reason`); Meldung an den Vorgesetzten durchlassen (5.1).
+- Ein Ziel, das **ohne** `complete` endet (Kind kommt ohne Ziel-Abschluss zur Ruhe, „finished“): die Meldung wird im Team-Modus verworfen (5.1). Damit der Vorgesetzte das nicht verpasst, gibt es die Aufsicht über Artefakte (6.7).
 
-1. **Zustand** in `~/.dsh/.tm/teams-plus/state/gespraech.json`: welche Sitzungs-IDs im Gesprächsmodus sind, seit wann, wer ihn gesetzt hat. Er überlebt einen Neustart (E1: von Hand lesbar).
-2. **Abfangen vor dem Eingangskorb**: Das Plugin umwickelt `Agent.send` an jedem Agenten, den es sieht (`agent/created` plus beim Start einmal `ctx.agents.list()`, so wie `agentTeams` es tut). Ist die Empfänger-Sitzung im Gesprächsmodus und die Nachricht von einer „Team-Art" (`source.kind` ist `subagent-settled`, `team-message` oder `agent-message`; Nachrichten des Menschen, Art `user`, gehen **immer** durch), wird sie
-   - zuerst in den Puffer geschrieben (`~/.dsh/.tm/teams-plus/state/gespraech-puffer.jsonl`: Nachrichten-ID, Art, Absender, Zeit, Text),
-   - danach nicht in den Eingangskorb gelegt. Ergebnis: kein Zug, kein Modellaufruf, kein Eintrag im Sitzungsprotokoll des Leads. Die Reihenfolge „erst Puffer, dann verwerfen" ist Pflicht: schlägt das Schreiben fehl, geht die Nachricht normal durch.
-3. **Rückfall, falls das Umwickeln von `send` nicht greift** (Messung M1, Abschnitt 8): ein Zuhörer auf `agent/pre-step` am Lead, der angenommene Nachrichten dieser Arten herausfiltert (und den Schritt mit `{kind:"reject"}` ablehnt, wenn nichts übrig bleibt). Das ist teurer (der Zug öffnet sich und wird ohne Modellaufruf geschlossen; der Systemprompt wird noch zusammengesetzt) und schreibt Ereignisse ins Protokoll, kostet aber keine Token. **Wichtig:** `dsh-time-context` hängt in `agent/pre-step` bei „enter" mit leerer Nachrichtenliste trotzdem eine Zeitnachricht an und löst so einen Modellaufruf aus; nur `reject` unterdrückt ihn.
-4. **Freigabe** bringt die gepufferten Nachrichten gesammelt zurück oder verwirft sie (Frage 1).
+### 5.4 Kein Auftrag ohne Ziel (Plugin; Weg 2 ist vom Menschen freigegeben)
 
-Vorbehalt A: **Teamnachrichten** (`team-message`) haben einen dauerhaften Briefkasten. Werden sie am Eingangskorb verworfen, bleiben sie im Briefkasten als „nicht zugestellt" stehen (`dsh-experimental-agent-team/lib/index.js` 1020–1050: Zustellung gilt erst als erfolgt, wenn die Zielsitzung sie als Sitzungsereignis geschrieben hat). Ob und wann der Briefkasten es dann erneut versucht (und damit erneut weckt), ist **nicht gemessen** (M3). Der sicherere Weg für diese Art ist, im Gesprächsmodus das Zustellen zu verweigern (Fehler werfen: der Briefkasten behält die Nachricht, `dispatchOnce` meldet „remains queued") und bei Freigabe ein Neuzustellen anzustoßen.
+- **Der Lead setzt das Ziel selbst** (die „saubere Version“): das Plugin legt mit `ctx.goals.create(kind, { objective, maxGoalRounds })` ein Ziel **für** das Kind an. Gemessen: `create` prüft keine Vollmacht; das Ziel läuft sofort (`active`/`armed`, Runden steigen). Voraussetzung: das Kind **lebt** (`assertLive`, Fehler „agent is not live in this registry“ gemessen), also vorher wecken.
+- Das widerspricht dem Satz in `~/.dsh/AGENTS.md` („Ein Agent kann ein Ziel nicht für einen anderen anlegen …“). Der Mensch hat dem zugestimmt („Ob das Plugin ein Ziel für einen anderen anlegt, entscheidet damit der Mensch mit Ja“). Der neue Wortlaut steht in 8.1; **geändert wird nichts ohne Abnahme.**
+- **Werkzeug `give_task`** (Plugin): Pflichtfelder `empfaenger`, `zielbrief` (Zweck, Gegenstand, Grenzen, Abnahme), `maxrunden`, optional `aufgabenliste`. Ohne Zielbrief scheitert der Aufruf mit verständlicher Meldung (Abnahme 12d). Das Plugin weckt das Kind, legt das Ziel an, stellt den Auftrag zu.
+- **Werkzeug `ask_question`** (Plugin): eine Frage an genau eine Sitzung ohne Ziel; der Empfänger antwortet im selben Strang. Es erzeugt **kein** Ziel, bricht kein laufendes Ziel ab und löst **keine** Meldung an den Vorgesetzten aus.
+- **`send_message` im Team-Modus abgelehnt** mit Hinweis auf `give_task`, `ask_question`, `goal_report` (M6, Abnahme 12e). Außerhalb des Team-Modus unverändert.
+- Kosten und Gegenstimmen (aus Runde 1, weiter gültig): jede Zielrunde ist ein Modellaufruf, daher `maxrunden` als Pflicht; Rückfragen sind keine Aufträge (daher `ask_question`); ohne 5.2 darf 5.4 nicht gebaut werden, sonst arbeitet ein scharfes Ziel weiter, während der Mensch mit dem Experten spricht.
+- **Jedes Teammitglied darf den Menschen direkt fragen** (Wunsch des Menschen): dafür `ask_question` mit Empfänger `mensch`; die Frage wird im Ticker sichtbar (6.8) und, wenn der Agent mit `await_goal_dependency` darauf wartet, als „wartet auf Antwort des Menschen“ markiert.
 
-Vorbehalt B: Was wir unterdrücken, sind **gerade die Meldungen, die verhindern, dass ein Agent vergessen wird** (Abschnitt 4g). Deshalb braucht der Modus Sichtbarkeit und eine Wächteruhr (4g).
+### 5.5 Kommunikationswege: was es gibt, was neu ist
 
-Stufe 2, optional und nur wenn Stufe 1 gemessen nicht genügt: **Kern-Patch** an `notifySettlement` (Zeile 1254). Kleinster Eingriff: eine Zeile vor dem Senden, die einen Dienst des Plugins fragt, ob diese Meldung zugestellt werden soll:
+| Gewünscht | Heute | Konzept |
+|---|---|---|
+| Nachricht | `send_message` (Steer), `send_to_session` (Plugin) | im Team-Modus `send_message` abgelehnt; Nachrichten nur über die vier Kanäle |
+| Auftrag mit Ziel | nur als Text; Ziel legt der Empfänger selbst an | `give_task` (hart: ohne Zielbrief kein Auftrag) |
+| Nachfrage | `send_message` | `ask_question` (still, kein Ziel, keine Meldung nach oben) |
+| Bericht | Text an den Vorgesetzten | `goal_report` (Pflicht vor `complete`) |
+| Team-Auftrag | `team_task_*` (Brett), weckt niemanden | unverändert; Task-Updates bleiben (Entscheidung des Menschen) |
+| Stille Nachfrage über Fork | nicht vorhanden | ungemessen (U3); Fork des Leads ist ein Berater-Weg (6.6), keine Nachfrage an einen Experten |
 
-```js
-// Entwurf, nicht angewendet: dsh-subagent/lib/index.js, in notifySettlement, nach "if (parent === void 0) return;"
-const filter = this.ctx.get("teamsPlusMeldefilter");
-if (filter !== void 0 && filter.zustellen(activation.childId, parent.id, terminal) === false) return;
+### 5.6 Berater-Fork des Leads (Plugin, nur Vorgaben)
+
+Gemessen (M4a/M4b): Ein Fork des Leads ist eine Wurzel mit leerem Team, Elternverweis auf den Lead. Das passt zu „verliert das Team, behält den Kontext“. Er ist nicht im Team-Modus (kein aktives Mitglied) und bekommt deshalb weder die Filter noch die abgelehnten Werkzeuge. **Rückmeldung an den Parent:** heute nur über `send_to_session` (Plugin; Wurzeln bekommen `inject` und werden nie geweckt) oder `parent.inject`. Das Konzept ergänzt: eine Rückmeldung des Forks an den Parent gilt **nicht** als Mensch-Eingriff, löst also keine Übernahme-Meldung aus, und weckt den Lead nicht (er liest sie beim nächsten Zug). Offen U3: ob der Fork das Ziel des Leads erbt und nach einem Neustart scharf wird.
+
+### 5.7 Aufsicht des Leads ohne Weckrufe (Plugin)
+
+Gemessen (M8): die Projektion `goal` (und `todos`, `userQuestions`, `tokenUsage`) ist für lebende **und** abgebaute Mitglieder billig lesbar, ohne sie zu wecken. Vorschlag: Werkzeug **`team_stand`** (Plugin, nur lesend): pro Mitglied Name, Ziel (Phase, Aktivierung, Runden, Wortlaut gekürzt), Zeit des letzten Ereignisses, „angehalten durch den Menschen seit …“, offene Frage an den Menschen, ob der letzte Bericht vorliegt. Eine Zeile je Mitglied. So braucht der Lead weder Nachrichten noch `list_agents`-Schleifen (die er laut Regel „Aufsicht gegen Schleifen“ bisher alle fünf Minuten machen sollte). Kein Weckruf, weil es eine Abfrage ist, kein Ereignis.
+
+### 5.8 Benachrichtigungen an den Menschen: Ticker (eigener zweiter Schritt, Client-Plugin)
+
+- Datenquelle: das Plugin schreibt jede durchgelassene Team-Meldung, jede Übernahme-/Rückgabe-Meldung, jede Frage an den Menschen und jeden Bericht in `~/.dsh/.tm/teams-plus/state/ticker.jsonl` (Zeit, Art, Absender, Ziel-Sitzung, Kurztext). Das ist Protokoll, nicht Zustellung: es weckt niemanden.
+- Anzeige: eine Leiste in der Web-GUI (Client-Plugin; das Paket hat schon einen Client-Teil, `lib/client.js`, der mit `npm run build` gebaut wird, `dsh.client` in `package.json`), scrollbar, ein Klick springt zur Sitzung. Fragen an den Menschen werden hervorgehoben; ebenso Kinder, die per `await_goal_dependency` auf eine Antwort des Menschen warten.
+- Listenansicht „angehalten durch den Menschen, seit …“ (5.2 Nr. 7).
+- Wird **nach** dem Patch gebaut, getrennt abgenommen. Er hat keinen Einfluss auf die Filter.
+
+## 6. Die drei Wege gegen DSH-Updates (Frage des Menschen) — nebeneinander
+
+Die Sorge des Menschen: „das Modell weiß es dann nicht“, wenn das Profil nur zeitweise überschrieben wird, und Updates brechen die Lösung. Alle drei Wege behalten das **Filtern von „finished“ (5.1)** und die **Gesprächsübernahme (5.2)** als Plugin; sie unterscheiden sich nur bei den Kommunikationswerkzeugen.
+
+| | **A: DSH-Werkzeuge im Team-Modus umwickeln und ablehnen** | **B: eigene Werkzeuge, DSH-Werkzeuge im Team-Modus ausblenden** | **C: eigene Werkzeuge, DSH-Werkzeuge bleiben sichtbar** |
+|---|---|---|---|
+| Wie | `give_task`, `ask_question`, `goal_report` sind immer registriert; ein Wächter (`tools.guard`, M6) lehnt `send_message` im Team-Modus ab mit Hinweis | dasselbe, zusätzlich `tools.restrict({deny:["send_message", …]})` im Agenten-Scope bei Eintritt in den Team-Modus | nur die eigenen Werkzeuge, keine Sperre |
+| Wie bricht ein DSH-Update ihn? | Nur wenn `send_message` umbenannt wird: dann trifft der Wächter nichts (fail open: der alte Weg bleibt offen, **kein Absturz**); der Selbsttest meldet „Wächter ohne Treffer“ im Protokoll und beim Start. Der Wächter nutzt die öffentliche `tools.guard`-Schnittstelle | `restrict` wirft bei **unbekanntem** Namen („names unknown global tool“), also bei jeder Umbenennung ein **Fehler beim Anlegen**; wirkt außerdem **nur auf globale** Werkzeuge: das `send_message` des Team-Plugins liegt im Agenten-Scope und bleibt sichtbar (Quelltext, U4) | bricht nicht, denn es wird nichts gesperrt |
+| Wie erfährt das Modell davon? | (1) Werkzeugfehler mit Hinweistext (gemessen, M6), (2) Abschnitt im Systemprompt (`systemPrompt.section`, Muster `stille-nachrichten.mjs`), (3) Beschreibungen der eigenen Werkzeuge, (4) Anweisungsdatei | Das Werkzeug **fehlt** in der Liste ohne Begründung; ein langer Kontext, der es noch aufgerufen hat, bekommt „unbekanntes Werkzeug“. Die Werkzeugliste steht im Anfrage-Kopf: **jede Umschaltung ändert den Kopf und entwertet den Zwischenspeicher** (`toolsChanged`, `dsh-agent-loop/lib/index.js` 927), bei den 550 000-Token-Kontexten des Leads rund 0,5 Mio. Token Cache-Schreiben je Umschaltung | Das Modell bleibt bei der Gewohnheit (`send_message`); die Anweisungsdatei allein hält laut Mensch nicht („Rein über Prompt Engineering funktioniert das nicht immer“) |
+| Harte Sperre? | ja | ja, aber lückenhaft (Scoped-Werkzeuge) | **nein** |
+| Rückholbar? | ja (Schalter, Plugin entfernen) | ja, mit Cache-Kosten bei jedem Wechsel | ja |
+| Empfehlung | **Empfohlen** | nicht empfohlen (U4 und Cache-Kosten) | nicht empfohlen (keine Sperre) |
+
+**Empfehlung A**, mit eigenen Werkzeugen als Pflichtkanäle. Es hält, was der Mensch will (harte Sperre in einem Werkzeug, nicht im anderen), ändert die Werkzeugliste nicht beim Umschalten, bricht bei einem Update schlimmstenfalls in den heutigen Zustand zurück statt in einen Fehler, und das Modell erfährt es an vier Stellen. Die komplett nachgebaute Kommunikation mit Abschalten der DSH-internen (B-Variante des Menschen) bleibt als Ausbau möglich, wenn die Messung U4 zeigt, dass `restrict` auch das Team-Werkzeug trifft.
+
+## 7. Robust gegen Updates, Schalter, Kern-Eingriffe (Lead-Punkt 9)
+
+- **Als Plugin machbar und deshalb ohne Kern-Eingriff:** 5.1, 5.2, 5.3 (Wächter), 5.4, 5.7, 5.8. Gemessen in der Probe (M1, M6, M7, M8) mit öffentlichen Schnittstellen (`Agent.send`, `tools.guard`, `ctx.goals`, `sessionQuery`).
+- **Kern-Patch (nur bei Bedarf, nicht geplant):** eine Zeile in `notifySettlement`. Falls je nötig: als Patch-Datei nach dem Muster `allow-*.mjs` (Anker, `--status`, `--revert`), mit einer Prüfung in `~/.dsh/doctor.sh` Abschnitt [6/6] (dort stehen die vorhandenen Patch-Prüfungen, `doctor.sh` Z. 186–231), die nach einem Update „Patch fehlt“ meldet. Derzeit vorhandene Befunde dieser Art: Issue #24 (`allow-subagent-model-fields` findet seinen Anker nicht mehr) und #98 (`allow-subagent-rolle` halb eingespielt); `teams-plus doctor` meldet sie als „nachholen“.
+- **Ein Schalter schaltet alles ab:** `team-modus.json` mit `aus: true` (4); wirkt beim nächsten Nachrichteneingang, kein Neustart nötig, weil der Zustand bei jeder Nachricht gelesen wird.
+- **Selbsttest beim Start** (Muster `stille-nachrichten.mjs`): „Wächter hat Treffer“, „`send` umwickelt“, „Berichts-Ablage beschreibbar“; bei Abweichung Protokollzeile und Verhalten wie heute.
+- **Das Plugin ändert beim Einbau nichts an `~/.dsh/profiles/`**, bis der Mensch einbaut (Regel dieser Runde); der Einbau ist ein eigener Schritt mit Speicherpunkt und Neustart-Freigabe.
+
+## 8. Anweisungsdateien: Vorschläge als Diff (nichts geändert; Eintrag erst nach Abnahme)
+
+Pro Stelle: die geänderte Regel im alten und neuen Wortlaut, danach die Liste dessen, was gestrichen oder geändert wird, mit Grund. Was nicht aufgeführt ist, bleibt unangetastet, insbesondere: Spec-Regeln („Specs sind heilig“), Ablage und Wirkung, Sprache in Antworten, Fragen und Checkpoints, Wortlaut nie umdeuten, **das Verbot, Dienste neu zu starten**, Branch-/Worktree-Disziplin, Tool-Aufrufe sind Aufrufe, Ausdauer, Konfigurations-Repo.
+
+Zeilenangaben beziehen sich auf den Stand von heute (global `~/.dsh/AGENTS.md`, 982 Zeilen; Teams-Plus-Datei 144 Zeilen; Projekt `/Users/tmielsch/Perforce/stalker-dev/AGENTS.md`).
+
+### 8.1 Global `~/.dsh/AGENTS.md`
+
+**G1 — „Ziele: Anweisung nach unten, Vorschlag nach oben“ (Z. 561–579), Absatz Z. 576–579**
+
+```diff
+-Ein Agent kann ein Ziel **nicht für einen anderen** anlegen: `create_goal` legt
+-immer ein Ziel für die aufrufende Sitzung an, es gibt kein Adressatenfeld. „Der
+-Experte weist dem Worker ein Ziel zu“ heißt technisch: Nachricht mit dem Auftrag
+-hinüber, und der Worker legt es für sich an.
++Im Team-Modus (`/team work`, mindestens ein aktives Teammitglied) legt der
++Vorgesetzte das Ziel eines Untergeordneten selbst an: mit dem Werkzeug
++`give_task` (Zielbrief und Rundenbegrenzung sind Pflicht; ohne sie scheitert der
++Aufruf). Das Plugin legt das Ziel für den Empfänger an. Außerhalb des Team-Modus
++gilt unverändert: `create_goal` legt ein Ziel nur für die aufrufende Sitzung an,
++und der Empfänger legt es für sich an.
 ```
 
-Vorteil: die Meldung wird gar nicht erst gebaut. Nachteil: Textänderung in der Installation, nach jedem DSH-Update neu einzuspielen (wie `allow-child-session-routing.mjs`).
+Geändert/gestrichen: nur der Satz „kann nicht für einen anderen anlegen“ gilt im Team-Modus nicht mehr. **Bleibt:** „Nach unten Anweisung, nach oben Vorschlag“ (Z. 566–571), „Über ein Ziel des Projektleiters entscheidet der Mensch“ (Z. 572–574). Warum: Der Mensch hat das Anlegen durch den Vorgesetzten freigegeben; das Verbot „Lead kann sich kein Ziel von Teammitgliedern geben lassen“ bleibt davon unberührt.
 
-### b) Direkt angeschrieben heißt pausiert
+**G2 — „Der Weg eines Plans“ (Z. 620–654)**
 
-**Einordnung: Plugin.**
+```diff
+ 3. **Der Lead nimmt ab:** er liest Plan und Red-Team-Befunde und antwortet mit Ja
+-   oder Nein und Begründung. Erst nach seinem Ja geht der Plan an einen Worker.
++   oder Nein und Begründung. Erst nach seinem Ja geht der Plan an einen Worker.
++   Im Team-Modus nimmt den Plan der **Mensch gemeinsam mit dem Experten** ab
++   („Abnahme vom Menschen mache ich direkt mit dem Experten“); der Lead erfährt
++   davon durch die Meldung „Mensch hat … übernommen“ beziehungsweise „Ziel
++   fortgesetzt“ und prüft bei Bedarf mit einem Prüfer oder Red-Team, statt selbst
++   nachzuprüfen.
+```
 
-- **Auslöser**: Eine Nachricht der Art `user` mit `rpcId` (das ist der Menschenweg, `dsh-subagent/lib/index.js` 3017–3021) trifft ein Kind (Teammitglied oder Unteragent). Die Anfangsaufgabe beim Start hat ebenfalls Art `user`, aber ohne `rpcId` (Zeile 1739): so lässt sich der Mensch von der Startaufgabe unterscheiden.
-- **Wirkung 1: Ziel stoppen.** `ctx.goals.disarm(kind)` (der Rundentreiber schiebt nichts mehr nach; die Phase bleibt `active`), später `ctx.goals.resume(kind, ref)`. Genau dieser Weg ist in `goal-await.mjs` und `team-bremse.mjs` schon erprobt. Die Alternative `ctx.goals.pause` setzt die Phase auf `paused` (sichtbar in der Oberfläche), bricht aber einen gerade laufenden Zug des Kindes ab (`dsh-goal-round-driver/lib/index.js` Zeile 234) und darf laut Werkzeug nur der Mensch fortsetzen — das ist **nicht dasselbe** wie „entwaffnet". Welches der Mensch mit „pausiert" meint, ist Frage 2.
-- **Wirkung 2: Meldungen des Kindes stumm schalten.** Das Kind kommt in die Liste „stumm" (Zustand wie bei a). Die Abschlussmeldung des Kerns und Nachrichten, die das Kind an sein Elternteil schickt, werden am Elternteil abgefangen (a, Punkt 2) und gepuffert.
-- **Freigabe**: Befehl oder Werkzeug (Frage 3). Bei Freigabe: Ziel wieder scharf (`resume`), Stummschaltung weg, gepufferte Meldungen nach Wahl zustellen.
-- Gegen den Befund aus Issue 37 (Teamleiter wird nach einer angekündigten Zwischenmeldung nicht wieder geweckt): Das Wiederscharfschalten muss immer gesichert sein (4g).
+```diff
+-5. **Aufsicht gegen Schleifen:** auf einen Worker höchstens zehn Minuten am Stück
+-   warten, dann prüfen, ob er vorankommt (Stand-Datei, Protokoll, Zeitstempel,
+-   sich wiederholende Aufrufe). Hängt er, nachschreiben oder anhalten. Auf einen
+-   Experten wartet der Lead höchstens fünf Minuten am Stück.
++5. **Aufsicht gegen Schleifen:** auf einen Worker höchstens zehn Minuten am Stück
++   warten, dann prüfen … (unverändert für den Experten gegenüber seinen Workern).
++   Der Lead wartet auf einen Experten **im Team-Modus nicht mit einer
++   Fünf-Minuten-Frist**, sondern mit `await_goal_dependency` auf das Ergebnis des
++   Ziels; er liest den Stand über `team_stand` und die Dateien des Experten, nicht
++   über Nachfragen.
+```
 
-### c) Melden erst bei erreichtem Ziel
+Geändert: (a) wer abnimmt (Mensch + Experte statt Lead); (b) Aufsicht des Leads passiv. **Bleibt:** Red-Team vor Abnahme (Punkt 2), höchstens drei Worker (Punkt 4), Experte prüft Ergebnis mit eigener Stichprobe (Punkt 6), „Auf Nachrichten wird nie blockierend gewartet“, `await_goal_dependency` (Z. 638–651). Grund: ohne Statusmeldungen gäbe die Fünf-Minuten-Regel ein teures Abfragen, und ohne die Abnahme-Änderung würde jeder Plan wieder am Lead hängen.
 
-**Einordnung: Plugin, aber nur als Filter am Elternteil; die Meldung am Ursprung bleibt nur mit Kern-Patch.**
+**G3 — „Delegation in der Praxis“ (Z. 656–679)**
 
-Der Kern kennt kein „Ziel erreicht" als Bedingung der Abschlussmeldung; er meldet bei jeder Ruhe. Das Plugin kann am Elternteil die Meldung mit einem eigenen Wissen abgleichen: Es beobachtet `goal/changed` und `goal/activation-changed` und führt für jedes Kind eine Schattenkarte (Kind → letzte Phase und Scharfstellung). Eine Meldung wird nur durchgelassen, wenn die Phase des Kindes `complete` oder `blocked` ist (oder wenn das Kind gar kein Ziel hat und die Regel aus d noch nicht gilt). Alles andere geht in den Puffer und wird nicht zugestellt. Grenze: Zum Zeitpunkt der Meldung ist das Kind bereits abgebaut; seine Ziele sind nur aus der Schattenkarte lesbar, nicht mehr über `ctx.goals.get` (`assertLive`). Nach einem Neustart der Maschine ist die Schattenkarte leer; sie muss dann aus dem Sitzungsprotokoll des Kindes nachgeladen werden (`goal/change` Ereignisse, sichtbar im Protokoll des Teamleiters).
+```diff
+ 5. **Der Lead** führt die Ressorts zusammen und berichtet dem Menschen, mit
+    Belegen (Pfade, Commits, Messungen) statt mit Behauptungen.
++   Im Team-Modus **ist der Lead nicht der einzige Zugang des Menschen**: Der
++   Mensch spricht direkt mit Experten (auch mit Facharbeitern) und arbeitet im
++   Team mit. Jedes Teammitglied darf den Menschen direkt fragen
++   (`ask_question` an `mensch`). Der Lead orchestriert (Ziele setzen, Prüfer und
++   Red-Team beauftragen) und prüft die Ergebnisse durch **Prüfer**, nicht selbst.
+```
 
-Zusatz: Eine Meldung bei **Blockade** muss immer durchkommen, auch im Gesprächsmodus des Elternteils nicht verschluckt werden (4g, „Notbremse").
+Unverändert bleiben: „Der Lead arbeitet nicht mit Workern“ (Z. 669–673), die Nachbarschaftsregel (Z. 675–679; Ergänzung unten), die Meldung von Werkzeugproblemen an den Workflow-Experten (Z. 681–700).
 
-### d) Kein Auftrag ohne Ziel
+```diff
+ Teammitglieder und Unteragenten schreiben einander nur **direkt benachbart**
+ (Eltern zu Kind, Kind zu Eltern).
++Ausnahme im Team-Modus: **jedes Mitglied darf den Menschen direkt fragen.**
++Außerhalb von Abnahme und Frage laufen Nachrichten nur über die Kanäle
++`give_task`, `ask_question`, `goal_report` (Details in der Teams-Plus-Datei).
+```
 
-**Einordnung: Plugin kann es erzwingen — aber nur auf Kosten einer Regel in `~/.dsh/AGENTS.md`, die der Mensch ausdrücklich aufheben müsste.**
+**G4 — „Die drei Rollen“ (Z. 518–528), neue Zeile**
 
-Technisch: Ein Plugin umwickelt `delegate_task`, `spawn_teammate` und `send_message` (die Wickeltechnik gibt es, `stille-nachrichten.mjs`) und verlangt ein neues Pflichtfeld `ziel` (Zielbrief, Rundenbegrenzung). Zwei Wege, es auch durchzusetzen:
+```diff
+ | **Worker** | ein Unteragent des Experten (`delegate_task`) | … |
++| **Mensch** | Wildcard-Mitarbeiter im Team (über dem Lead) | übernimmt Aufgaben, spricht direkt mit jedem Mitglied; der Lead bekommt davon nur die Meldungen „übernommen“ und „freigegeben“ |
++| **Berater-Fork** | Fork des Leads, vom Menschen angelegt | behält den Kontext, verliert das Team, darf an seinen Parent zurückmelden |
+```
 
-- **Weg 1 (dem Wortlaut der AGENTS.md treu)**: das Plugin hängt an den Auftrag den festen Satz „Lege als Erstes `create_goal` mit diesem Zielbrief an" und prüft nach dem ersten beendeten Zug des Empfängers, ob ein Ziel existiert (`goal/changed` Schattenkarte). Fehlt es, schickt es dem Empfänger einmal eine Erinnerung; fehlt es danach noch, lehnt es weitere Aufträge an diesen Empfänger ab. Wirkt, kostet einen Zug.
-- **Weg 2 (stärker)**: Das Plugin legt das Ziel selbst für den Empfänger an: `ctx.goals.create(empfaenger, {objective, maxGoalRounds})`. Der Dienst prüft keine menschliche Vollmacht (siehe Abschnitt 2). **Das widerspricht** der ausdrücklichen Regel in `~/.dsh/AGENTS.md` („Ein Agent kann ein Ziel nicht für einen anderen anlegen … der Worker legt es für sich an") — dort steht sie als Beschreibung einer technischen Grenze des Werkzeugs `create_goal`, nicht als Entscheidung des Menschen. Ob er sie aufhebt, ist Frage 4.
+**G5 — Entscheidungen des Menschen (neue Regel, Rolle des Gesprächspartners)**
 
-Was dagegen spricht, ehrlich:
+```diff
++**Entscheidungen des Menschen trägt die Sitzung in die Spec ein, mit der er
++gesprochen hat** (Experte, Facharbeiter, Fork), nicht der Lead; mit Datum und im
++Wortlaut des Menschen. Der Lead liest sie in der Spec.
+```
 
-1. **Kosten.** Ein Ziel treibt Runden an, jede Runde ist ein Modellaufruf. Der Mensch beklagt gerade verbrannte Token. Ohne Rundenbegrenzung (`max_goal_rounds`) kann ein Ziel teurer sein als das Problem, das es lösen soll.
-2. **Fragen sind keine Aufträge.** Eine kurze Rückfrage („welche Datei meinst du?") braucht kein Ziel. Eine harte Sperre „ohne Ziel keine Nachricht" würde auch Antworten blockieren. Das Konzept braucht deshalb zwei getrennte Wege (f): Auftrag (mit Ziel, Zwang) und Nachfrage/Antwort (ohne Ziel, nicht zwingend).
-3. **Das Ziel kollidiert mit dem Gespräch** — genau das Problem aus b. Ein Experte mit scharfem Ziel arbeitet weiter, während der Mensch ihm schreibt. Deshalb gehört d ohne b nicht gebaut.
-4. **Offene Arbeit hat kein klares Ende.** `update_goal` mit `blocked` ist vor einer Mindestrundenzahl abgelehnt; ein Ziel „bleibe im Gespräch" kann nie erreicht werden.
+Steht heute als geübte Praxis (Lead-Punkt 8), aber nicht in der Datei; kein vorhandener Text wird dafür gestrichen.
 
-### e) Schalter für den Lead: Statusmeldungen ja oder nein
+### 8.2 Teams-Plus-Anweisung `~/.dsh/.tm/teams-plus/agents/teams-plus-agents.voll.md` (Quelle im Repo: `agents/teams-plus-agents.md`)
 
-**Einordnung: Plugin.**
+**T1 — „7. Wie miteinander gesprochen wird“ (Z. 89–139), Absatz „Was eine Nachricht ist“ (Z. 101–104)**
 
-Eine Datei `~/.dsh/.tm/teams-plus/meldungen.json` mit dem Wert pro Elternsitzung: `alle` (heutiges Verhalten, Vorgabe), `nur-ziel` (nur Abschluss oder Blockade, siehe c), `aus` (nichts, alles in den Puffer). Ein Werkzeug `team_meldungen` (nur für Wurzelsitzungen) und ein Schrägstrich-Befehl lesen und setzen sie. Das Umwickeln von `Agent.send` (a) liest den Wert bei jeder Nachricht. Eine Wirkung auf die Nachrichten des Menschen gibt es nie.
+```diff
+ **Was eine Nachricht ist:**
+-- eine konkrete Frage an genau eine Sitzung,
+-- ein Auftrag an den, der ihn ausführt,
+-- ein Ergebnis an den Vorgesetzten, mit Beleg (Pfad, Messung, Prüfsumme) — an ihn, nicht an das ganze Team.
++Im Team-Modus gibt es **vier Kanäle**, und `send_message` ist abgelehnt:
++- `ask_question` — eine konkrete Frage an genau eine Sitzung (auch an den Menschen),
++  ohne Ziel, ohne Meldung nach oben;
++- `give_task` — ein Auftrag an den, der ihn ausführt; **ohne Zielbrief kein Auftrag**;
++- `goal_report` — das Ergebnis an den Vorgesetzten, mit Beleg (Pfad, Messung,
++  Prüfsumme); Pflicht vor `update_goal(complete)`;
++- die gemeinsamen Aufgaben (`team_task_*`) — Task-Updates bleiben.
++Außerhalb des Team-Modus gilt die bisherige Liste mit `send_message`.
+```
 
-### f) Mehrere Kommunikationswege — was es heute unter anderem Namen gibt
+Geändert: der Kanal. **Bleibt:** „Was keine Nachricht ist“ (Z. 106–112), „Befehle werden ausgeführt, nicht bestätigt“ (Z. 114–131, wörtlich Anordnung des Menschen 2026-11-06), „Wer mit wem“ (Z. 133–135, bis auf die Ausnahme „jeder darf den Menschen fragen“), „Was das technische Drosseln nicht löst“.
 
-| Gewünscht | Gibt es heute? | Wie |
+**T2 — neue Abschnitte**: „Der Team-Modus“ (wann er gilt, Schalter, Wirkung auf Meldungen, Gesprächsübernahme und Rückgabe, vergessene Gespräche), „Berater-Fork“, `team_stand`. Neu, es wird nichts gestrichen. **Abschnitt 5 („Es wird mit gemeinsamen Aufgaben gearbeitet“, Z. 57–87)** bleibt; Task-Updates sind ausdrücklich vom Verwerfen ausgenommen. **Abschnitt 6 („Was Teams Plus nicht ändert“, Z. 141–144)** wird ergänzt: „Außerhalb des Team-Modus ändert Teams Plus nichts.“
+
+**Hinweis:** `~/.dsh/.tm/teams-plus/agents` ist ein Verweis ins Repo; die Änderung gehört in `agents/teams-plus-agents.md` des Repos (die `.voll.md` im Repo ebenfalls) und wird mit `teams-plus agents install` in die globale Datei übertragen. Gleiches gilt für `projectos-agents.md` (nur Zeiger, unverändert).
+
+### 8.3 Projekt `/Users/tmielsch/Perforce/stalker-dev/AGENTS.md`
+
+**P1 — §0.3a Punkt 4 „Speichern und Einreichen: nur der Lead, im Modus `auto`“ (Z. 323), Z. 368, Z. 849, Z. 874**
+
+```diff
+-4. **Speichern und Einreichen:** nur der Lead, im Modus `auto`.
++4. **Speichern und Einreichen:** im Team-Modus der **Schreiber des Netzes**
++   (der Experte, der das Netz besitzt), nach jedem abgeschlossenen, gemessenen
++   und mit Bild geprüften Schritt (§ „Wann gespeichert wird“), in einer
++   **eigenen Changelist**, nie in der Default-Changelist; vorher
++   `p4 opened -c default` lesen. Außerhalb des Team-Modus bleibt es beim Lead.
+```
+
+```diff
+-5. Speichern und Einreichen tut der Lead (§0.3a); ein Teamleiter meldet ihm „Schritt fertig, bitte sichern“.
++5. Im Team-Modus speichert und reicht der Teamleiter selbst ein (§0.3a, Punkt 4);
++   er braucht dafür keine Meldung an den Lead.
+```
+
+Z. 368 und Z. 849 entsprechend („… nur durch den Lead“ → „… durch den Schreiber des Netzes, im Team-Modus“). Geändert: wer speichert. **Bleibt:** die Regel „Keine kopierten Szenendateien“, „Wann gespeichert wird“ (nach jedem Schritt, nicht dauernd), „Offene Dateien sind geteilt – Shelf statt offener Datei“, „Der Agentenauftrag endet eingecheckt“. Grund: ohne diese Änderung müsste jeder Experte für jedes Speichern den Lead fragen — genau die Rückfrage-Kette, die das Konzept abschafft.
+
+**Nicht vorgeschlagen, weil der Mensch entscheiden muss (Frage F7):** „**Der Kochmodus gehört dem Lead**; kein anderer schaltet ihn um“ (§0.3a Z. 317). Im Team-Modus ist der Lead passiv; wer schaltet dann `manual`/`auto` um? Das ist eine Entscheidung über geteilten Zustand der Szene, keine reine Rollenfrage, deshalb hier nur als offene Frage.
+
+**P2 — §10.3 (Z. 1203–1263)**
+
+```diff
+ - **Der Ablauf:** Der Teamleiter beauftragt den Recherchearbeiter …, entwirft **selbst** den Plan, der Plan geht an Red-Team/QA, nach dessen Abnahme an den Implementer, und das Ergebnis geht zurück an Red-Team/QA. Die Punkte 2 und 3 dieses Abschnitts bleiben: der Lead nimmt den Plan ab, bevor er an den Implementer geht.
++ … Im Team-Modus nimmt den Plan der Mensch gemeinsam mit dem Teamleiter ab; der Lead
++ sieht die Meldung „übernommen/freigegeben“ und beauftragt bei Bedarf einen Prüfer
++ (Punkt 2 „Der Lead vermittelt, baut nichts“ bleibt).
+```
+
+Geändert: Abnahme im Team-Modus. **Bleibt:** Zuschnitt (ein Teamleiter, drei Facharbeiter), „Kein Bild-Facharbeiter, der Teamleiter sieht selbst“, „Architekturgespräch und Inventur parallel“, „Der Lead führt die Teamleiter, nicht die Facharbeiter“, Modellregeln, §10.4 Issue-Abschluss.
+
+## 9. Drei Maschinen (Lead-Punkt 10)
+
+Das Plugin kommt als Release-`tgz` (`https://github.com/tmielsch/dsh-teams-plus/releases/download/vX.Y.Z/…tgz`) auf Mac, ZimaOS und PC (so steht es heute für 0.8.4 in `~/.dsh/profiles/web/package.json`). Der Entwurf (5.1–5.7) ist reiner Plugin-Code ohne Kern-Eingriff und damit auf allen drei Maschinen gleich; ein Kern-Patch (derzeit nicht geplant) müsste je Maschine mit `teams-plus apply` eingespielt und von `doctor.sh` geprüft werden. Die Sitzungen auf ZimaOS sind betroffen, weil der Team-Modus je Maschine aus dem lokalen Profil und dem lokalen Team liest; ein Team ist maschinenlokal. Der Schalter-Pfad `~/.dsh/.tm/teams-plus/` ist je Maschine eigen (Konfigurations-Repo: ein Zweig pro Maschine). Pfade im Plugin (`/tmp/...`) dürfen nicht vorkommen; die Probe-Skripte tun es und gehören nicht ins Paket.
+
+## 10. Abnahme (Lead-Punkt 12), später in der Probe-Instanz mit dem gebauten Plugin
+
+Gemessen sind bisher nur die Bausteine (Abschnitt 3); das Plugin gibt es noch nicht.
+
+| Prüfung | Soll | Baustein-Beleg heute |
 |---|---|---|
-| **Nachricht** | ja | `send_message` (Kern, Steer), `send_to_session` (Plugin, `auto`/`steer`/`followup`, eine Sitzung beliebiger Art), `quiet: true` (Plugin, Vermerk) |
-| **Auftrag** | halb | `delegate_task` und `spawn_teammate` starten Arbeit mit einem Text; ein Ziel entsteht nur, wenn der Empfänger `create_goal` selbst aufruft |
-| **Team-Auftrag** | ja, nur unter anderem Namen | die gemeinsamen Aufgaben des Teams: `team_task_create` / `team_task_update` (Kern, Brett), eine Aufgabe weckt aber niemanden (Messung `docs/MESSUNG-AUFGABEN-WECKER.md`) |
-| **Nachfrage** an einen Experten, ohne dessen Arbeit zu stören | nein | `team_anruf` ist nur ein Verzeichnis geführter Gespräche; ein Fork ist immer ein Kind der **eigenen** Sitzung, nicht der fremden (siehe `docs/TEAM-ARBEITSWEISE.md` §6b) |
-| **Stille Nachfrage über einen Fork** | nicht gebaut | denkbarer Plugin-Weg: eine kurzlebige Sitzung, die aus dem gespeicherten Protokoll des Experten **angelegt** wird (`ctx.agents.create` mit `seed`), die Frage beantwortet und dann endet; der Experte wird dabei nicht geweckt und sein Protokoll nicht beschrieben. **Nicht gemessen, ob `seed` aus einer fremden Sitzung erlaubt ist.** |
-| **Status** | ja | `list_agents`, `team_task_list`; `Stand:`-Zeile im Brett (Regel §5 der Anweisungsdatei) |
+| a) Team-Modus an, der Mensch spricht N Züge mit dem Experten | Lead wird **genau einmal** geweckt („stand by“), danach erst bei Freigabe oder Ziel erreicht | M0 (Grundlinie: 1 Zug je Gang), M1 (Filter: 0 Züge) |
+| b) Team-Modus aus | Verhalten byte-gleich wie heute | Grundlinie M0 als Referenz; Vergleichslauf mit geladenem Plugin und `aus: true` |
+| c) Absturz eines Unteragenten im Team-Modus | Meldung „failed“ kommt beim Vorgesetzten an | M1b (Text „failed“ unterscheidbar), Szenario `fehler` (Lead bekam sie) |
+| d) `give_task` ohne Ziel | scheitert mit verständlicher Meldung | M6-Mechanik (Wächter/Werkzeugfehler) |
+| e) `send_message` im Team-Modus | abgelehnt mit Hinweis auf die Kanäle | M6 |
+| f) Meldung bei Ziel erreicht | genau einmal | M7 (Wächter für `complete`), Zustellung noch zu bauen |
 
-Das Wesentliche: **Nachricht, Auftrag, Nachfrage und Status sind heute alle derselbe Kanal** (`send_message`, Steer). Deshalb gibt es keine Möglichkeit, ihnen unterschiedliche Regeln (mit Ziel, ohne Ziel, still) mitzugeben. Das Konzept schlägt vor, dem Werkzeug (durch Umwickeln) ein Feld `art` zu geben: `nachricht` (heutiges Verhalten), `auftrag` (verlangt `ziel`), `nachfrage` (still, kein Wecken des Empfängers, keine Meldung an den Lead), `status` (nur an das Elternteil, in `meldungen.json` einschränkbar).
+## 11. Offene Fragen an den Menschen (Wirkung zuerst; die Fassung mit Kontext steht in der Abschlussmeldung)
 
-### g) Was dabei kaputtgehen kann, und wie es verhindert wird
-
-1. **Ein Agent wird nie wieder geweckt.** Gefahr: Gesprächsmodus oder Stummschaltung bleiben stehen, das Ziel bleibt entwaffnet, niemand merkt es. Vorsorge: (i) der Zustand steht auf der Platte und im Werkzeug `team_bremse status`-ähnlichen `gespraech status` mit Alter; (ii) eine **Wächteruhr** warnt (nicht gibt frei) nach einer einstellbaren Zeit (Vorgabe 2 Stunden): sie schreibt eine einzige Zeile an den Menschen; (iii) bei Freigabe wird jedes entwaffnete Ziel durch `goals.resume` wieder scharf geschaltet, mit Prüfung, dass die Zielkennung und die Revision unverändert sind (so macht es `team-bremse.mjs` `istGueltig`); (iv) die bestehende Lücke aus Issue 37 bleibt, wird aber durch die Wächteruhr überwacht.
-2. **Verlorene Nachrichten.** Vorsorge: erst in den Puffer schreiben (Datei, `fsync`), erst dann nicht zustellen; Nachrichten-IDs; bei Freigabe jede ID nur einmal; ein Testfall pro Art mit Gegenprobe (Puffer defekt → Nachricht geht durch); Briefkasten-Nachrichten bleiben im dauerhaften Briefkasten des Teams, werden also nicht doppelt gepuffert.
-3. **Notbremse.** Eine Blockade-Meldung eines Kindes und eine Nachricht des Menschen gehen nie durch den Filter in den Puffer. Fehlerfall im Filter selbst (Ausnahme) → durchlassen.
-4. **Selbstweckschleifen.** Eine Freigabe, die gepufferte Meldungen als eigene Nachricht zustellt, darf nicht selbst wieder gepuffert werden (eigene Herkunftsart `plugin:@tmielsch/dsh-teams-plus`, wie `send-to-session.mjs` es für sich festgelegt hat; der Filter lässt sie durch).
-5. **Neustart.** Zustand und Puffer überleben; Ziele sind nach einem Neustart ohnehin wieder entwaffnet (`dsh-goal/lib/index.js` Zeilen 595–602). Der Gesprächsmodus gilt danach weiter und wird in der ersten Antwort sichtbar gemacht.
-6. **Update des Kerns.** Stufe 1 hängt am öffentlichen `Agent.send` und an Ereignissen und überlebt Updates, soweit diese Schnittstellen bleiben; ein Selbsttest beim Start prüft, ob das Umwickeln wirkte (Muster: `stille-nachrichten.mjs` meldet „Form unerwartet" statt zu raten). Nur die optionale Stufe 2 geht bei einem Update verloren.
-
-## 5. Reihenfolge, wenn der Mensch zustimmt (kleinste Schritte, jeder einzeln prüfbar)
-
-1. Nur Messungen M1–M4 (Abschnitt 8), ohne Einbau. Ein kleines Wegwerf-Probe-Plugin im Worktree, **nicht** geladen.
-2. Schritt „Abfangen und Puffern" (a) für **Abschlussmeldungen allein** — das löst den Anlass des Issues. Schalter: Datei und Befehl. Nichts anderes ändert sich.
-3. Schritt b (direkt angeschrieben) auf Stufe 2 aufgesetzt.
-4. Schritt e (Schalter für den Lead).
-5. Schritt c (nur bei Ziel melden).
-6. Schritt f/d (Wege und Zwang) zuletzt, denn hier greift der Plugin-Umbau in Werkzeuge und in die Regel des Menschen ein.
-
-Jeder Schritt wird einzeln eingebaut, mit einer Gegenprobe, die rot wird, wenn der Schritt fehlt (Muster der bestehenden Testsuite, 230 Tests).
-
-## 6. Zusammenfassung der Einordnung
-
-| Fähigkeit | Einordnung | Fundstelle | Kleinster Eingriff |
-|---|---|---|---|
-| a Gesprächsmodus | Plugin (Stufe 1); Kern-Patch nur optional | `dsh-agent/lib/types/runtime-types.d.ts` (`Agent.send`), `dsh-subagent/lib/index.js` 1254–1268 | `Agent.send` am Lead umwickeln, vor dem Eingangskorb in den Puffer schreiben |
-| b Direkt angeschrieben = pausiert | Plugin | `dsh-subagent/lib/index.js` 3010–3021 (Quelle `user` mit `rpcId`), `dsh-goal/lib/index.js` 604–700 | Auslöser am Kind erkennen, `goals.disarm`, Kind in die Liste „stumm" |
-| c Melden erst bei Ziel | Plugin (Filter am Elternteil); am Ursprung nur Kern-Patch | `dsh-goal/lib/index.js` 798, 877; `dsh-subagent/lib/index.js` 1254 | Schattenkarte der Ziele, Filter nach Phase |
-| d Kein Auftrag ohne Ziel | Plugin kann es erzwingen; Weg 2 widerspricht einer Anweisung; Kosten und Gespräch sprechen dagegen | `dsh-tool-goal/lib/index.js` 93; `dsh-goal/lib/index.js` 636 | Pflichtfeld `ziel` in einem umwickelten `delegate_task`, Weg 1 |
-| e Schalter für den Lead | Plugin | wie a | Datei `meldungen.json` und ein Befehl |
-| f Kommunikationswege | halb vorhanden; „stille Nachfrage über Fork" geht nur mit unbestätigter Annahme | `team_task_*` (Kern), `send_to_session` (Plugin) | Feld `art` an `send_message` |
-| g Risiken | beherrschbar, wenn Puffer-vor-Verwerfen, Wächteruhr und Notbremse mitgebaut werden | siehe 4g | — |
-
-## 7. Was das Konzept ausdrücklich nicht tut
-
-- Es ändert nichts an `~/.dsh/profiles/`, an der Installation oder an einem laufenden Dienst, und es verlangt keinen Neustart, bevor der Mensch zugestimmt hat.
-- Es ersetzt keine Regel in `~/.dsh/AGENTS.md`; wo es ihr widerspricht (d, Weg 2), steht es als Frage.
-
-## 8. Noch nicht gemessen (jede Annahme mit dem Weg zur Messung)
-
-- **M1.** Greift ein am Lead-Agenten-Objekt umwickeltes `send` auch dann, wenn die Meldung vom Kern über `parent.followup(...)` kommt? Quelltext sagt ja (`followup` ruft `this.send`), am laufenden System nicht gemessen. Probe: ein Wegwerf-Plugin im Worktree, in einer **eigenen** DSH-Instanz (nicht in der laufenden) geladen — das ist ein Neustart eines Prozesses und braucht deshalb die ausdrückliche Zustimmung des Menschen.
-- **M2.** Läuft ein Schrägstrich-Befehl im Chat eines Teammitglieds? Der Chatweg dorthin ist über `subagents.prompt` umgeleitet (Patch `allow-child-session-routing`); ob das Befehls-Parsen dort stattfindet, ist ungeprüft.
-- **M3.** Verhalten des Teambriefkastens, wenn eine Zustellung scheitert: wird erneut versucht, wann, mit welchem Weckeffekt?
-- **M4.** (bereits teilgemessen) Anteil der Meldungen, die durch `await_goal_dependency` entstehen: 14 Aufrufe des Teamleiters in drei Tagen gegen 98 Meldungen an den Lead. Der Hauptanteil kommt also aus anderen Ruhezeiten (Gespräch mit dem Menschen, Ende eines Auftrags).
-
-## 9. Fragen an den Menschen
-
-Sie stehen mit Wirkung, Fachname und Empfehlung in der Abschlussmeldung dieses Unteragenten an den Lead; hier die Kurzfassung der Entscheidungen, die sie auslösen:
-
-1. Gepufferte Meldungen nach dem Gespräch: gesammelt zustellen oder verwerfen?
-2. „Pausiert": sichtbar pausiert (Phase `paused`) oder still entwaffnet (Phase `active`, Rundentreiber stoppt)?
-3. Wer gibt frei: ein Befehl im selben Chat, ein Werkzeug, oder eine Zeit (die dem Wortlaut „bis der Mensch freigibt" widerspräche)?
-4. Darf das Plugin ein Ziel für einen anderen Agenten anlegen (d, Weg 2), oder bleibt es dabei, dass der Empfänger es selbst anlegt?
-5. Soll „kein Auftrag ohne Ziel" eine harte Sperre sein oder ein Hinweis, und gilt sie nicht für Fragen?
-6. Soll „direkt angeschrieben" automatisch auslösen (jede Nachricht des Menschen an ein Teammitglied) oder nur auf einen Befehl?
+- **F1 — Team-Modus ohne eigenen Schalter?** Ein Team mit aktiven Mitgliedern ist schon der Team-Modus (`/team work` hebt nur `/team rest` auf). Ein zusätzlicher Schalter wäre nur der Master-Schalter `aus`. Empfehlung: kein zusätzlicher Ein-Schalter, nur der Master-Schalter zum Abschalten.
+- **F2 — Anhalten per Pause oder per Entwaffnen?** (5.2 Nr. 2)
+- **F3 — Die Annahme „Nachricht pausiert das Ziel“ ist gemessen falsch (M5).** Soll das Plugin das Anhalten selbst auslösen, sobald du einem Mitglied mit laufendem Ziel schreibst? Empfehlung: ja, mit Meldung „stand by“.
+- **F4 — Berater-Fork und Ziel:** Soll der Fork das Ziel des Leads erben, wenn das Ziel nach dem Fork scharf wird? (U3) Empfehlung: nein, der Fork bekommt kein scharfes Ziel.
+- **F5 — Weg A, B oder C?** (Abschnitt 6) Empfehlung A.
+- **F6 — Pflichtbericht über `goal_report` und Wächter statt Pflichtfeld.** Empfehlung ja.
+- **F7 — Wer schaltet den Kochmodus im Team-Modus?** (8.3) Empfehlung: der Schreiber des Netzes für die Dauer seines Schritts, mit Rückschaltung.
+- **F8 — Mitglieder, die ohne Ziel „finished“ enden:** die Meldung wird verworfen. Empfehlung: ja, dafür gibt es `team_stand` (5.7) und den Ticker.

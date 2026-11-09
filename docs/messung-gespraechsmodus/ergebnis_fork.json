@@ -1,0 +1,160 @@
+{
+ "kindEreignisse": [
+  {
+   "art": "permission/preset",
+   "seq": 0
+  },
+  {
+   "art": "sandbox/mode",
+   "seq": 1
+  },
+  {
+   "art": "approval/policy",
+   "seq": 2
+  },
+  {
+   "art": "team/member",
+   "seq": 3
+  },
+  {
+   "art": "subagent/catalog",
+   "seq": 4
+  },
+  {
+   "art": "team/member",
+   "seq": 5
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 6
+  },
+  {
+   "art": "turn/start",
+   "seq": 7
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 8
+  },
+  {
+   "art": "step/start",
+   "seq": 9
+  },
+  {
+   "art": "system/message",
+   "seq": 10
+  },
+  {
+   "art": "user/message",
+   "seq": 11
+  },
+  {
+   "art": "user/message",
+   "seq": 12
+  },
+  {
+   "art": "user/message",
+   "seq": 13
+  },
+  {
+   "art": "request/header",
+   "seq": 14
+  },
+  {
+   "art": "request/context",
+   "seq": 15
+  },
+  {
+   "art": "assistant/message",
+   "seq": 16
+  },
+  {
+   "art": "step/end",
+   "seq": 17
+  },
+  {
+   "art": "turn/end",
+   "seq": 18,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 19
+  }
+ ],
+ "szenario": "fork",
+ "N": 1,
+ "nachStart": {
+  "leadZuege": 1,
+  "eingang": 1,
+  "verworfen": 0
+ },
+ "ende": {
+  "leadZuege": 1,
+  "eingang": 2,
+  "verworfen": 0
+ },
+ "leadEingang": [
+  {
+   "ms": 1751,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 79d2096e-01a1-4250-89f9-575b2bdc3672 finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 79d2096e-01a1-4250-89f9-575b2bdc3672 finished and will do no further work unless you s"
+  },
+  {
+   "ms": 6683,
+   "art": "plugin:probe",
+   "ziel": "next-step",
+   "wecken": false,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Rückmeldung vom Fork (inject)\"}]",
+   "quelle": "{\"kind\":\"plugin:probe\"}"
+  }
+ ],
+ "extra": {
+  "fork": {
+   "forkId": "fork-probe-1794254633709",
+   "parentSession": "lead-probe-1794254628568",
+   "istWurzel": true,
+   "mitgliedschaft": {
+    "rolle": "lead",
+    "name": "lead"
+   },
+   "mitglieder": [
+    "lead:lead:inactive"
+   ],
+   "leadMitglieder": [
+    "lead:lead:inactive",
+    "exp:teammate:inactive"
+   ],
+   "anMitglied": "active teammate \"exp\" not found",
+   "anParentSubagentsDienst": "agent \"fork-probe-1794254633709\" is not a resident continuable child and cannot send to parent \"lead-probe-1794254628568\"",
+   "anParentInject": "ok"
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1223,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1337,
+   "art": "teammate-angelegt",
+   "kindId": "79d2096e-01a1-4250-89f9-575b2bdc3672"
+  },
+  {
+   "ms": 1752,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 3838,
+   "art": "nach-start",
+   "leadZuege": 1,
+   "eingang": 1,
+   "verworfen": 0
+  }
+ ]
+}

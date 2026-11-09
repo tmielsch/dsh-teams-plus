@@ -1,0 +1,456 @@
+{
+ "kindEreignisse": [
+  {
+   "art": "subagent/descriptor",
+   "seq": 0
+  },
+  {
+   "art": "sandbox/mode",
+   "seq": 1
+  },
+  {
+   "art": "approval/policy",
+   "seq": 2
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 3
+  },
+  {
+   "art": "turn/start",
+   "seq": 4
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 5
+  },
+  {
+   "art": "step/start",
+   "seq": 6
+  },
+  {
+   "art": "system/message",
+   "seq": 7
+  },
+  {
+   "art": "user/message",
+   "seq": 8
+  },
+  {
+   "art": "user/message",
+   "seq": 9
+  },
+  {
+   "art": "user/message",
+   "seq": 10
+  },
+  {
+   "art": "request/header",
+   "seq": 11
+  },
+  {
+   "art": "request/context",
+   "seq": 12
+  },
+  {
+   "art": "session/title",
+   "seq": 13
+  },
+  {
+   "art": "goal/change",
+   "seq": 14
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 15
+  },
+  {
+   "art": "assistant/message",
+   "seq": 16
+  },
+  {
+   "art": "step/end",
+   "seq": 17
+  },
+  {
+   "art": "turn/end",
+   "seq": 18,
+   "grund": "completed"
+  },
+  {
+   "art": "turn/start",
+   "seq": 19
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 20
+  },
+  {
+   "art": "step/start",
+   "seq": 21
+  },
+  {
+   "art": "user/message",
+   "seq": 22
+  },
+  {
+   "art": "assistant/message",
+   "seq": 23
+  },
+  {
+   "art": "step/end",
+   "seq": 24
+  },
+  {
+   "art": "turn/end",
+   "seq": 25,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 26
+  },
+  {
+   "art": "turn/start",
+   "seq": 27
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 28
+  },
+  {
+   "art": "step/start",
+   "seq": 29
+  },
+  {
+   "art": "user/message",
+   "seq": 30
+  },
+  {
+   "art": "request/header",
+   "seq": 31
+  },
+  {
+   "art": "assistant/message",
+   "seq": 32
+  },
+  {
+   "art": "step/end",
+   "seq": 33
+  },
+  {
+   "art": "turn/end",
+   "seq": 34,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 35
+  },
+  {
+   "art": "turn/start",
+   "seq": 36
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 37
+  },
+  {
+   "art": "step/start",
+   "seq": 38
+  },
+  {
+   "art": "user/message",
+   "seq": 39
+  },
+  {
+   "art": "request/header",
+   "seq": 40
+  },
+  {
+   "art": "assistant/message",
+   "seq": 41
+  },
+  {
+   "art": "step/end",
+   "seq": 42
+  },
+  {
+   "art": "turn/end",
+   "seq": 43,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 44
+  },
+  {
+   "art": "turn/start",
+   "seq": 45
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 46
+  },
+  {
+   "art": "step/start",
+   "seq": 47
+  },
+  {
+   "art": "user/message",
+   "seq": 48
+  },
+  {
+   "art": "request/header",
+   "seq": 49
+  },
+  {
+   "art": "assistant/message",
+   "seq": 50
+  },
+  {
+   "art": "step/end",
+   "seq": 51
+  },
+  {
+   "art": "turn/end",
+   "seq": 52,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 53
+  },
+  {
+   "art": "turn/start",
+   "seq": 54
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 55
+  },
+  {
+   "art": "step/start",
+   "seq": 56
+  },
+  {
+   "art": "user/message",
+   "seq": 57
+  },
+  {
+   "art": "request/header",
+   "seq": 58
+  },
+  {
+   "art": "assistant/message",
+   "seq": 59
+  },
+  {
+   "art": "step/end",
+   "seq": 60
+  },
+  {
+   "art": "turn/end",
+   "seq": 61,
+   "grund": "completed"
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 62
+  },
+  {
+   "art": "turn/start",
+   "seq": 63
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 64
+  },
+  {
+   "art": "step/start",
+   "seq": 65
+  },
+  {
+   "art": "user/message",
+   "seq": 66
+  },
+  {
+   "art": "request/header",
+   "seq": 67
+  }
+ ],
+ "szenario": "ziel",
+ "N": 1,
+ "nachStart": {
+  "leadZuege": 0,
+  "eingang": 0,
+  "verworfen": 0
+ },
+ "ende": {
+  "leadZuege": 0,
+  "eingang": 0,
+  "verworfen": 0
+ },
+ "leadEingang": [],
+ "extra": {
+  "ereignisse": [
+   {
+    "ms": 1519,
+    "art": "activation",
+    "akt": "armed"
+   },
+   {
+    "ms": 1520,
+    "art": "changed",
+    "op": "create",
+    "phase": "active",
+    "rev": 1
+   },
+   {
+    "ms": 4853,
+    "art": "kind-status",
+    "status": "idle"
+   },
+   {
+    "ms": 4867,
+    "art": "kind-status",
+    "status": "running"
+   },
+   {
+    "ms": 5313,
+    "art": "kind-status",
+    "status": "idle"
+   },
+   {
+    "ms": 5324,
+    "art": "kind-status",
+    "status": "running"
+   },
+   {
+    "ms": 5763,
+    "art": "kind-status",
+    "status": "idle"
+   },
+   {
+    "ms": 5778,
+    "art": "kind-status",
+    "status": "running"
+   },
+   {
+    "ms": 6221,
+    "art": "kind-status",
+    "status": "idle"
+   },
+   {
+    "ms": 6234,
+    "art": "kind-status",
+    "status": "running"
+   },
+   {
+    "ms": 6677,
+    "art": "kind-status",
+    "status": "idle"
+   },
+   {
+    "ms": 6686,
+    "art": "kind-status",
+    "status": "running"
+   }
+  ]
+ },
+ "protokoll": [
+  {
+   "ms": 1234,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1416,
+   "art": "teammate-angelegt",
+   "kindId": "fd389761-ccd0-4eb0-b53f-a536f3d5beae"
+  },
+  {
+   "ms": 1517,
+   "art": "nach-start",
+   "leadZuege": 0,
+   "eingang": 0,
+   "verworfen": 0
+  },
+  {
+   "ms": 1520,
+   "art": "ziel-angelegt"
+  },
+  {
+   "ms": 2723,
+   "art": "vor-eingriff",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 3233,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 3734,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 4237,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 4738,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 5239,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 5743,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 2
+  },
+  {
+   "ms": 6246,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 3
+  },
+  {
+   "ms": 6747,
+   "art": "verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "armed",
+   "runden": 5
+  }
+ ]
+}

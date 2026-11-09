@@ -1,0 +1,150 @@
+{
+ "kindEreignisse": [
+  {
+   "art": "permission/preset",
+   "seq": 0
+  },
+  {
+   "art": "sandbox/mode",
+   "seq": 1
+  },
+  {
+   "art": "approval/policy",
+   "seq": 2
+  },
+  {
+   "art": "team/member",
+   "seq": 3
+  },
+  {
+   "art": "subagent/catalog",
+   "seq": 4
+  },
+  {
+   "art": "team/member",
+   "seq": 5
+  },
+  {
+   "art": "team/message/queued",
+   "seq": 6
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 7
+  },
+  {
+   "art": "turn/start",
+   "seq": 8
+  },
+  {
+   "art": "agent/inbox/spliced",
+   "seq": 9
+  },
+  {
+   "art": "step/start",
+   "seq": 10
+  },
+  {
+   "art": "system/message",
+   "seq": 11
+  },
+  {
+   "art": "user/message",
+   "seq": 12
+  },
+  {
+   "art": "user/message",
+   "seq": 13
+  },
+  {
+   "art": "user/message",
+   "seq": 14
+  },
+  {
+   "art": "request/header",
+   "seq": 15
+  },
+  {
+   "art": "request/context",
+   "seq": 16
+  },
+  {
+   "art": "assistant/message",
+   "seq": 17
+  },
+  {
+   "art": "step/end",
+   "seq": 18
+  },
+  {
+   "art": "turn/end",
+   "seq": 19,
+   "grund": "completed"
+  }
+ ],
+ "szenario": "briefkasten",
+ "N": 1,
+ "nachStart": {
+  "leadZuege": 0,
+  "eingang": 0,
+  "verworfen": 0
+ },
+ "ende": {
+  "leadZuege": 1,
+  "eingang": 2,
+  "verworfen": 1
+ },
+ "leadEingang": [
+  {
+   "ms": 3927,
+   "art": "team-message",
+   "ziel": "next-step",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Team message team-message-199d8cb8-1920-4179-8c25-6403a303c3e9 from exp:\"},{\"type\":\"text\",\"text\"",
+   "quelle": "{\"kind\":\"team-message\",\"teamId\":\"lead-probe-1794254273069\",\"messageId\":\"team-message-199d8cb8-1920-4179-8c25-6403a303c3e9\",\"senderId\":\"944cb3e2-59ec-4992-bde8-0"
+  },
+  {
+   "ms": 4432,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 944cb3e2-59ec-4992-bde8-06229a2aae25 finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 944cb3e2-59ec-4992-bde8-06229a2aae25 finished and will do no further work unless you s"
+  }
+ ],
+ "extra": {
+  "gesendet": {
+   "messageId": "team-message-199d8cb8-1920-4179-8c25-6403a303c3e9",
+   "status": "queued"
+  },
+  "zustandBriefkasten": "siehe leadEingang: Zahl der Zustellversuche"
+ },
+ "protokoll": [
+  {
+   "ms": 1234,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1408,
+   "art": "teammate-angelegt",
+   "kindId": "944cb3e2-59ec-4992-bde8-06229a2aae25"
+  },
+  {
+   "ms": 3910,
+   "art": "nach-start",
+   "leadZuege": 0,
+   "eingang": 0,
+   "verworfen": 0
+  },
+  {
+   "ms": 3927,
+   "art": "team-nachricht-gesendet"
+  },
+  {
+   "ms": 4433,
+   "art": "lead-zug",
+   "n": 1
+  }
+ ]
+}

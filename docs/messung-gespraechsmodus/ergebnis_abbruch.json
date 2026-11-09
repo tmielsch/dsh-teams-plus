@@ -1,0 +1,66 @@
+{
+ "szenario": "abbruch",
+ "N": 3,
+ "nachStart": {
+  "leadZuege": 1,
+  "eingang": 1,
+  "verworfen": 0
+ },
+ "ende": {
+  "leadZuege": 2,
+  "eingang": 2,
+  "verworfen": 0
+ },
+ "leadEingang": [
+  {
+   "ms": 1378,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 0af76183-1522-4faf-b412-7391fe2b7eb8 finished and will do no further work un",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 0af76183-1522-4faf-b412-7391fe2b7eb8 finished and will do no further work unless you s"
+  },
+  {
+   "ms": 4358,
+   "art": "subagent-settled",
+   "ziel": "next-turn",
+   "wecken": true,
+   "vorschau": "[{\"type\":\"text\",\"text\":\"Background subagent 0af76183-1522-4faf-b412-7391fe2b7eb8 was stopped before it finished.\"},{\"typ",
+   "quelle": "{\"kind\":\"subagent-settled\",\"form\":\"notice\",\"summary\":\"Background subagent 0af76183-1522-4faf-b412-7391fe2b7eb8 was stopped before it finished.\",\"senderSessionId"
+  }
+ ],
+ "extra": {},
+ "protokoll": [
+  {
+   "ms": 1230,
+   "art": "lead-angelegt",
+   "sendUmwickelt": true
+  },
+  {
+   "ms": 1369,
+   "art": "teammate-angelegt",
+   "kindId": "0af76183-1522-4faf-b412-7391fe2b7eb8"
+  },
+  {
+   "ms": 1379,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 3870,
+   "art": "nach-start",
+   "leadZuege": 1,
+   "eingang": 1,
+   "verworfen": 0
+  },
+  {
+   "ms": 4070,
+   "art": "unterbrochen"
+  },
+  {
+   "ms": 4358,
+   "art": "lead-zug",
+   "n": 2
+  }
+ ]
+}
