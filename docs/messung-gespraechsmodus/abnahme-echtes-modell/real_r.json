@@ -1,0 +1,557 @@
+{
+ "szenario": "r",
+ "leadZuege": 1,
+ "eingang": [
+  {
+   "ms": 1600,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Antworte nur mit dem Wort: bereit.\"}]"
+  },
+  {
+   "ms": 2427,
+   "an": "kind",
+   "art": "goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_round>\\nObjective: \\\"Schreibe eine sehr ausführliche Geschichte von mindestens 6"
+  },
+  {
+   "ms": 3222,
+   "an": "LEAD",
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"Mensch hat Kommunikation mit Agent exp übernommen, stand by\"}]"
+  },
+  {
+   "ms": 3232,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Der Mensch spricht: Antworte nur mit dem Wort: gehört.\"}]"
+  }
+ ],
+ "extra": {
+  "zielRundenNachMensch": 0,
+  "kindLaeufeNachMensch": 0
+ },
+ "verbrauch": {
+  "lead": {
+   "uncachedInputTokens": 344,
+   "outputTokens": 499,
+   "cacheReadTokens": 24886,
+   "cacheWriteTokens": 0
+  },
+  "kind": {
+   "uncachedInputTokens": 5950,
+   "outputTokens": 3584,
+   "cacheReadTokens": 106236,
+   "cacheWriteTokens": 0
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1712,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 3214,
+   "art": "vor-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 3222,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 3536,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 3539,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "resume",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 3539,
+   "art": "fremder-wecker-resume",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 4040,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 5043,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 6046,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 7049,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 8053,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 9056,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 10058,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 11061,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 12063,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 13066,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 14071,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 15073,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 16075,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 17078,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 18082,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 19085,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 20088,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 21091,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 22093,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 23095,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 24098,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 25101,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 26104,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 27105,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 28108,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 29110,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 30114,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 31118,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 32121,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 33125,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 34129,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 35133,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 36135,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 37138,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 38140,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 39144,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 40148,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 41152,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 42156,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 43158,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 44161,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 45164,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 46167,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 47170,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 48172,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 49173,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 50178,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 51180,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 52183,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 53187,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T21:55:26.374Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T21:55:26.523Z selbsttest ok",
+  "2026-11-09T21:55:29.722Z uebernommen agent=753f97f8-b1be-491c-8d0f-6b1b3d072982 name=exp ziel=goal-3598ed1b-e08d-4d4f-8049-17e7bb028b24 laeuft=true",
+  "2026-11-09T21:55:30.035Z wiederbewaffnung abgewehrt agent=753f97f8-b1be-491c-8d0f-6b1b3d072982 ziel=goal-3598ed1b-e08d-4d4f-8049-17e7bb028b24"
+ ],
+ "goalAwaitLog": [
+  "2026-11-09T21:55:26.522Z start Werkzeug registriert"
+ ]
+}

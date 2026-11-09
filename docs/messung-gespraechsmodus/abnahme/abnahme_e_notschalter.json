@@ -1,0 +1,141 @@
+{
+ "szenario": "e",
+ "N": 3,
+ "leadZuege": 7,
+ "angekommen": [
+  {
+   "ms": 2072,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent d0836c1f-c108-46cf-a122-b00473310a7e finished and will do no further work un"
+  },
+  {
+   "ms": 4159,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:send_message:{\\\"target\\\":\\\"exp\\\",\\\"message\\\":\\\"hallo\\\"}]]\"}]"
+  },
+  {
+   "ms": 4693,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent d0836c1f-c108-46cf-a122-b00473310a7e finished and will do no further work un"
+  },
+  {
+   "ms": 5234,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent d0836c1f-c108-46cf-a122-b00473310a7e finished and will do no further work un"
+  },
+  {
+   "ms": 5301,
+   "art": "repeat-tool-reminder",
+   "text": "[{\"type\":\"text\",\"text\":\"You are repeating the exact same tool call with identical arguments. Carefully analyze the previ"
+  },
+  {
+   "ms": 5965,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:ask_question:{\\\"empfaenger\\\":\\\"exp\\\",\\\"frage\\\":\\\"Wie viele Zeilen hat Datei A?\\\"}]]\""
+  },
+  {
+   "ms": 6180,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent d0836c1f-c108-46cf-a122-b00473310a7e finished and will do no further work un"
+  },
+  {
+   "ms": 9273,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:ask_question:{\\\"empfaenger\\\":\\\"mensch\\\",\\\"frage\\\":\\\"Soll das Dach rund sein?\\\"}]]\"}]"
+  },
+  {
+   "ms": 11429,
+   "art": "plugin:probe",
+   "text": "[{\"type\":\"text\",\"text\":\"Rückmeldung vom Fork (inject)\"}]"
+  }
+ ],
+ "extra": {
+  "sendMessage": [
+   "[{\"type\":\"text\",\"text\":\"{\\\"messageId\\\":\\\"team-message-9a6a94ab-0aa6-41dc-ac69-68256b644f60\\\",\\\"status\\\":\\\"accepted\\\"}\"}]",
+   "[{\"type\":\"text\",\"text\":\"{\\\"messageId\\\":\\\"team-message-d38947d8-4af3-4af3-be1b-f135daf915b4\\\",\\\"status\\\":\\\"accepted\\\"}\"}]",
+   "[{\"type\":\"text\",\"text\":\"{\\\"messageId\\\":\\\"team-message-7c6a3fb7-429e-4233-91ab-6bc15a615fb6\\\",\\\"status\\\":\\\"accepted\\\"}\"}]",
+   "[{\"type\":\"text\",\"text\":\"{\\\"messageId\\\":\\\"team-message-311b6286-1148-47c3-ba96-4c9218fe8bfb\\\",\\\"status\\\":\\\"accepted\\\"}\"}]"
+  ],
+  "frageAnExp": [
+   "[{\"type\":\"text\",\"text\":\"Error: ask_question to a teammate is only available in Team mode; outside it use the normal send_message.\"}]",
+   "[{\"type\":\"text\",\"text\":\"Error: ask_question to a teammate is only available in Team mode; outside it use the normal send_message.\"}]"
+  ],
+  "nachFrage": {
+   "vorher": {
+    "leadZuege": 4,
+    "angekommen": 5
+   },
+   "nachher": {
+    "leadZuege": 6,
+    "angekommen": 7
+   },
+   "kindLauf": 3
+  },
+  "frageAnMensch": [
+   "[{\"type\":\"text\",\"text\":\"{\\\"zugestellt\\\":true,\\\"empfaenger\\\":\\\"mensch\\\",\\\"hinweis\\\":\\\"Recorded for the human. Now call await_goal_dependency so your goal waits for the answer without burning rounds.\\\"}\"}]"
+  ],
+  "forkInject": "ok",
+  "forkSendMessage": [
+   "[{\"type\":\"text\",\"text\":\"Error: a Team member cannot message itself\"}]"
+  ],
+  "forkAngekommen": 1
+ },
+ "protokoll": [
+  {
+   "ms": 2072,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 4159,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 4238,
+   "art": "kind-lauf",
+   "n": 1
+  },
+  {
+   "ms": 4693,
+   "art": "lead-zug",
+   "n": 3
+  },
+  {
+   "ms": 4775,
+   "art": "kind-lauf",
+   "n": 2
+  },
+  {
+   "ms": 5234,
+   "art": "lead-zug",
+   "n": 4
+  },
+  {
+   "ms": 5297,
+   "art": "kind-lauf",
+   "n": 3
+  },
+  {
+   "ms": 5966,
+   "art": "lead-zug",
+   "n": 5
+  },
+  {
+   "ms": 6181,
+   "art": "lead-zug",
+   "n": 6
+  },
+  {
+   "ms": 9273,
+   "art": "lead-zug",
+   "n": 7
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:47:46.824Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:47:46.988Z selbsttest ok",
+  "2026-11-09T20:47:56.271Z frage an=mensch von=lead-probe-1794257268468",
+  ""
+ ]
+}

@@ -1,0 +1,51 @@
+{
+ "szenario": "f",
+ "N": 3,
+ "leadZuege": 1,
+ "angekommen": [
+  {
+   "ms": 4776,
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"[Schlussbericht — Agent 477a6d73-80ca-48d0-ba03-9f1e234b7e6f, Ziel erreicht]\\n\\nSchlussbericht d"
+  }
+ ],
+ "extra": {
+  "zielEnde": {
+   "id": "goal-ee554c38-8784-4b86-b790-05bb67039357",
+   "revision": 2,
+   "objective": "Probe-Ziel mit Bericht [[PLAN]]",
+   "phase": "complete",
+   "maxGoalRounds": 6
+  },
+  "werkzeugErgebnisse": [
+   "[{\"type\":\"text\",\"text\":\"Error: Team mode: a goal cannot be completed until you have written its report. Call goal_report with your closing report (what was achieved, evidence such as paths and measure",
+   "[{\"type\":\"text\",\"text\":\"{\\\"gespeichert\\\":true,\\\"zielId\\\":\\\"goal-ee554c38-8784-4b86-b790-05bb67039357\\\",\\\"hinweis\\\":\\\"Report stored. Now call update_goal with action complete; the report is then delive",
+   "[{\"type\":\"text\",\"text\":\"{\\\"goal\\\":{\\\"id\\\":\\\"goal-ee554c38-8784-4b86-b790-05bb67039357\\\",\\\"revision\\\":2,\\\"objective\\\":\\\"Probe-Ziel mit Bericht [[PLAN]]\\\",\\\"phase\\\":\\\"complete\\\",\\\"roundsStarted\\\":1,\\\"ma"
+  ]
+ },
+ "protokoll": [
+  {
+   "ms": 1667,
+   "art": "ziel-angelegt",
+   "id": "goal-ee554c38-8784-4b86-b790-05bb67039357"
+  },
+  {
+   "ms": 4687,
+   "art": "kind-lauf",
+   "n": 1
+  },
+  {
+   "ms": 4776,
+   "art": "lead-zug",
+   "n": 1
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:49:16.893Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:49:17.021Z selbsttest ok",
+  "2026-11-09T20:49:21.750Z bericht gespeichert agent=477a6d73-80ca-48d0-ba03-9f1e234b7e6f ziel=goal-ee554c38-8784-4b86-b790-05bb67039357 zeichen=76",
+  "2026-11-09T20:49:21.778Z bericht zugestellt agent=477a6d73-80ca-48d0-ba03-9f1e234b7e6f ziel=goal-ee554c38-8784-4b86-b790-05bb67039357",
+  "2026-11-09T20:49:21.807Z verworfen empfaenger=lead-probe-1794257358502 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  ""
+ ]
+}

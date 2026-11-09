@@ -315,7 +315,9 @@ test('alle 28 Dateien in patches/ liegen im Paket: 19 byte-gleich, vier mit Absi
 	// `send-to-session.mjs` und `team-board.mjs` sind EIGENE Werkzeuge dieses Pakets, keine
 	// umgezogenen Patches: sie entstehen hier und haben deshalb keinen sha256-Anker gegen projectOS.
 	// `team-bremse.mjs` entsteht hier ebenfalls; fuer sie steht der Anker in SHA256_EIGEN.
-	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs', 'team-anruf.mjs'].sort()
+	// `team-modus.mjs` (Zweig umsetzung/team-modus, Entwurf, NICHT in cordis.patch.yml) ist ebenfalls eigen
+	// und steht wie `team-board.mjs` nur in dieser Dateiliste, ohne sha256-Anker.
+	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs', 'team-anruf.mjs', 'team-modus.mjs'].sort()
 	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
@@ -480,9 +482,9 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
 		// 23 umgezogene Patch-Dateien, dazu team-bremse.mjs als neue eigene Datei dieses
 		// Auftrags sowie send-to-session.mjs und team-board.mjs als eigene Werkzeuge dieses
-		// Pakets; patches/package.json ist die Paketgrenze fuer den
+		// Pakets sowie team-modus.mjs (Entwurf); patches/package.json ist die Paketgrenze fuer den
 		// Client-Modul-Regler und zaehlt nicht mit (.mjs-Filter).
-		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 27)
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 28)
 		// Der Verweis muss jede Rollendatei erreichbar machen — Namen, nicht nur die Anzahl.
 		assert.deepEqual(readdirSync(join(ziel, 'rollen')).sort(), [...ROLLEN].sort(), 'der Verweis auf rollen/ erreicht nicht jede Rollendatei')
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))

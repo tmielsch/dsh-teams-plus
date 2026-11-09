@@ -1,0 +1,82 @@
+{
+ "szenario": "b",
+ "N": 3,
+ "leadZuege": 4,
+ "angekommen": [
+  {
+   "ms": 2072,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 3a9275d0-6726-4e04-9aed-be304e1e17a3 finished and will do no further work un"
+  },
+  {
+   "ms": 4650,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 3a9275d0-6726-4e04-9aed-be304e1e17a3 finished and will do no further work un"
+  },
+  {
+   "ms": 7198,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 3a9275d0-6726-4e04-9aed-be304e1e17a3 finished and will do no further work un"
+  },
+  {
+   "ms": 9746,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 3a9275d0-6726-4e04-9aed-be304e1e17a3 finished and will do no further work un"
+  }
+ ],
+ "extra": {},
+ "protokoll": [
+  {
+   "ms": 2072,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 4152,
+   "art": "nach-start",
+   "leadZuege": 1,
+   "angekommen": 1
+  },
+  {
+   "ms": 4650,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 6707,
+   "art": "mensch-gang",
+   "i": 1,
+   "leadZuege": 2,
+   "angekommen": 2
+  },
+  {
+   "ms": 7199,
+   "art": "lead-zug",
+   "n": 3
+  },
+  {
+   "ms": 9250,
+   "art": "mensch-gang",
+   "i": 2,
+   "leadZuege": 3,
+   "angekommen": 3
+  },
+  {
+   "ms": 9746,
+   "art": "lead-zug",
+   "n": 4
+  },
+  {
+   "ms": 11788,
+   "art": "mensch-gang",
+   "i": 3,
+   "leadZuege": 4,
+   "angekommen": 4
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:48:46.634Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:48:46.759Z selbsttest ok",
+  ""
+ ]
+}

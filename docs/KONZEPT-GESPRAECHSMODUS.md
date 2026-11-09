@@ -336,3 +336,24 @@ Gemessen sind bisher nur die Bausteine (Abschnitt 3); das Plugin gibt es noch ni
 - **F6 — Pflichtbericht über `goal_report` und Wächter statt Pflichtfeld.** Empfehlung ja.
 - **F7 — Wer schaltet den Kochmodus im Team-Modus?** (8.3) Empfehlung: der Schreiber des Netzes für die Dauer seines Schritts, mit Rückschaltung.
 - **F8 — Mitglieder, die ohne Ziel „finished“ enden:** die Meldung wird verworfen. Empfehlung: ja, dafür gibt es `team_stand` (5.7) und den Ticker.
+
+## 12. Entschieden (2026-11-09 ~21:15, vom Lead nach dem Wortlaut des Menschen; F3, F5 und F7 liegen beim Menschen)
+
+| Frage | Entscheidung | Beleg im Wortlaut des Menschen |
+|---|---|---|
+| F1 Team-Modus ohne eigenen Einschalter | **Ja.** Der Team-Modus gilt, solange `/team work` aktiv ist (mindestens ein aktives Teammitglied). `team-modus.json` mit `aus: true` ist der Notschalter. | „nur unterdrückt, wenn /team work aktiv ist … ganz normale DSH-Nutzung soll weiterhin so funktionieren wie normal“ |
+| F2 Anhalten | **Entwaffnen** (angehalten, nicht abgebrochen). | „auf jeden Fall angehalten, nicht abgebrochen“ |
+| F3 Plugin löst Anhalten selbst aus (M5) | **offen**, beim Menschen | — |
+| F4 Berater-Fork erbt das Ziel | **Nein.** | „Dann verliert der Fork das ganze Team, hat aber noch den ganzen Kontext“ |
+| F5 Weg A, B oder C | **offen**, beim Menschen (er war unentschieden) | — |
+| F6 Pflichtbericht | **Werkzeug `goal_report` plus Wächter auf `update_goal(complete)`.** | „Man kann das Ziel nicht entschärfen, solange kein Bericht geschrieben wurde.“ |
+| F7 Kochmodus im Team-Modus | **offen**, beim Menschen (geteilter Zustand der Szene) | — |
+| F8 Mitglieder ohne Zielabschluss | **Ja**, die „finished“-Meldung entfällt. | „Die unterdrückten Nachrichten können im Prinzip weg“ |
+
+## 13. Stand der Umsetzung (Zweig `umsetzung/team-modus`, nicht gemergt, nicht eingespielt)
+
+Gebaut ist das Modul `patches/team-modus.mjs` mit den Teilen, die nicht von F3, F5 und F7 abhängen: Filter („finished“ im Team-Modus verwerfen, alles andere laut), `goal_report` mit Wächter auf `update_goal(complete)`, Zustellung des Berichts bei Ziel erreicht und Meldung bei Blockade, `team_stand`, Notschalter, Selbsttest beim Start. Das Modul steht **nicht** in `cordis.patch.yml`; es wird erst nach dem Ja des Menschen eingetragen. Tests: `test/team-modus.test.mjs` (16 Fälle, davon 2 Gegenproben am Code), Abnahme in der Probe-Instanz: `docs/messung-gespraechsmodus/abnahme/`.
+
+**Nachtrag 2026-11-09 (Entscheidungen F3 „zwingend“, F5 Weg A): jetzt gebaut und in der Probe abgenommen.** Gesprächsübernahme (Entwaffnen in `Agent.send` vor der Zustellung, Pause nach Ende der laufenden Runde, eine „stand by“-Meldung, eine Freigabe-Meldung mit aktuellem Wortlaut, Liste `state/uebernahmen.json`), `give_task`, `ask_question`, Wächter gegen das Team-Werkzeug `send_message`. Tests: 24 Fälle in `test/team-modus.test.mjs` (davon 3 Gegenproben am Code), Gesamtsuite 256/256. Probe-Abnahmen `u`, `d`, `e` samt Notschalter-Gegenprobe liegen in `docs/messung-gespraechsmodus/abnahme/`.
+
+**Offen bleibt:** Ticker in der Web-GUI (zweiter Schritt) und der Eintrag in `cordis.patch.yml` (erst nach dem Ja des Menschen).

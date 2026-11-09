@@ -1,0 +1,85 @@
+{
+ "szenario": "e",
+ "N": 3,
+ "leadZuege": 3,
+ "angekommen": [
+  {
+   "ms": 4161,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:send_message:{\\\"target\\\":\\\"exp\\\",\\\"message\\\":\\\"hallo\\\"}]]\"}]"
+  },
+  {
+   "ms": 5967,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:ask_question:{\\\"empfaenger\\\":\\\"exp\\\",\\\"frage\\\":\\\"Wie viele Zeilen hat Datei A?\\\"}]]\""
+  },
+  {
+   "ms": 9277,
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe [[TOOL:ask_question:{\\\"empfaenger\\\":\\\"mensch\\\",\\\"frage\\\":\\\"Soll das Dach rund sein?\\\"}]]\"}]"
+  },
+  {
+   "ms": 11438,
+   "art": "plugin:probe",
+   "text": "[{\"type\":\"text\",\"text\":\"Rückmeldung vom Fork (inject)\"}]"
+  }
+ ],
+ "extra": {
+  "sendMessage": [
+   "[{\"type\":\"text\",\"text\":\"Error: Team mode: send_message is not available here. To give a teammate WORK, use give_task (it needs a goal brief and a round limit). To ASK a teammate or the human something, use ask_question (it needs no goal and is answered quietly). Your supervisor receives your closing report through goal_report and update_goal complete, not through send_message.\"}]"
+  ],
+  "frageAnExp": [
+   "[{\"type\":\"text\",\"text\":\"{\\\"zugestellt\\\":true,\\\"empfaenger\\\":\\\"exp\\\",\\\"hinweis\\\":\\\"Delivered quietly. The answer arrives as a message; call await_goal_dependency if your goal should wait for it.\\\"}\"}]"
+  ],
+  "nachFrage": {
+   "vorher": {
+    "leadZuege": 1,
+    "angekommen": 1
+   },
+   "nachher": {
+    "leadZuege": 2,
+    "angekommen": 2
+   },
+   "kindLauf": 1
+  },
+  "frageAnMensch": [
+   "[{\"type\":\"text\",\"text\":\"{\\\"zugestellt\\\":true,\\\"empfaenger\\\":\\\"mensch\\\",\\\"hinweis\\\":\\\"Recorded for the human. Now call await_goal_dependency so your goal waits for the answer without burning rounds.\\\"}\"}]"
+  ],
+  "forkInject": "ok",
+  "forkSendMessage": [
+   "[{\"type\":\"text\",\"text\":\"Error: a Team member cannot message itself\"}]"
+  ],
+  "forkAngekommen": 1
+ },
+ "protokoll": [
+  {
+   "ms": 4161,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 5967,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 6071,
+   "art": "kind-lauf",
+   "n": 1
+  },
+  {
+   "ms": 9278,
+   "art": "lead-zug",
+   "n": 3
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:50:13.532Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:50:13.659Z selbsttest ok",
+  "2026-11-09T20:50:15.725Z verworfen empfaenger=lead-probe-1794257415141 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:50:19.712Z frage von=lead-probe-1794257415141 an=exp",
+  "2026-11-09T20:50:20.165Z verworfen empfaenger=lead-probe-1794257415141 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:50:22.959Z frage an=mensch von=lead-probe-1794257415141",
+  ""
+ ]
+}

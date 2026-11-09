@@ -1,0 +1,225 @@
+{
+ "szenario": "de",
+ "leadZuege": 5,
+ "eingang": [
+  {
+   "ms": 1612,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Antworte nur mit dem Wort: bereit.\"}]"
+  },
+  {
+   "ms": 9729,
+   "an": "LEAD",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe jetzt das Werkzeug give_task auf mit empfaenger='exp' und maxrunden=3. Lass das F"
+  },
+  {
+   "ms": 14445,
+   "an": "LEAD",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe jetzt das Werkzeug give_task auf mit empfaenger='exp', maxrunden=4 und zielbrief="
+  },
+  {
+   "ms": 16064,
+   "an": "kind",
+   "art": "team-message",
+   "text": "[{\"type\":\"text\",\"text\":\"Team message team-message-729e8ab4-8bfb-41e0-bc44-e1ee8750368a from lead:\"},{\"type\":\"t"
+  },
+  {
+   "ms": 19818,
+   "an": "kind",
+   "art": "goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_round>\\nObjective: \\\"Zweck: Test der Kanäle. Gegenstand: Antworte mit dem Wort f"
+  },
+  {
+   "ms": 25078,
+   "an": "LEAD",
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"[Schlussbericht — Agent 612a3077-8ce9-4b07-8f15-98140cfb901f, Ziel erreicht]\\n\\nDer Ka"
+  },
+  {
+   "ms": 25085,
+   "an": "kind",
+   "art": "tool-goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_complete>\\nObjective: \\\"Zweck: Test der Kanäle. Gegenstand: Antworte mit dem Wor"
+  },
+  {
+   "ms": 25168,
+   "an": "LEAD",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe jetzt das Werkzeug send_message auf mit target='exp' und message='hallo'. Sag dan"
+  },
+  {
+   "ms": 35385,
+   "an": "LEAD",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe jetzt das Werkzeug ask_question auf mit empfaenger='exp' und frage='Wie viele Zei"
+  },
+  {
+   "ms": 36465,
+   "an": "kind",
+   "art": "team-message",
+   "text": "[{\"type\":\"text\",\"text\":\"Team message team-message-ac8e818a-35e2-48fc-8cfb-1ea6acb9f1b8 from lead:\"},{\"type\":\"t"
+  },
+  {
+   "ms": 49100,
+   "an": "LEAD",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Rufe jetzt das Werkzeug ask_question auf mit empfaenger='mensch' und frage='Soll das D"
+  },
+  {
+   "ms": 50738,
+   "an": "LEAD",
+   "art": "team-message",
+   "text": "[{\"type\":\"text\",\"text\":\"Team message team-message-5dd6709b-e052-4ceb-8f48-c376420c4e91 from exp:\"},{\"type\":\"te"
+  }
+ ],
+ "extra": {
+  "d1_ohneBrief": [
+   "tool/call: {\"turn\":1,\"step\":1,\"callId\":\"call_b6bf57e0ce8a4d32846513d3\",\"name\":\"give_task\",\"arguments\":\"{\\\"empfaenger\\\":\\\"exp\\\",\\\"maxrunden\\\":3}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"Error: give_task needs a goal brief (parameter `zielbrief`) and a round limit (`maxrunden`). Write the brief so the recipient can work without the conversation: purpose (which higher goal it serves), subject (what exactly, with paths and numbers), limits (what is theirs, what"
+  ],
+  "zielNachD1": {
+   "lebt": false
+  },
+  "d2_mitBrief": [
+   "tool/call: {\"turn\":2,\"step\":1,\"callId\":\"call_9cb9102d1924453babfd8221\",\"name\":\"give_task\",\"arguments\":\"{\\\"empfaenger\\\":\\\"exp\\\",\\\"maxrunden\\\":4,\\\"zielbrief\\\":\\\"Zweck: Test der Kanäle. Gegenstand: Antworte mit dem Wort fertig. Grenzen: keine Dateien anfassen. Abnahme: Du hast mit goal_report einen Bericht geschr",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"angelegt\\\":true,\\\"empfaenger\\\":\\\"exp\\\",\\\"zielId\\\":\\\"goal-6bcf592e-66bb-488e-baa1-60e0bc1575ac\\\",\\\"hinweis\\\":\\\"Goal created and started for the recipient. You are told through its closing report; use team_stand to look in without waking anyone.\\\"}\"}]"
+  ],
+  "berichtBeimLead": [
+   {
+    "ms": 25078,
+    "an": "LEAD",
+    "art": "plugin:@tmielsch/dsh-teams-plus",
+    "text": "[{\"type\":\"text\",\"text\":\"[Schlussbericht — Agent 612a3077-8ce9-4b07-8f15-98140cfb901f, Ziel erreicht]\\n\\nDer Ka"
+   }
+  ],
+  "e1_sendMessage": [
+   "tool/call: {\"turn\":4,\"step\":1,\"callId\":\"call_cda45f0222e742e2a92906b9\",\"name\":\"send_message\",\"arguments\":\"{\\\"target\\\":\\\"exp\\\",\\\"message\\\":\\\"hallo\\\"}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"Error: Team mode: send_message is not available here. To give a teammate WORK, use give_task (it needs a goal brief and a round limit). To ASK a teammate or the human something, use ask_question (it needs no goal and is answered quietly). Your supervisor receives your closing"
+  ],
+  "e2_askQuestion": [
+   "tool/call: {\"turn\":5,\"step\":1,\"callId\":\"call_6fc5b02a74b64c098a41afcd\",\"name\":\"ask_question\",\"arguments\":\"{\\\"empfaenger\\\":\\\"exp\\\",\\\"frage\\\":\\\"Wie viele Zeilen hat Datei A?\\\"}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"zugestellt\\\":true,\\\"empfaenger\\\":\\\"exp\\\",\\\"hinweis\\\":\\\"Delivered quietly. The answer arrives as a message; call await_goal_dependency if your goal should wait for it.\\\"}\"}]"
+  ],
+  "nachFrage": {
+   "vorFrage": {
+    "leadZuege": 3,
+    "eingangLead": 4
+   },
+   "jetzt": {
+    "leadZuege": 4,
+    "eingangLead": 5
+   }
+  },
+  "e3_askMensch": [
+   "tool/call: {\"turn\":6,\"step\":1,\"callId\":\"call_73b50a9174a34a809865815d\",\"name\":\"ask_question\",\"arguments\":\"{\\\"empfaenger\\\":\\\"mensch\\\",\\\"frage\\\":\\\"Soll das Dach rund sein?\\\"}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"zugestellt\\\":true,\\\"empfaenger\\\":\\\"mensch\\\",\\\"hinweis\\\":\\\"Recorded for the human. Now call await_goal_dependency so your goal waits for the answer without burning rounds.\\\"}\"}]",
+   "tool/call: {\"turn\":6,\"step\":2,\"callId\":\"call_99134cf8eb384b89a55bbac9\",\"name\":\"get_goal\",\"arguments\":\"{}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"goal\\\":null}\"}]",
+   "tool/call: {\"turn\":6,\"step\":3,\"callId\":\"call_9b83b7a4dba345e9beb7f473\",\"name\":\"await_goal_dependency\",\"arguments\":\"{\\\"waiting_for\\\":\\\"die Antwort der menschlichen Person, ob das Dach rund sein soll\\\",\\\"von\\\":\\\"mensch\\\"}\"}",
+   "tool/result: [{\"type\":\"text\",\"text\":\"{\\\"waiting\\\":false,\\\"goal\\\":\\\"\\\",\\\"wakes_on\\\":[],\\\"max_wait_seconds\\\":0,\\\"note\\\":\\\"This session has no goal. Nothing was disarmed — just end your turn; an incoming message wakes you anyway.\\\"}\"}]"
+  ]
+ },
+ "verbrauch": {
+  "lead": {
+   "uncachedInputTokens": 1271,
+   "outputTokens": 2176,
+   "cacheReadTokens": 123475,
+   "cacheWriteTokens": 0
+  },
+  "kind": {
+   "uncachedInputTokens": 4096,
+   "outputTokens": 2102,
+   "cacheReadTokens": 123341,
+   "cacheWriteTokens": 0
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 9730,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 14445,
+   "art": "lead-zug",
+   "n": 2
+  },
+  {
+   "ms": 16068,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 18156,
+   "art": "nach-give_task",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 19157,
+   "art": "warte-auf-bericht",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 24164,
+   "art": "warte-auf-bericht",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 25078,
+   "art": "lead-zug",
+   "n": 3
+  },
+  {
+   "ms": 25082,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "complete",
+   "phase": "complete",
+   "akt": "disarmed"
+  },
+  {
+   "ms": 35385,
+   "art": "lead-zug",
+   "n": 4
+  },
+  {
+   "ms": 49100,
+   "art": "lead-zug",
+   "n": 5
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T22:00:32.197Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T22:00:32.332Z selbsttest ok",
+  "2026-11-09T22:00:34.484Z verworfen empfaenger=lead-real-1794261633811 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T22:00:48.377Z auftrag von=lead-real-1794261633811 an=exp ziel=goal-6bcf592e-66bb-488e-baa1-60e0bc1575ac maxrunden=4",
+  "2026-11-09T22:00:55.885Z bericht gespeichert agent=612a3077-8ce9-4b07-8f15-98140cfb901f ziel=goal-6bcf592e-66bb-488e-baa1-60e0bc1575ac zeichen=480",
+  "2026-11-09T22:00:57.390Z bericht zugestellt agent=612a3077-8ce9-4b07-8f15-98140cfb901f ziel=goal-6bcf592e-66bb-488e-baa1-60e0bc1575ac",
+  "2026-11-09T22:01:03.417Z verworfen empfaenger=lead-real-1794261633811 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T22:01:08.775Z frage von=lead-real-1794261633811 an=exp",
+  "2026-11-09T22:01:23.057Z frage von=612a3077-8ce9-4b07-8f15-98140cfb901f an=lead",
+  "2026-11-09T22:01:26.172Z frage an=mensch von=lead-real-1794261633811",
+  "2026-11-09T22:01:28.265Z verworfen empfaenger=lead-real-1794261633811 art=subagent-settled grund=\"normal fertig im Team-Modus\""
+ ],
+ "goalAwaitLog": [
+  "2026-11-09T22:00:32.332Z start Werkzeug registriert"
+ ]
+}

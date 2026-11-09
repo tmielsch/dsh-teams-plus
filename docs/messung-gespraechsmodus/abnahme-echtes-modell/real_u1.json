@@ -1,0 +1,802 @@
+{
+ "szenario": "u1",
+ "leadZuege": 1,
+ "eingang": [
+  {
+   "ms": 1595,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Antworte nur mit dem Wort: bereit.\"}]"
+  },
+  {
+   "ms": 2121,
+   "an": "kind",
+   "art": "goal",
+   "text": "[{\"type\":\"text\",\"text\":\"<goal_round>\\nObjective: \\\"Test des Wartens. Rufe SOFORT das Werkzeug await_goal_depen"
+  },
+  {
+   "ms": 4689,
+   "an": "LEAD",
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 77688f77-0390-480e-a72a-6c55bd6d0ae0 finished and will do no furth"
+  },
+  {
+   "ms": 8769,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Hallo, hier spricht der Mensch. Antworte nur mit dem Wort: gehört.\"}]"
+  },
+  {
+   "ms": 11767,
+   "an": "LEAD",
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 77688f77-0390-480e-a72a-6c55bd6d0ae0 finished and will do no furth"
+  },
+  {
+   "ms": 54889,
+   "an": "kind",
+   "art": "user",
+   "text": "[{\"type\":\"text\",\"text\":\"Noch eine Nachricht, schreibe eine ausführliche Antwort von mindestens 200 Wörtern übe"
+  }
+ ],
+ "extra": {
+  "zielRundenNachMensch": 0,
+  "zielRundenVorMensch": 1,
+  "kindLaeufeNachMensch": 1,
+  "lauefeNachMenschMs": [
+   8769
+  ],
+  "tMensch": 8719,
+  "wartetSeit": 4718,
+  "nachFreigabe": []
+ },
+ "verbrauch": {
+  "lead": {
+   "uncachedInputTokens": 12129,
+   "outputTokens": 4306,
+   "cacheReadTokens": 206587,
+   "cacheWriteTokens": 0
+  },
+  "kind": {
+   "uncachedInputTokens": 404,
+   "outputTokens": 253,
+   "cacheReadTokens": 33625,
+   "cacheWriteTokens": 0
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1702,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 1702,
+   "art": "ziel-angelegt",
+   "id": "goal-aa8e095c-6b86-4b05-869a-7808e6bc02ae",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 1953,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 2959,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 3966,
+   "art": "verlauf",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 4689,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 4718,
+   "art": "kind-tot-vor-warten"
+  },
+  {
+   "ms": 4718,
+   "art": "wartet",
+   "seit": 4718,
+   "lebt": false
+  },
+  {
+   "ms": 8719,
+   "art": "vor-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 8771,
+   "art": "mensch-gesendet",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 9273,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 9774,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 10275,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 10776,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 11278,
+   "art": "nach-mensch",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 11779,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 12280,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 12781,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 13281,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 13782,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 14283,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 14785,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 15285,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 15787,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 16288,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 16789,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 17290,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 17791,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 18292,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 18792,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 19293,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 19794,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 20295,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 20796,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 21297,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 21798,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 22298,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 22799,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 23301,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 23802,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 24301,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 24804,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 25305,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 25806,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 26307,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 26807,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 27309,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 27809,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 28311,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 28811,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 29312,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 29812,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 30314,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 30815,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 31317,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 31818,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 32319,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 32820,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 33322,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 33823,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 34323,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 34823,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 35324,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 35825,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 36326,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 36827,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 37328,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 37829,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 38330,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 38830,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 39332,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 39832,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 40333,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 40835,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 41335,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 41836,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 42337,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 42839,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 43340,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 43841,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 44341,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 44842,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 45343,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 45844,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 46345,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 46845,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 47346,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 47847,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 48348,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 48850,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 49350,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 49851,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 50353,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 50853,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 51353,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 51854,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 52356,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 52856,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 53356,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 53857,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 54358,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 54860,
+   "art": "nach-mensch",
+   "lebt": false
+  },
+  {
+   "ms": 54892,
+   "art": "vor-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1
+  },
+  {
+   "ms": 54893,
+   "art": "ziel-aenderung",
+   "wer": "kind",
+   "op": "resume",
+   "phase": "active",
+   "akt": "armed"
+  },
+  {
+   "ms": 54894,
+   "art": "freigegeben",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 55395,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 55896,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 56398,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 56898,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 57399,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 57900,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 58402,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 58903,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 59405,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 59905,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 60406,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 60908,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 61410,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 61910,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 62414,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  },
+  {
+   "ms": 62915,
+   "art": "nach-freigabe",
+   "lebt": true,
+   "status": "running",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 1
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T22:02:16.513Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T22:02:16.652Z selbsttest ok",
+  "2026-11-09T22:02:21.315Z warn Notschalter-Datei /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json ist unlesbar (Unexpected non-whitespace character after JSON at position 14 (line 1 column 15)); das Modul bleibt AUS"
+ ],
+ "goalAwaitLog": [
+  "2026-11-09T22:02:16.652Z start Werkzeug registriert",
+  "2026-11-09T22:02:20.173Z warten agent=77688f77-0390-480e-a72a-6c55bd6d0ae0 ziel=goal-aa8e095c-6b86-4b05-869a-7808e6bc02ae frist=30s bedingung=\"Nachricht des Menschen\""
+ ]
+}

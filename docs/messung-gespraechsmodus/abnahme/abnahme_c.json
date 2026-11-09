@@ -1,0 +1,31 @@
+{
+ "szenario": "c",
+ "N": 3,
+ "leadZuege": 1,
+ "angekommen": [
+  {
+   "ms": 1656,
+   "art": "subagent-settled",
+   "text": "[{\"type\":\"text\",\"text\":\"Background subagent 5053be6b-8dd0-40b7-8262-dd10439c1f8a failed before it finished.\"},{\"type\":\"t"
+  }
+ ],
+ "extra": {},
+ "protokoll": [
+  {
+   "ms": 1656,
+   "art": "lead-zug",
+   "n": 1
+  },
+  {
+   "ms": 7650,
+   "art": "nach-fehler",
+   "leadZuege": 1,
+   "angekommen": 1
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:49:02.354Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:49:02.487Z selbsttest ok",
+  ""
+ ]
+}
