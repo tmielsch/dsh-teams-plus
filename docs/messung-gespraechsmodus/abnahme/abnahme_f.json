@@ -1,0 +1,46 @@
+{
+ "szenario": "f",
+ "N": 1,
+ "leadZuege": 1,
+ "angekommen": [
+  {
+   "ms": 4757,
+   "art": "plugin:@tmielsch/dsh-teams-plus",
+   "text": "[{\"type\":\"text\",\"text\":\"[Schlussbericht — Agent dadf2de7-ce52-4e2a-86b2-da7170e92385, Ziel erreicht]\\n\\nSchlussbericht d"
+  }
+ ],
+ "extra": {
+  "zielEnde": {
+   "id": "goal-ba2650e0-43a5-436f-9e0f-b3a89ce60cd4",
+   "revision": 2,
+   "objective": "Probe-Ziel mit Bericht [[PLAN]]",
+   "phase": "complete",
+   "maxGoalRounds": 6
+  },
+  "werkzeugErgebnisse": [
+   "[{\"type\":\"text\",\"text\":\"Error: Team mode: a goal cannot be completed until you have written its report. Call goal_report with your closing report (what was achieved, evidence such as paths and measure",
+   "[{\"type\":\"text\",\"text\":\"{\\\"gespeichert\\\":true,\\\"zielId\\\":\\\"goal-ba2650e0-43a5-436f-9e0f-b3a89ce60cd4\\\",\\\"hinweis\\\":\\\"Report stored. Now call update_goal with action complete; the report is then delive",
+   "[{\"type\":\"text\",\"text\":\"{\\\"goal\\\":{\\\"id\\\":\\\"goal-ba2650e0-43a5-436f-9e0f-b3a89ce60cd4\\\",\\\"revision\\\":2,\\\"objective\\\":\\\"Probe-Ziel mit Bericht [[PLAN]]\\\",\\\"phase\\\":\\\"complete\\\",\\\"roundsStarted\\\":1,\\\"ma"
+  ]
+ },
+ "protokoll": [
+  {
+   "ms": 1673,
+   "art": "ziel-angelegt",
+   "id": "goal-ba2650e0-43a5-436f-9e0f-b3a89ce60cd4"
+  },
+  {
+   "ms": 4757,
+   "art": "lead-zug",
+   "n": 1
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:23:31.311Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:23:31.456Z selbsttest ok",
+  "2026-11-09T20:23:36.162Z bericht gespeichert agent=dadf2de7-ce52-4e2a-86b2-da7170e92385 ziel=goal-ba2650e0-43a5-436f-9e0f-b3a89ce60cd4 zeichen=76",
+  "2026-11-09T20:23:36.192Z bericht zugestellt agent=dadf2de7-ce52-4e2a-86b2-da7170e92385 ziel=goal-ba2650e0-43a5-436f-9e0f-b3a89ce60cd4",
+  "2026-11-09T20:23:36.237Z verworfen empfaenger=lead-probe-1794255812935 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  ""
+ ]
+}

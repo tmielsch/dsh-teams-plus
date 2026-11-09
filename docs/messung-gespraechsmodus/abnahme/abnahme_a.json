@@ -1,0 +1,45 @@
+{
+ "szenario": "a",
+ "N": 3,
+ "leadZuege": 0,
+ "angekommen": [],
+ "extra": {},
+ "protokoll": [
+  {
+   "ms": 4160,
+   "art": "nach-start",
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 6703,
+   "art": "mensch-gang",
+   "i": 1,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 9239,
+   "art": "mensch-gang",
+   "i": 2,
+   "leadZuege": 0,
+   "angekommen": 0
+  },
+  {
+   "ms": 11765,
+   "art": "mensch-gang",
+   "i": 3,
+   "leadZuege": 0,
+   "angekommen": 0
+  }
+ ],
+ "pluginLog": [
+  "2026-11-09T20:22:43.586Z geladen; Notschalter /tmp/teams_plus_umbau/probe_home/.tm/teams-plus/team-modus.json",
+  "2026-11-09T20:22:43.738Z selbsttest ok",
+  "2026-11-09T20:22:45.798Z verworfen empfaenger=lead-probe-1794255765215 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:22:48.358Z verworfen empfaenger=lead-probe-1794255765215 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:22:50.891Z verworfen empfaenger=lead-probe-1794255765215 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  "2026-11-09T20:22:53.424Z verworfen empfaenger=lead-probe-1794255765215 art=subagent-settled grund=\"normal fertig im Team-Modus\"",
+  ""
+ ]
+}
