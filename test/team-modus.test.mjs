@@ -14,7 +14,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const HEIM = mkdtempSync(join(tmpdir(), 'team-modus-home-'))
@@ -29,7 +29,8 @@ const M = await import(MODUL_DATEI)
 const {
 	apply, entscheide, istAbschlussOhneBefund, istTeamModus, notschalterGedrueckt, notschalterPfad,
 	pruefeAbschluss, selbsttest, umwickleSend, wurzelVon, leseBericht, hatBericht, schreibeBericht,
-	baueBerichtWerkzeug, baueStandWerkzeug, HINWEIS_OHNE_BERICHT, protokollPfad
+	baueBerichtWerkzeug, baueStandWerkzeug, HINWEIS_OHNE_BERICHT, protokollPfad,
+	uebernehmeGespraech, pruefeSendMessage, baueAuftragWerkzeug, baueFrageWerkzeug, HINWEIS_SEND_MESSAGE, HINWEIS_OHNE_ZIELBRIEF, uebernahmenPfad, fragenPfad, leseUebernahmen
 } = M
 
 const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms))
@@ -54,6 +55,7 @@ class AttrappenAgent {
 		this.session = { header: { parentSession: eltern }, seq: 5, snapshotEvents: () => [{ time: Date.parse('2026-11-09T20:00:00Z') }] }
 		this.zugestellt = []
 		this.gesteuert = []
+		this.status = 'inactive'
 	}
 	send(nachricht, ziel, wecken) { this.zugestellt.push({ nachricht, ziel, wecken }) }
 	steer(nachricht) { this.gesteuert.push(nachricht) }
@@ -226,9 +228,16 @@ function startePlugin(s, optionen = {}) {
 	const werkzeuge = []
 	const warnungen = []
 	const wächter = []
+	const aufrufe = []
 	let abbau
 	const ctx = {
-		agents: s.registry, goals: { get: (a) => s.ziele.get(a) },
+		agents: s.registry,
+		goals: {
+			get: (a) => s.ziele.get(a),
+			disarm: (a) => { aufrufe.push(['disarm', a.id]); const z = s.ziele.get(a); if (z) s.ziele.set(a, { ...z, activation: 'disarmed' }); return s.ziele.get(a) },
+			pause: (a, ref) => { aufrufe.push(['pause', a.id, ref.id]); const z = s.ziele.get(a); if (z) s.ziele.set(a, { ...z, phase: 'paused' }); return s.ziele.get(a) },
+			create: (a, anfrage) => { aufrufe.push(['create', a.id, anfrage]); const z = ziel('neu-' + a.id, { objective: anfrage.objective, maxGoalRounds: anfrage.maxGoalRounds }); s.ziele.set(a, z); return z }
+		},
 		tools: { guard: (f) => { wächter.push(f); return () => {} }, register: (d) => { werkzeuge.push(d); return () => {} } },
 		logger: { info: () => {}, warn: (t) => warnungen.push(t) },
 		on: (e, f) => { if (!horcher.has(e)) horcher.set(e, []); horcher.get(e).push(f); return () => {} },
@@ -237,7 +246,7 @@ function startePlugin(s, optionen = {}) {
 	}
 	apply(ctx, { ordner: s.ordner })
 	const ausloesen = (ereignis, daten) => { for (const f of horcher.get(ereignis) ?? []) f(daten) }
-	return { ctx, ausloesen, werkzeuge, warnungen, wächter, abbau: () => abbau?.() }
+	return { ctx, ausloesen, werkzeuge, warnungen, wächter, aufrufe, abbau: () => abbau?.() }
 }
 
 test('10. Ziel erreicht: der Bericht geht GENAU EINMAL an den Vorgesetzten; Blockade wird gemeldet', async () => {
@@ -328,7 +337,7 @@ test('14. apply: umwickelt vorhandene und neue Agenten, meldet Selbsttest ok, ba
 	const neu = new AttrappenAgent('neu', 'lead'); s.agenten.set('neu', neu)
 	p.ausloesen('agent/created', { agent: neu })
 	assert.notEqual(neu.send, original, 'ein neuer Agent wird beim Anlegen umwickelt')
-	assert.deepEqual(p.werkzeuge.map((w) => w.name).sort(), ['goal_report', 'team_stand'])
+	assert.deepEqual(p.werkzeuge.map((w) => w.name).sort(), ['ask_question', 'give_task', 'goal_report', 'team_stand'])
 	assert.equal(p.warnungen.length, 0, 'keine Warnung beim Normalfall: ' + JSON.stringify(p.warnungen))
 	// Ende-zu-Ende über die Anwendung: die Kernmeldung wird verworfen
 	s.lead.send(kernMeldung('exp', SATZ_FERTIG('exp')), 'next-turn', true)
@@ -378,4 +387,163 @@ test('16. Gegenprobe: eine Kopie ohne Wächter-Prüfung lässt complete ohne Ber
 	const s = baueSzene(); s.ziele.set(s.exp, ziel('g1'))
 	assert.equal(M.pruefeAbschluss(ausfuehrung(s.exp, 'complete'), s.umgebung, s.ordner), HINWEIS_OHNE_BERICHT, 'echtes Modul lehnt ab')
 	assert.equal(mut.pruefeAbschluss(ausfuehrung(s.exp, 'complete'), s.umgebung, s.ordner), undefined, 'die Kopie lehnt nicht ab')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 5. Gesprächsübernahme (F3) und die Kanäle (F5, Weg A)
+// ---------------------------------------------------------------------------------------------------
+
+const leereUebernahmen = () => M.schreibeUebernahmen([])
+const mensch = (text = 'Hallo Experte') => ({ id: 'h-' + Math.random(), role: 'user', content: [{ type: 'text', text }], source: { kind: 'user', rpcId: 'rpc-1' } })
+
+test('17. Übernahme: der Mensch schreibt einem Mitglied mit laufendem Ziel — entwaffnet, pausiert, EINE Meldung nach oben, Nachricht kommt an', async () => {
+	leereUebernahmen()
+	const s = baueSzene(); s.ziele.set(s.exp, ziel('g17'))
+	const p = startePlugin(s); await warte(300)
+	s.exp.send(mensch('erste'), 'next-turn', true)
+	assert.deepEqual(p.aufrufe.map((a) => a[0]), ['disarm', 'pause'], 'erst entwaffnet, dann (ruhig) pausiert')
+	assert.equal(s.exp.zugestellt.length, 1, 'die Nachricht des Menschen wird zugestellt')
+	assert.equal(s.lead.gesteuert.length, 1, 'genau eine Meldung an den Vorgesetzten')
+	assert.match(s.lead.gesteuert[0].content[0].text, /Mensch hat Kommunikation mit Agent exp übernommen, stand by/)
+	s.exp.send(mensch('zweite'), 'next-turn', true); s.exp.send(mensch('dritte'), 'next-turn', true)
+	assert.equal(s.lead.gesteuert.length, 1, 'weitere Nachrichten melden nichts')
+	assert.equal(s.exp.zugestellt.length, 3)
+	assert.equal(p.aufrufe.filter((a) => a[0] === 'disarm').length, 1, 'nur einmal entwaffnet')
+	assert.equal(leseUebernahmen().some((e) => e.id === 'exp'), true, 'die Liste der Übernahmen steht in der Datei')
+	p.abbau()
+})
+
+test('18. Übernahme während eine Runde läuft: die Runde läuft zu Ende, die Pause folgt, wenn der Agent ruhig ist', async () => {
+	leereUebernahmen()
+	const s = baueSzene(); s.ziele.set(s.worker, ziel('g18'))
+	s.worker.status = 'running'
+	const p = startePlugin(s); await warte(300)
+	s.worker.send(mensch(), 'next-turn', true)
+	assert.deepEqual(p.aufrufe.map((a) => a[0]), ['disarm'], 'laufend: nur entwaffnet, keine Pause, kein Abbruch')
+	p.ausloesen('agent/status', { agent: s.worker, status: 'running' })
+	assert.deepEqual(p.aufrufe.map((a) => a[0]), ['disarm'])
+	s.worker.status = 'inactive'
+	p.ausloesen('agent/status', { agent: s.worker, status: 'inactive' })
+	assert.deepEqual(p.aufrufe.map((a) => a[0]), ['disarm', 'pause'], 'nach dem Ende der Runde pausiert')
+	p.ausloesen('agent/status', { agent: s.worker, status: 'inactive' })
+	assert.equal(p.aufrufe.filter((a) => a[0] === 'pause').length, 1, 'nur einmal pausiert')
+	p.abbau()
+})
+
+test('19. Keine Übernahme: Nachricht eines Agenten, Wurzel, kein Team-Modus, Ziel nicht aktiv, Notschalter', async () => {
+	leereUebernahmen()
+	const s = baueSzene(); s.ziele.set(s.exp, ziel('g19')); s.ziele.set(s.lead, ziel('gl'))
+	const p = startePlugin(s); await warte(300)
+	s.exp.send({ id: 'a', role: 'user', content: [{ type: 'text', text: 'x' }], source: { kind: 'team-message' } }, 'next-turn', true)
+	s.exp.send({ id: 'b', role: 'user', content: [{ type: 'text', text: 'x' }], source: { kind: 'user' } }, 'next-turn', true)
+	s.lead.send(mensch(), 'next-turn', true)
+	assert.equal(p.aufrufe.length, 0, 'weder Agentennachricht noch Mensch ohne rpcId noch die Wurzel lösen etwas aus')
+	s.ziele.set(s.exp, ziel('g19b', { phase: 'paused' })); s.exp.send(mensch(), 'next-turn', true)
+	assert.equal(p.aufrufe.length, 0, 'ein pausiertes Ziel braucht keine Übernahme')
+	p.abbau()
+	const t = baueSzene({ mitglieder: [{ role: 'lead', name: 'lead', id: 'lead', status: 'inactive' }] }); t.ziele.set(t.exp, ziel('g19c'))
+	const q = startePlugin(t); await warte(300)
+	t.exp.send(mensch(), 'next-turn', true)
+	assert.equal(q.aufrufe.length, 0, 'ohne Team-Modus bleibt alles wie heute')
+	q.abbau()
+	// apply liest den Notschalter von seinem echten Ort (DSH_HOME ist hier ein Temp-Ordner)
+	mkdirSync(dirname(notschalterPfad()), { recursive: true }); writeFileSync(notschalterPfad(), JSON.stringify({ aus: true }))
+	try {
+		const n = baueSzene(); n.ziele.set(n.exp, ziel('g19d'))
+		const r = startePlugin(n); await warte(300)
+		n.exp.send(mensch(), 'next-turn', true)
+		assert.equal(r.aufrufe.length, 0, 'Notschalter gedrückt: keine Übernahme')
+		r.abbau()
+	} finally { writeFileSync(notschalterPfad(), JSON.stringify({ aus: false })) }
+})
+
+test('20. Freigabe: wenn der Mensch das Ziel fortsetzt, kommt EINE Meldung mit dem aktuellen Wortlaut', async () => {
+	leereUebernahmen()
+	const s = baueSzene(); s.ziele.set(s.exp, ziel('g20'))
+	const p = startePlugin(s); await warte(300)
+	s.exp.send(mensch(), 'next-turn', true)
+	assert.equal(s.lead.gesteuert.length, 1)
+	p.ausloesen('goal/changed', { agent: s.exp, change: { operation: 'resume', goal: { id: 'g20', objective: 'Neuer Wortlaut des Ziels' } } })
+	assert.equal(s.lead.gesteuert.length, 2)
+	assert.match(s.lead.gesteuert[1].content[0].text, /Mensch hat exp freigegeben, Ziel lautet jetzt: Neuer Wortlaut des Ziels/)
+	p.ausloesen('goal/changed', { agent: s.exp, change: { operation: 'resume', goal: { id: 'g20', objective: 'x' } } })
+	assert.equal(s.lead.gesteuert.length, 2, 'ein zweites resume ohne Übernahme meldet nichts')
+	assert.equal(leseUebernahmen().some((e) => e.id === 'exp'), false)
+	p.abbau()
+})
+
+test('21. send_message im Team-Modus: abgelehnt mit Hinweis; Unteragenten-Variante, Fork und kein Team-Modus bleiben frei', () => {
+	const s = baueSzene()
+	const a = (agent, args, name = 'send_message') => ({ name, agent, arguments: args })
+	assert.equal(pruefeSendMessage(a(s.exp, { target: 'lead', message: 'x' }), s.umgebung), HINWEIS_SEND_MESSAGE)
+	assert.equal(pruefeSendMessage(a(s.lead, { target: 'exp', message: 'x' }), s.umgebung), HINWEIS_SEND_MESSAGE)
+	assert.equal(pruefeSendMessage(a(s.exp, JSON.stringify({ target: 'lead', message: 'x' })), s.umgebung), HINWEIS_SEND_MESSAGE, 'Argumente als Text')
+	assert.equal(pruefeSendMessage(a(s.exp, { agent_id: 'worker', message: 'x' }), s.umgebung), undefined, 'das Unteragenten-Werkzeug (agent_id) bleibt frei')
+	assert.equal(pruefeSendMessage(a(s.exp, { target: 'lead' }, 'send_to_session'), s.umgebung), undefined, 'andere Werkzeuge bleiben frei')
+	const f = baueSzene({ mitglieder: [{ role: 'lead', id: 'fork', status: 'inactive' }] })
+	assert.equal(pruefeSendMessage(a(f.fork, { target: 'lead', message: 'x' }), f.umgebung), undefined, 'ein Fork ist nicht im Team-Modus')
+	const k = baueSzene({ mitglieder: [{ role: 'lead', id: 'lead', status: 'inactive' }] })
+	assert.equal(pruefeSendMessage(a(k.exp, { target: 'lead', message: 'x' }), k.umgebung), undefined, 'ohne Team-Modus frei')
+	assert.match(HINWEIS_SEND_MESSAGE, /give_task/); assert.match(HINWEIS_SEND_MESSAGE, /ask_question/)
+})
+
+function mitKanaelen(s) {
+	const aufrufe = []
+	s.umgebung.uebernommen = (id) => s.uebernommen?.has(id) ?? false
+	s.umgebung.erzeugeZiel = (agent, anfrage) => { aufrufe.push(['ziel', agent.id, anfrage]); const z = ziel('neu', anfrage); s.ziele.set(agent, z); return z }
+	s.umgebung.sendeFrage = async (absender, name, text) => { aufrufe.push(['frage', absender.id, name, text]) }
+	return aufrufe
+}
+
+test('22. give_task: ohne Zielbrief oder Rundenzahl scheitert mit verständlicher Meldung; sonst Ziel für den Empfänger', async () => {
+	const s = baueSzene(); const aufrufe = mitKanaelen(s)
+	const w = baueAuftragWerkzeug({ defineTool: (d) => d, umgebung: s.umgebung })
+	const lang = 'Zweck: Teil von Ziel X. Gegenstand: Datei A. Grenzen: nur A. Abnahme: Zahl 5.'
+	await assert.rejects(w.execute({ empfaenger: 'exp', maxrunden: 5 }, { agent: s.lead }), (e) => e.message === HINWEIS_OHNE_ZIELBRIEF)
+	await assert.rejects(w.execute({ empfaenger: 'exp', zielbrief: 'kurz', maxrunden: 5 }, { agent: s.lead }), /goal brief/)
+	await assert.rejects(w.execute({ empfaenger: 'exp', zielbrief: lang }, { agent: s.lead }), /round limit/)
+	assert.equal(aufrufe.length, 0, 'bei Fehlern wird nichts angelegt')
+	await assert.rejects(w.execute({ empfaenger: 'gibtsnicht', zielbrief: lang, maxrunden: 5 }, { agent: s.lead }), /unknown recipient/)
+	await assert.rejects(w.execute({ empfaenger: 'lead', zielbrief: lang, maxrunden: 5 }, { agent: s.exp }), /DOWN|only goes DOWN|yourself|unknown/)
+	const erg = await w.execute({ empfaenger: 'exp', zielbrief: lang, maxrunden: 7, aufgabenliste: 'a\nb' }, { agent: s.lead })
+	assert.equal(erg.angelegt, true); assert.equal(aufrufe.length, 1)
+	assert.equal(aufrufe[0][1], 'exp'); assert.equal(aufrufe[0][2].maxGoalRounds, 7)
+	assert.match(aufrufe[0][2].objective, /Zweck: Teil von Ziel X/); assert.match(aufrufe[0][2].objective, /todo_write/)
+	await assert.rejects(w.execute({ empfaenger: 'exp', zielbrief: lang, maxrunden: 7 }, { agent: s.lead }), /already has a goal/)
+	s.ziele.delete(s.exp); s.uebernommen = new Set(['exp'])
+	await assert.rejects(w.execute({ empfaenger: 'exp', zielbrief: lang, maxrunden: 7 }, { agent: s.lead }), /talking to the human/)
+})
+
+test('23. ask_question: still zugestellt, ohne Ziel; an den Menschen aufgezeichnet; übernommene Mitglieder nicht erreichbar', async () => {
+	const s = baueSzene(); const aufrufe = mitKanaelen(s)
+	const fragen = join(mkdtempSync(join(tmpdir(), 'fragen-')), 'f.jsonl')
+	const w = baueFrageWerkzeug({ defineTool: (d) => d, umgebung: s.umgebung, fragen })
+	const erg = await w.execute({ empfaenger: 'lead', frage: 'Wie viele Wände?' }, { agent: s.exp })
+	assert.equal(erg.zugestellt, true); assert.deepEqual(aufrufe[0].slice(0, 3), ['frage', 'exp', 'lead'])
+	assert.equal(s.lead.gesteuert.length, 0, 'keine Meldung nach oben, kein Ziel')
+	await w.execute({ empfaenger: 'mensch', frage: 'Soll das Dach rund sein?' }, { agent: s.exp })
+	assert.match(readFileSync(fragen, 'utf8'), /Soll das Dach rund sein\?/)
+	s.uebernommen = new Set(['exp'])
+	await assert.rejects(w.execute({ empfaenger: 'exp', frage: 'x' }, { agent: s.lead }), /talking to the human/)
+	await assert.rejects(w.execute({ empfaenger: 'exp', frage: '' }, { agent: s.lead }), /empty|talking/)
+})
+
+test('24. Gegenprobe: eine Kopie ohne Entwaffnen lässt die Übernahme wirkungslos — die Prüfung 17 ist nicht leer', async () => {
+	if (process.env.TEAM_MODUS_MODUL) return
+	const quelle = readFileSync(MODUL, 'utf8')
+	const mutiert = quelle
+		.replace('	aktion.disarm(agent);\n', '')
+		.replace('from "./send-to-session.mjs"', `from "${pathToFileURL(join(new URL('../patches', import.meta.url).pathname, 'send-to-session.mjs')).href}"`)
+	assert.notEqual(mutiert, quelle)
+	const datei = join(mkdtempSync(join(tmpdir(), 'team-modus-mutant3-')), 'team-modus-mutant.mjs')
+	writeFileSync(datei, mutiert)
+	const mut = await import(pathToFileURL(datei).href)
+	const lauf = (modul) => {
+		const s = baueSzene(); s.ziele.set(s.exp, ziel('gm'))
+		const sp = []
+		modul.uebernehmeGespraech(s.exp, mensch(), s.umgebung, { ziel: (a) => s.ziele.get(a), disarm: () => sp.push('disarm'), pause: () => sp.push('pause'), laeuft: () => false, name: () => 'exp', melde: () => {} }, new Map())
+		return sp
+	}
+	assert.deepEqual(lauf(M), ['disarm', 'pause'])
+	assert.deepEqual(lauf(mut), ['pause'], 'die Kopie entwaffnet nicht')
 })

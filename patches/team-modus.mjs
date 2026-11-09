@@ -492,6 +492,225 @@ export async function leseMitglied(zeile, umgebung, ordner = berichtOrdner()) {
 }
 
 // ---------------------------------------------------------------------------------------------------
+// Teil 4: Gesprächsübernahme (F3) und die Kanäle nach unten und zur Seite (F5, Weg A)
+// ---------------------------------------------------------------------------------------------------
+
+/** Namen der beiden neuen Werkzeuge. */
+export const WERKZEUG_AUFTRAG = "give_task";
+export const WERKZEUG_FRAGE = "ask_question";
+
+export const uebernahmenPfad = () => join(datenOrdner(), "state", "uebernahmen.json");
+export const fragenPfad = () => join(datenOrdner(), "state", "fragen-an-mensch.jsonl");
+
+/** Kürzeste Länge eines Zielbriefs; kürzer ist kein Brief. */
+const MIN_ZIELBRIEF = 40;
+
+/** Der Hinweis, wenn `give_task` ohne Zielbrief aufgerufen wird. */
+export const HINWEIS_OHNE_ZIELBRIEF =
+	"give_task needs a goal brief (parameter `zielbrief`) and a round limit (`maxrunden`). Write the brief so the recipient can work without " +
+	"the conversation: purpose (which higher goal it serves), subject (what exactly, with paths and numbers), limits (what is theirs, what they " +
+	"must not touch), instructions, acceptance (measurements with target values), reporting duties. If you only want to ask something, use " +
+	"ask_question instead; it needs no goal.";
+
+/** Der Hinweis, den `send_message` im Team-Modus bekommt. */
+export const HINWEIS_SEND_MESSAGE =
+	"Team mode: send_message is not available here. To give a teammate WORK, use give_task (it needs a goal brief and a round limit). " +
+	"To ASK a teammate or the human something, use ask_question (it needs no goal and is answered quietly). Your supervisor receives your " +
+	"closing report through goal_report and update_goal complete, not through send_message.";
+
+/** Ist das eine Nachricht des Menschen (Eingabe des Menschen, nicht eines Agenten oder Plugins)? */
+export function istMenschlicheNachricht(nachricht) {
+	const quelle = nachricht?.source;
+	return quelle?.kind === "user" && quelle.rpcId !== undefined && quelle.rpcId !== null;
+}
+
+/** Liest die Liste der Übernahmen (Datei, nur zum Nachsehen und für den späteren Ticker). */
+export function leseUebernahmen(pfad = uebernahmenPfad()) {
+	try {
+		const roh = JSON.parse(readFileSync(pfad, "utf8"));
+		return Array.isArray(roh) ? roh : [];
+	} catch { return []; }
+}
+
+/** Schreibt die Liste der Übernahmen. Ein fehlendes Recht verhindert nie eine Entscheidung. */
+export function schreibeUebernahmen(liste, pfad = uebernahmenPfad()) {
+	try {
+		mkdirSync(dirname(pfad), { recursive: true });
+		writeFileSync(pfad, `${JSON.stringify(liste, null, 1)}\n`);
+	} catch { /* Beiwerk */ }
+}
+
+/** Die Zeile eines Mitglieds nach Name (ohne Beachtung der Großschreibung) im Team der Wurzel dieses Agenten. */
+export function findeMitglied(umgebung, agent, name) {
+	const dienst = umgebung.teams();
+	if (dienst === undefined) return { zeilen: [], zeile: undefined };
+	const zeilen = dienst.listMembers(wurzelVon(umgebung.agenten, agent));
+	const gesucht = String(name ?? "").trim().toLowerCase();
+	return { zeilen, zeile: zeilen.find((z) => String(z.name).toLowerCase() === gesucht) };
+}
+
+/**
+ * Wächter für `send_message` im Team-Modus (Entscheidung F5, Weg A).
+ *
+ * Nur das Team-Werkzeug mit dem Parameter `target` ist gemeint. Das Werkzeug `send_message` der Unteragenten
+ * (Parameter `agent_id`) bleibt unberührt, ebenso `send_to_session` (Antwort eines Berater-Forks an seinen
+ * Vorgesetzten) — beides läuft nicht über dieses Werkzeug.
+ *
+ * @returns den Ablehnungstext oder `undefined`.
+ */
+export function pruefeSendMessage(ausfuehrung, umgebung) {
+	if (ausfuehrung?.name !== "send_message") return undefined;
+	const agent = ausfuehrung.agent;
+	if (agent === undefined) return undefined;
+	let argumente = ausfuehrung.arguments;
+	if (typeof argumente === "string") { try { argumente = JSON.parse(argumente); } catch { return undefined; } }
+	if (argumente === null || typeof argumente !== "object" || !("target" in argumente)) return undefined;
+	if (!istTeamModus(agent, umgebung)) return undefined;
+	return HINWEIS_SEND_MESSAGE;
+}
+
+const BESCHREIBUNG_AUFTRAG = [
+	"Give a teammate WORK. Creates a goal for the recipient from your goal brief and starts it; the recipient works on its own and reports back with goal_report when the goal is done. Use it for every assignment. For a plain question use ask_question.",
+	"",
+	"`zielbrief` is mandatory and must stand on its own: purpose, subject (paths, numbers), limits, instructions, acceptance (measurement and target value), reporting duties. `maxrunden` is the upper bound of work rounds. `aufgabenliste` (optional) holds the todo items the recipient should create first.",
+	"",
+	"It fails with a clear message when the brief or the round limit is missing, when the recipient is not one of your direct teammates, is not running, already has a goal, or is currently talking to the human."
+].join("\n");
+
+const BESCHREIBUNG_FRAGE = [
+	"Ask a teammate or the human something. No goal is needed and nothing is reported upward: the question is delivered quietly, the answer comes back as a message.",
+	"",
+	"`empfaenger` is a teammate name, `lead`, or `mensch`. A question to `mensch` is recorded for the human (the team overview shows it later); after asking, call await_goal_dependency so your goal waits without burning rounds. A teammate who is currently talking to the human cannot be asked."
+].join("\n");
+
+/** Baut `give_task`. */
+export function baueAuftragWerkzeug({ defineTool, umgebung }) {
+	return defineTool({
+		name: WERKZEUG_AUFTRAG,
+		description: BESCHREIBUNG_AUFTRAG,
+		parameters: {
+			empfaenger: { type: "string", required: true, description: "Name of the teammate (see list_agents)." },
+			zielbrief: { type: "string", required: true, description: "The complete goal brief (purpose, subject, limits, instructions, acceptance, reporting duties)." },
+			maxrunden: { type: "integer", required: true, description: "Upper bound of work rounds for the goal." },
+			aufgabenliste: { type: "string", description: "Optional todo items the recipient creates first, one per line." }
+		},
+		output: {
+			schema: { type: "object", additionalProperties: false, properties: {
+				angelegt: { type: "boolean", required: true },
+				empfaenger: { type: "string", required: true },
+				zielId: { type: "string", required: true },
+				hinweis: { type: "string", required: true }
+			} },
+			render: (_args, wert) => [{ type: "text", text: JSON.stringify(wert) }]
+		},
+		presentCall: (args) => ({ card: "generic", title: `Give task to ${args?.empfaenger ?? "teammate"}`, kind: "other" }),
+		presentResult: () => ({ card: "generic", title: "Task given" }),
+		isConcurrencySafe: () => false,
+		execute: async (args, exec) => {
+			const absender = exec?.agent;
+			if (absender === undefined) throw new Error("give_task needs a calling agent");
+			if (!istTeamModus(absender, umgebung)) throw new Error("give_task is only available in Team mode (a team with at least one active teammate).");
+			const brief = typeof args?.zielbrief === "string" ? args.zielbrief.trim() : "";
+			const runden = args?.maxrunden;
+			if (brief.length < MIN_ZIELBRIEF || !Number.isSafeInteger(runden) || runden < 1) throw new Error(HINWEIS_OHNE_ZIELBRIEF);
+			const { zeilen, zeile } = findeMitglied(umgebung, absender, args?.empfaenger);
+			if (zeile === undefined) throw new Error(`unknown recipient "${args?.empfaenger}". Teammates: ${zeilen.map((z) => z.name).join(", ")}.`);
+			if (zeile.id === absender.id) throw new Error("give_task cannot go to yourself.");
+			const empfaenger = umgebung.agenten.get(zeile.id);
+			if (empfaenger === undefined) throw new Error(`${zeile.name} is not running (status ${zeile.status}). Wake it with ask_question first, then call give_task again.`);
+			if (empfaenger.session?.header?.parentSession !== absender.id) throw new Error("give_task only goes DOWN: to your own direct teammates or workers. To report upward use goal_report.");
+			if (umgebung.uebernommen(zeile.id)) throw new Error(`${zeile.name} is talking to the human right now; the human decides when it is released. Try again after the release message.`);
+			const vorhanden = umgebung.ziel(empfaenger);
+			if (vorhanden !== undefined && vorhanden.phase !== "complete") throw new Error(`${zeile.name} already has a goal (phase ${vorhanden.phase}). Wait for its report or ask it with ask_question.`);
+			const liste = typeof args?.aufgabenliste === "string" ? args.aufgabenliste.trim() : "";
+			const wortlaut = liste === "" ? brief : `${brief}\n\n[Todo list to create first with todo_write]\n${liste}`;
+			const ziel = umgebung.erzeugeZiel(empfaenger, { objective: wortlaut, maxGoalRounds: runden });
+			protokolliere(`auftrag von=${absender.id} an=${zeile.name} ziel=${ziel.id} maxrunden=${runden}`);
+			return { angelegt: true, empfaenger: String(zeile.name), zielId: String(ziel.id), hinweis: "Goal created and started for the recipient. You are told through its closing report; use team_stand to look in without waking anyone." };
+		}
+	});
+}
+
+/** Baut `ask_question`. */
+export function baueFrageWerkzeug({ defineTool, umgebung, fragen = fragenPfad() }) {
+	return defineTool({
+		name: WERKZEUG_FRAGE,
+		description: BESCHREIBUNG_FRAGE,
+		parameters: {
+			empfaenger: { type: "string", required: true, description: "Teammate name, `lead`, or `mensch`." },
+			frage: { type: "string", required: true, description: "The question, self-contained." }
+		},
+		output: {
+			schema: { type: "object", additionalProperties: false, properties: {
+				zugestellt: { type: "boolean", required: true },
+				empfaenger: { type: "string", required: true },
+				hinweis: { type: "string", required: true }
+			} },
+			render: (_args, wert) => [{ type: "text", text: JSON.stringify(wert) }]
+		},
+		presentCall: (args) => ({ card: "generic", title: `Ask ${args?.empfaenger ?? "teammate"}`, kind: "other" }),
+		presentResult: () => ({ card: "generic", title: "Question asked" }),
+		isConcurrencySafe: () => false,
+		execute: async (args, exec) => {
+			const absender = exec?.agent;
+			if (absender === undefined) throw new Error("ask_question needs a calling agent");
+			const text = typeof args?.frage === "string" ? args.frage.trim() : "";
+			if (text === "") throw new Error("`frage` is empty.");
+			const ziel = String(args?.empfaenger ?? "").trim();
+			if (ziel.toLowerCase() === "mensch") {
+				try {
+					mkdirSync(dirname(fragen), { recursive: true });
+					appendFileSync(fragen, `${JSON.stringify({ zeit: new Date().toISOString(), von: absender.id, frage: text })}\n`);
+				} catch (fehler) { throw new Error(`the question could not be recorded: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
+				protokolliere(`frage an=mensch von=${absender.id}`);
+				return { zugestellt: true, empfaenger: "mensch", hinweis: "Recorded for the human. Now call await_goal_dependency so your goal waits for the answer without burning rounds." };
+			}
+			if (!istTeamModus(absender, umgebung)) throw new Error("ask_question to a teammate is only available in Team mode; outside it use the normal send_message.");
+			const { zeilen, zeile } = findeMitglied(umgebung, absender, ziel);
+			if (zeile === undefined) throw new Error(`unknown recipient "${ziel}". Members: ${zeilen.map((z) => z.name).join(", ")}, or "mensch".`);
+			if (zeile.id === absender.id) throw new Error("ask_question cannot go to yourself.");
+			if (umgebung.uebernommen(zeile.id)) throw new Error(`${zeile.name} is talking to the human right now; ask again after the release.`);
+			await umgebung.sendeFrage(absender, zeile.name, text, exec.signal);
+			protokolliere(`frage von=${absender.id} an=${zeile.name}`);
+			return { zugestellt: true, empfaenger: String(zeile.name), hinweis: "Delivered quietly. The answer arrives as a message; call await_goal_dependency if your goal should wait for it." };
+		}
+	});
+}
+
+/**
+ * Die Gesprächsübernahme: ein Mensch schreibt einem Mitglied, dessen Ziel läuft.
+ *
+ * Arbeitet synchron und muss VOR der Zustellung laufen (sie hängt in `Agent.send`, der frühesten öffentlichen
+ * Stelle: vor dem Eingangskorb, vor dem Rundentreiber und vor `goal-await`). Sie
+ *  1. entwaffnet das Ziel (`goals.disarm`): ab jetzt startet der Rundentreiber keine neue Runde;
+ *  2. legt das Ziel in die Pause, sobald der Agent ruhig ist (eine laufende Runde läuft zu Ende, „angehalten, nicht
+ *     abgebrochen“); ohne Lauf sofort;
+ *  3. meldet dem Vorgesetzten EINMAL „… übernommen, stand by“.
+ * Weitere Nachrichten des Menschen an dasselbe Mitglied ändern nichts und melden nichts.
+ *
+ * @param aktion - `{ ziel(agent), disarm(agent), pause(agent, ref), melde(agent, text), name(agent), laeuft(agent) }`.
+ * @returns `{ uebernommen: boolean, grund }`
+ */
+export function uebernehmeGespraech(agent, nachricht, umgebung, aktion, zustand) {
+	if (!istMenschlicheNachricht(nachricht)) return { uebernommen: false, grund: "keine Nachricht des Menschen" };
+	if (istWurzel(umgebung.agenten, agent)) return { uebernommen: false, grund: "Wurzelsitzung" };
+	if (!istTeamModus(agent, umgebung)) return { uebernommen: false, grund: "kein Team-Modus" };
+	if (zustand.has(agent.id)) return { uebernommen: false, grund: "schon übernommen" };
+	const ziel = aktion.ziel(agent);
+	if (ziel === undefined || ziel.phase !== "active") return { uebernommen: false, grund: "kein laufendes Ziel" };
+	aktion.disarm(agent);
+	const eintrag = { id: agent.id, name: aktion.name(agent), zielId: ziel.id, seit: new Date().toISOString(), pauseOffen: false };
+	if (aktion.laeuft(agent)) eintrag.pauseOffen = true;
+	else {
+		try { aktion.pause(agent, { id: ziel.id, revision: ziel.revision }); } catch (fehler) { protokolliere(`warn Pause nach Übernahme gescheitert agent=${agent.id}: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
+	}
+	zustand.set(agent.id, eintrag);
+	aktion.melde(agent, `Mensch hat Kommunikation mit Agent ${eintrag.name} übernommen, stand by`);
+	protokolliere(`uebernommen agent=${agent.id} name=${eintrag.name} ziel=${ziel.id} laeuft=${eintrag.pauseOffen}`);
+	return { uebernommen: true, grund: eintrag.pauseOffen ? "Runde läuft zu Ende, Pause folgt" : "sofort pausiert" };
+}
+
+// ---------------------------------------------------------------------------------------------------
 // Selbsttest
 // ---------------------------------------------------------------------------------------------------
 
@@ -541,6 +760,17 @@ export function apply(ctx, optionen = {}) {
 		}
 	};
 	umgebung.leseMitglied = (zeile, o) => leseMitglied(zeile, umgebung, o);
+	/** Übernahmen (Mensch spricht mit dem Mitglied): Kennung → Eintrag. Beim Start aus der Datei gelesen. */
+	const uebernahmen = new Map(leseUebernahmen().map((e) => [e.id, e]));
+	const sichereUebernahmen = () => schreibeUebernahmen([...uebernahmen.values()]);
+	umgebung.uebernommen = (id) => uebernahmen.has(id);
+	umgebung.erzeugeZiel = (agent, anfrage) => ctx.goals.create(agent, anfrage);
+	umgebung.sendeFrage = async (absender, zielName, text, signal) => {
+		const dienst = hole("agentTeams");
+		if (dienst === undefined) throw new Error("agentTeams service is not available");
+		const kopf = `[Question from ${absender.id} — answer it with ask_question(empfaenger: "${(findeMitglied(umgebung, absender, absender.id).zeile ?? {}).name ?? "lead"}"); send_message is not available in Team mode]\n\n`;
+		await dienst.sendMessage(absender, { target: zielName, content: [{ type: "text", text: kopf + text }], signal: signal ?? new AbortController().signal });
+	};
 
 	ctx.effect(() => {
 		let abgemeldet = false;
@@ -560,7 +790,27 @@ export function apply(ctx, optionen = {}) {
 
 		let nachrichtenBaustein;
 
-		const entscheiden = (agent, nachricht) => entscheide(agent, nachricht, umgebung);
+		/**
+		 * Läuft vor jeder Zustellung an einen Agenten. Zuerst die Gesprächsübernahme (Nebenwirkung: Ziel entwaffnen,
+		 * Pause, EINE Meldung nach oben), danach der Filter. Wirft die Übernahme, geht die Nachricht trotzdem durch.
+		 */
+		const entscheiden = (agent, nachricht) => {
+			try {
+				const erg = uebernehmeGespraech(agent, nachricht, umgebung, {
+					ziel: (a) => ctx.goals.get(a),
+					disarm: (a) => ctx.goals.disarm(a),
+					pause: (a, ref) => ctx.goals.pause(a, ref),
+					laeuft: (a) => a.status === "running",
+					name: (a) => nameDesMitglieds(a),
+					melde: (a, text) => { stelleZu(a, text, nachrichtenBaustein); }
+				}, uebernahmen);
+				if (erg.uebernommen) sichereUebernahmen();
+			} catch (fehler) { melden("warn", `Gesprächsübernahme: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
+			return entscheide(agent, nachricht, umgebung);
+		};
+		const nameDesMitglieds = (a) => {
+			try { return findeMitglied(umgebung, a, "").zeilen.find((z) => z.id === a.id)?.name ?? a.id; } catch { return a.id; }
+		};
 
 		const umwickle = (agent) => {
 			if (abgemeldet || rueckholer.has(agent)) return;
@@ -595,10 +845,31 @@ export function apply(ctx, optionen = {}) {
 		try { for (const agent of ctx.agents.list()) umwickle(agent); } catch (fehler) { melden("warn", `agents.list: ${String(fehler)}`); }
 		abmelder.push(ctx.on("agent/created", ({ agent }) => { umwickle(agent); }));
 		abmelder.push(ctx.on("agent/disposed", ({ agent }) => { rueckholer.delete(agent); }));
+		abmelder.push(ctx.on("agent/status", ({ agent, status }) => {
+			try {
+				const eintrag = uebernahmen.get(agent?.id);
+				if (eintrag === undefined || eintrag.pauseOffen !== true || status === "running") return;
+				const ziel = ctx.goals.get(agent);
+				eintrag.pauseOffen = false;
+				sichereUebernahmen();
+				if (ziel !== undefined && ziel.phase === "active" && ziel.id === eintrag.zielId) {
+					ctx.goals.pause(agent, { id: ziel.id, revision: ziel.revision });
+					protokolliere(`pause nachgeholt agent=${agent.id} ziel=${ziel.id}`);
+				}
+			} catch (fehler) { melden("warn", `agent/status: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
+		}));
 
 		// 2. Ziel-Ereignisse: Abschluss (Bericht zustellen) und Blockade (melden).
 		abmelder.push(ctx.on("goal/changed", ({ agent, change }) => {
 			try {
+				if (change?.operation === "resume" && uebernahmen.has(agent.id)) {
+					const eintrag = uebernahmen.get(agent.id);
+					uebernahmen.delete(agent.id);
+					sichereUebernahmen();
+					stelleZu(agent, `Mensch hat ${eintrag.name} freigegeben, Ziel lautet jetzt: ${change.goal?.objective ?? "(unbekannt)"}`, nachrichtenBaustein);
+					protokolliere(`freigegeben agent=${agent.id} name=${eintrag.name} ziel=${change.goal?.id}`);
+					return;
+				}
 				if (change?.operation !== "complete" && change?.operation !== "block") return;
 				if (istWurzel(ctx.agents, agent) || !istTeamModus(agent, umgebung)) return;
 				if (change.operation === "block") {
@@ -620,7 +891,7 @@ export function apply(ctx, optionen = {}) {
 
 		// 3. Wächter auf update_goal(complete).
 		if (typeof ctx.tools?.guard === "function") {
-			try { abmelder.push(ctx.tools.guard((ausfuehrung) => { try { return pruefeAbschluss(ausfuehrung, umgebung, ordner); } catch { return undefined; } })); }
+			try { abmelder.push(ctx.tools.guard((ausfuehrung) => { try { return pruefeAbschluss(ausfuehrung, umgebung, ordner) ?? pruefeSendMessage(ausfuehrung, umgebung); } catch { return undefined; } })); }
 			catch (fehler) { melden("warn", `Wächter nicht anmeldbar: ${String(fehler)}`); }
 		}
 
@@ -631,7 +902,7 @@ export function apply(ctx, optionen = {}) {
 			testeEinmal();
 			const defineTool = werkzeugBaustein?.defineTool;
 			if (typeof defineTool !== "function") return;
-			for (const baue of [baueBerichtWerkzeug, baueStandWerkzeug]) {
+			for (const baue of [baueBerichtWerkzeug, baueStandWerkzeug, baueAuftragWerkzeug, baueFrageWerkzeug]) {
 				try { abmelder.push(ctx.tools.register(baue({ defineTool, umgebung, ordner }))); }
 				catch (fehler) { melden("warn", `Werkzeug nicht anmeldbar: ${fehler instanceof Error ? fehler.message : String(fehler)}`); }
 			}
