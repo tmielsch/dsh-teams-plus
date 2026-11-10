@@ -99,9 +99,13 @@ injiziert; eine Nachricht erreicht eine Sitzung, einmal, und kostet zwei Turns. 
 am 2026-11-04 angeordnet, wörtlich: *„Einfach nur sinnloser Bloat."*
 
 **Was eine Nachricht ist:**
-- eine konkrete Frage an genau eine Sitzung,
-- ein Auftrag an den, der ihn ausführt,
-- ein Ergebnis an den Vorgesetzten, mit Beleg (Pfad, Messung, Prüfsumme) — an ihn, nicht an das ganze Team.
+Im Team-Modus (Abschnitt „Der Team-Modus“ unten) gibt es **vier Kanäle**, und `send_message` an Teammitglieder ist abgelehnt:
+- `ask_question` — eine konkrete Frage an genau eine Sitzung (auch an den Menschen), ohne Ziel und ohne Meldung nach oben;
+- `give_task` — ein Auftrag an den, der ihn ausführt; **ohne Zielbrief und Rundenbegrenzung kein Auftrag**;
+- `goal_report` — das Ergebnis an den Vorgesetzten, mit Beleg (Pfad, Messung, Prüfsumme); Pflicht vor `update_goal(complete)`;
+- die gemeinsamen Aufgaben (`team_task_*`) — Task-Updates bleiben.
+
+Außerhalb des Team-Modus gilt die bisherige Liste mit `send_message`: eine konkrete Frage an genau eine Sitzung, ein Auftrag an den, der ihn ausführt, ein Ergebnis an den Vorgesetzten mit Beleg — an ihn, nicht an das ganze Team.
 
 **Was keine Nachricht ist:**
 - eine Regeländerung, ein Rundruf, „zur Info",
@@ -138,7 +142,41 @@ die es später einen direkten Weg geben soll.
 Summenzeile). Es bremst nicht die Nachricht, die man besser gar nicht geschickt hätte. Das leistet
 nur diese Regel.
 
+### 8. Der Team-Modus
+
+*Dieser Abschnitt beschreibt das Plugin-Modul `team-modus` (Bundel 0.8.5). Was dort steht, ist gebaut und in der Probe-Instanz gemessen; was nicht gemessen oder nicht gebaut ist, steht ausdrücklich dabei.*
+
+**Wann er gilt.** Für einen Agenten gilt der Team-Modus, wenn zu seinem Team mindestens ein Teammitglied gehört, das läuft, ruht oder gerade angelegt wird, und der Notschalter nicht gesetzt ist. Außerhalb davon, also bei ganz normaler Nutzung von DSH, ändert sich nichts.
+
+**Der Notschalter.** Die Datei `~/.dsh/.tm/teams-plus/team-modus.json` mit dem Inhalt `{"aus": true}` schaltet den Team-Modus sofort ab, ohne Neustart. Eine Datei, die sich nicht lesen lässt, zählt als „aus“ (lieber das alte Verhalten als ein halbes neues). Das Protokoll steht in `~/.dsh/.tm/teams-plus/logs/team-modus.log`.
+
+**Meldungen.**
+- Die Meldung „… finished and will do no further work …“, die der Kern einem Vorgesetzten schickt, sobald ein Unteragent zur Ruhe kommt, wird verworfen, nicht aufgehoben. Sie weckt niemanden mehr.
+- Echte Fehler bleiben laut: „failed“, „ran out of room“, „declined“ und jede unbekannte Form kommen an. Auch „stopped“ kommt heute noch an; beschlossen ist, dass es künftig wie „finished“ verworfen wird (Issue 136), das ist aber noch nicht gebaut. Task-Updates und alle Nachrichten des Menschen kommen immer an.
+- **Ein Ziel wird nur mit Bericht abgeschlossen:** `update_goal(complete)` ohne vorher geschriebenen `goal_report` wird abgelehnt. Der Bericht geht genau einmal an den Vorgesetzten; ein Ziel auf „blocked“ wird ebenfalls gemeldet.
+
+**Wenn der Mensch einem Mitglied schreibt (Gesprächsübernahme).**
+- Das Ziel des Mitglieds wird angehalten, nicht abgebrochen: Eine gerade laufende Runde läuft zu Ende, danach startet keine neue. Das Ziel wird zuerst entwaffnet, die Pause folgt am Rundenende.
+- Der Vorgesetzte bekommt **eine** Meldung: „Mensch hat Kommunikation mit Agent <Name> übernommen, stand by“. Weitere Nachrichten des Menschen an dasselbe Mitglied lösen keine weitere Meldung aus. Beim Gespräch mit einem Facharbeiter geht die Meldung an den Experten, nicht an den Lead.
+- Wenn der Mensch das Ziel fortsetzt, geht **eine** Meldung an den Vorgesetzten: „Mensch hat <Name> freigegeben, Ziel lautet jetzt: <aktueller Wortlaut des Ziels>“. Auch das Entfernen eines Ziels meldet eine kurze Freigabe.
+- **Vergessene Gespräche:** Es gibt keine automatische Freigabe. Die Liste der angehaltenen Mitglieder steht in `~/.dsh/.tm/teams-plus/state/uebernahmen.json`.
+- **Gestoppte Agenten:** Ein gestoppter Agent wird nur wieder aufgenommen, wenn der Auftrag es verlangt. Hat der Mensch ihn gestoppt, um mit ihm zu sprechen, lässt der Lead ihn in Ruhe, bis der Mensch ihn freigibt.
+- *Nicht gemessen:* ob der Knopf „Fortsetzen“ im Chat eines Teammitglieds funktioniert, und die Nachricht an ein noch lebendes, wartendes Mitglied (gemessen ist sie nur am Attrappen-Modell). Eine weitere Nachricht des Menschen weckt ein vom Kern abgebautes Mitglied wieder.
+
+**Aufträge und Fragen.**
+- `give_task` legt das Ziel für den Empfänger an und weckt ihn bei Bedarf. Es wirkt nur nach unten und heute nur auf die direkten Teammitglieder des Aufrufers (die Mitgliederliste des Teams). Ein Facharbeiter, den ein Experte mit `delegate_task` gestartet hat, steht nicht in dieser Liste; für ihn gilt `give_task` heute nicht (aus dem Code gelesen, noch nicht gemessen).
+- `ask_question` ist still: Es erzeugt kein Ziel, bricht kein Ziel ab und meldet nichts nach oben. Eine Frage an `mensch` wird in `~/.dsh/.tm/teams-plus/state/fragen-an-mensch.jsonl` aufgezeichnet. *Folgt:* Eine Anzeige für diese Fragen in der Web-GUI (der „Ticker“) gibt es noch nicht.
+- Antworten auf eine Frage nur, wenn man etwas zu sagen hat. Kein Dank und keine Folgeangebote.
+
+### 9. Berater-Fork
+
+Der Mensch kann den Lead forken, um zu diskutieren. Der Fork behält den Kontext des Leads, hat aber ein leeres Team: Er ist eine eigene Wurzelsitzung und nicht im Team-Modus. Er erbt kein Ziel. Seine Rückmeldung an den Lead geht per `send_to_session` und gilt nicht als Gesprächsübernahme.
+
+### 10. Das Werkzeug `team_stand`
+
+`team_stand` liest den Stand der Mitglieder, ohne jemanden zu wecken: je Mitglied das Ziel (Phase, Aktivierung, Runden, der Wortlaut gekürzt), ob ein Bericht vorliegt und die Zeit des letzten Ereignisses. Der Lead nutzt es statt Nachfragen und statt Schleifen mit `list_agents`.
+
 ### 6. Was Teams Plus nicht ändert
 
-Rollen (`rolle` bei `delegate_task`), Specs, Ziele und Abnahmen laufen wie zuvor. Dieser Abschnitt regelt nur
+Außerhalb des Team-Modus ändert Teams Plus nichts. Rollen (`rolle` bei `delegate_task`), Specs, Ziele und Abnahmen laufen wie zuvor. Dieser Abschnitt regelt nur
 Namen, Titelzeile, die Einordnung in Spalten und den Umgang mit gemeinsamen Aufgaben.
