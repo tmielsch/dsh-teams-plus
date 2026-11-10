@@ -152,15 +152,15 @@ nur diese Regel.
 
 **Meldungen.**
 - Die Meldung „… finished and will do no further work …“, die der Kern einem Vorgesetzten schickt, sobald ein Unteragent zur Ruhe kommt, wird verworfen, nicht aufgehoben. Sie weckt niemanden mehr.
-- Echte Fehler bleiben laut: „stopped“, „failed“, „ran out of room“, „declined“ und jede unbekannte Form kommen an. Task-Updates und alle Nachrichten des Menschen kommen immer an.
+- Echte Fehler bleiben laut: „failed“, „ran out of room“, „declined“ und jede unbekannte Form kommen an. Auch „stopped“ kommt heute noch an; beschlossen ist, dass es künftig wie „finished“ verworfen wird (Issue 136), das ist aber noch nicht gebaut. Task-Updates und alle Nachrichten des Menschen kommen immer an.
 - **Ein Ziel wird nur mit Bericht abgeschlossen:** `update_goal(complete)` ohne vorher geschriebenen `goal_report` wird abgelehnt. Der Bericht geht genau einmal an den Vorgesetzten; ein Ziel auf „blocked“ wird ebenfalls gemeldet.
 
 **Wenn der Mensch einem Mitglied schreibt (Gesprächsübernahme).**
 - Das Ziel des Mitglieds wird angehalten, nicht abgebrochen: Eine gerade laufende Runde läuft zu Ende, danach startet keine neue. Das Ziel wird zuerst entwaffnet, die Pause folgt am Rundenende.
 - Der Vorgesetzte bekommt **eine** Meldung: „Mensch hat Kommunikation mit Agent <Name> übernommen, stand by“. Weitere Nachrichten des Menschen an dasselbe Mitglied lösen keine weitere Meldung aus. Beim Gespräch mit einem Facharbeiter geht die Meldung an den Experten, nicht an den Lead.
-- Wer auf ein angehaltenes Mitglied wartet, hält sich daran: Ein angehaltenes Ziel setzt kein Agent fort. Nur der Mensch setzt es fort.
 - Wenn der Mensch das Ziel fortsetzt, geht **eine** Meldung an den Vorgesetzten: „Mensch hat <Name> freigegeben, Ziel lautet jetzt: <aktueller Wortlaut des Ziels>“. Auch das Entfernen eines Ziels meldet eine kurze Freigabe.
 - **Vergessene Gespräche:** Es gibt keine automatische Freigabe. Die Liste der angehaltenen Mitglieder steht in `~/.dsh/.tm/teams-plus/state/uebernahmen.json`.
+- **Gestoppte Agenten:** Ein gestoppter Agent wird nur wieder aufgenommen, wenn der Auftrag es verlangt. Hat der Mensch ihn gestoppt, um mit ihm zu sprechen, lässt der Lead ihn in Ruhe, bis der Mensch ihn freigibt.
 - *Nicht gemessen:* ob der Knopf „Fortsetzen“ im Chat eines Teammitglieds funktioniert, und die Nachricht an ein noch lebendes, wartendes Mitglied (gemessen ist sie nur am Attrappen-Modell). Eine weitere Nachricht des Menschen weckt ein vom Kern abgebautes Mitglied wieder.
 
 **Aufträge und Fragen.**
