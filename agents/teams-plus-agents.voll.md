@@ -164,7 +164,7 @@ nur diese Regel.
 - *Nicht gemessen:* ob der Knopf „Fortsetzen“ im Chat eines Teammitglieds funktioniert, und die Nachricht an ein noch lebendes, wartendes Mitglied (gemessen ist sie nur am Attrappen-Modell). Eine weitere Nachricht des Menschen weckt ein vom Kern abgebautes Mitglied wieder.
 
 **Aufträge und Fragen.**
-- `give_task` legt das Ziel für den Empfänger an und weckt ihn bei Bedarf. Es wirkt nur nach unten, also auf direkte Teammitglieder und Facharbeiter des Aufrufers.
+- `give_task` legt das Ziel für den Empfänger an und weckt ihn bei Bedarf. Es wirkt nur nach unten und heute nur auf die direkten Teammitglieder des Aufrufers (die Mitgliederliste des Teams). Ein Facharbeiter, den ein Experte mit `delegate_task` gestartet hat, steht nicht in dieser Liste; für ihn gilt `give_task` heute nicht (aus dem Code gelesen, noch nicht gemessen).
 - `ask_question` ist still: Es erzeugt kein Ziel, bricht kein Ziel ab und meldet nichts nach oben. Eine Frage an `mensch` wird in `~/.dsh/.tm/teams-plus/state/fragen-an-mensch.jsonl` aufgezeichnet. *Folgt:* Eine Anzeige für diese Fragen in der Web-GUI (der „Ticker“) gibt es noch nicht.
 - Antworten auf eine Frage nur, wenn man etwas zu sagen hat. Kein Dank und keine Folgeangebote.
 
