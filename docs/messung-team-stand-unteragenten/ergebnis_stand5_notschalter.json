@@ -1,0 +1,104 @@
+{
+ "szenario": "stand4",
+ "kinderVonExp": [
+  {
+   "id": "8b065b",
+   "mode": "continuable",
+   "label": "Stand4 fachA"
+  },
+  {
+   "id": "d19fb0",
+   "mode": "continuable",
+   "label": "Stand4 fachB"
+  }
+ ],
+ "kinderVonLead": [
+  {
+   "id": "654518",
+   "mode": "continuable",
+   "label": "Probe-Experte"
+  }
+ ],
+ "baumVonLead": [
+  {
+   "id": "654518",
+   "kind": "child",
+   "depth": 1,
+   "parent": "191862",
+   "mode": "continuable",
+   "activity": "running",
+   "label": "Probe-Experte"
+  },
+  {
+   "id": "8b065b",
+   "kind": "child",
+   "depth": 2,
+   "parent": "654518",
+   "mode": "continuable",
+   "activity": "running",
+   "label": "Stand4 fachA"
+  },
+  {
+   "id": "d19fb0",
+   "kind": "child",
+   "depth": 2,
+   "parent": "654518",
+   "mode": "continuable",
+   "activity": "inactive",
+   "label": "Stand4 fachB"
+  }
+ ],
+ "teamStandAmLead": [
+  "[{\"type\":\"text\",\"text\":\"{\\\"teamModus\\\":false,\\\"notschalter\\\":true,\\\"mitglieder\\\":[{\\\"name\\\":\\\"exp\\\",\\\"id\\\":\\\"edaba946-ded3-4200-b6a1-5189f6654518\\\",\\\"status\\\":\\\"running\\\",\\\"ziel\\\":null,\\\"bericht\\\":false,\\\"zeitLetztesEreignis\\\":\\\"2026-11-10T17:53:16.654Z\\\",\\\"gelesenAus\\\":\\\"lebender Agent\\\"}],\\\"hinweis\\\":\\\"One row per teammate. 'ziel' is null when the member has no goal. 'zeitLetztesEreignis' is the time of the last session event; 'gelesenAus' says whether the live agent or the stored session was read.\\\"}\"}]"
+ ],
+ "fensterKatalog": {
+  "neueAgenten": 0,
+  "neueKinderZuege": 0,
+  "lebtNeu": [],
+  "lebtWeg": []
+ },
+ "fensterStand": {
+  "neueAgenten": 0,
+  "neueKinderZuege": 1,
+  "lebtNeu": [],
+  "lebtWeg": []
+ },
+ "protokoll": [
+  {
+   "ms": 1622,
+   "art": "agent-created",
+   "id": "654518"
+  },
+  {
+   "ms": 1687,
+   "art": "teammitglied",
+   "id": "654518",
+   "status": "running"
+  },
+  {
+   "ms": 3233,
+   "art": "agent-created",
+   "id": "654518"
+  },
+  {
+   "ms": 3446,
+   "art": "exp-lebendig-fuer-kinder",
+   "lebt": true
+  },
+  {
+   "ms": 3468,
+   "art": "agent-created",
+   "id": "8b065b"
+  },
+  {
+   "ms": 3511,
+   "art": "agent-created",
+   "id": "d19fb0"
+  },
+  {
+   "ms": 3515,
+   "art": "ziel-fachA",
+   "id": "goal-c1701f82-3e1e-40c7-a52d-6c1172864d15"
+  }
+ ]
+}

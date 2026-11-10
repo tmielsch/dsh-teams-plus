@@ -1,0 +1,226 @@
+{
+ "szenario": "stand3",
+ "pausen": [
+  {
+   "art": "pause",
+   "phase": null,
+   "akt": null,
+   "ergebnis": "{\"id\":\"goal-c5362cbd-5a57-4f82-b876-f7ec9610969c\",\"revision\":2,\"objective\":\"Probe-Ziel zum Pausieren [[LONG]]\",\"phase\":\"paused\",\"maxGoalRounds\":60,\"roundsStarted\":1,\"createdAt\":1794332401494,\"updatedAt\":1794332403749,\"ac"
+  }
+ ],
+ "entwaffneten": [
+  {
+   "art": "disarm",
+   "phase": null,
+   "akt": null
+  }
+ ],
+ "wartMs": 1508,
+ "faelle": [
+  {
+   "marke": "pausiert",
+   "kind": "3552bb",
+   "lebtAgent": false,
+   "dauerMs": 33,
+   "febler": null,
+   "fensterWeckruf": {
+    "neueAgenten": 0,
+    "neueKinderZuege": 0
+   },
+   "projektionRoh": "{\"goal\":{\"id\":\"goal-c5362cbd-5a57-4f82-b876-f7ec9610969c\",\"revision\":2,\"objective\":\"Probe-Ziel zum Pausieren [[LONG]]\",\"phase\":\"paused\",\"maxGoalRounds\":60},\"roundsStarted\":1,\"createdAt\":1794332401494,\"updatedAt\":1794332403749}",
+   "projektionKeys": [
+    "goal",
+    "roundsStarted",
+    "createdAt",
+    "updatedAt"
+   ],
+   "goalEventsInDerDatei": [
+    {
+     "seq": 6,
+     "type": "goal/change",
+     "zeit": 1794332401494,
+     "daten": "{\"kind\":\"goal/change\",\"version\":1,\"operation\":\"create\",\"goal\":{\"id\":\"goal-c5362cbd-5a57-4f82-b876-f7ec9610969c\",\"revision\":1,\"objective\":\"Probe-Ziel zum Pausieren [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":60},\"roundsStarted\":0,\"createdAt\":1794332401494,\"updatedAt\":1794332401494}"
+    },
+    {
+     "seq": 24,
+     "type": "goal/change",
+     "zeit": 1794332403749,
+     "daten": "{\"kind\":\"goal/change\",\"version\":1,\"operation\":\"pause\",\"goal\":{\"id\":\"goal-c5362cbd-5a57-4f82-b876-f7ec9610969c\",\"revision\":2,\"objective\":\"Probe-Ziel zum Pausieren [[LONG]]\",\"phase\":\"paused\",\"maxGoalRounds\":60},\"roundsStarted\":1,\"createdAt\":1794332401494,\"updatedAt\":1794332403749}"
+    }
+   ],
+   "anzahlGoalEvents": 2,
+   "letzteEreignisse": [
+    {
+     "seq": 20,
+     "type": "agent/inbox/spliced",
+     "zeit": 1794332401983
+    },
+    {
+     "seq": 21,
+     "type": "step/start",
+     "zeit": 1794332402000
+    },
+    {
+     "seq": 22,
+     "type": "user/message",
+     "zeit": 1794332402001
+    },
+    {
+     "seq": 23,
+     "type": "request/header",
+     "zeit": 1794332402002
+    },
+    {
+     "seq": 24,
+     "type": "goal/change",
+     "zeit": 1794332403749
+    },
+    {
+     "seq": 25,
+     "type": "assistant/attempt",
+     "zeit": 1794332405023
+    },
+    {
+     "seq": 26,
+     "type": "step/end",
+     "zeit": 1794332405023
+    },
+    {
+     "seq": 27,
+     "type": "turn/end",
+     "zeit": 1794332405024
+    }
+   ],
+   "alleTypes": [
+    "subagent/descriptor",
+    "sandbox/mode",
+    "approval/policy",
+    "agent/inbox/spliced",
+    "turn/start",
+    "goal/change",
+    "step/start",
+    "system/message",
+    "user/message",
+    "request/header",
+    "request/context",
+    "session/title",
+    "assistant/message",
+    "step/end",
+    "turn/end",
+    "assistant/attempt"
+   ]
+  },
+  {
+   "marke": "entwaffnet",
+   "kind": "c04d78",
+   "lebtAgent": false,
+   "dauerMs": 6,
+   "febler": null,
+   "fensterWeckruf": {
+    "neueAgenten": 0,
+    "neueKinderZuege": 0
+   },
+   "projektionRoh": "{\"goal\":{\"id\":\"goal-45a9f0d5-0697-445e-9cdc-bcba26870d61\",\"revision\":1,\"objective\":\"Probe-Ziel zum Entwaffnen [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":60},\"roundsStarted\":1,\"createdAt\":1794332401547,\"updatedAt\":1794332401547}",
+   "projektionKeys": [
+    "goal",
+    "roundsStarted",
+    "createdAt",
+    "updatedAt"
+   ],
+   "goalEventsInDerDatei": [
+    {
+     "seq": 6,
+     "type": "goal/change",
+     "zeit": 1794332401547,
+     "daten": "{\"kind\":\"goal/change\",\"version\":1,\"operation\":\"create\",\"goal\":{\"id\":\"goal-45a9f0d5-0697-445e-9cdc-bcba26870d61\",\"revision\":1,\"objective\":\"Probe-Ziel zum Entwaffnen [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":60},\"roundsStarted\":0,\"createdAt\":1794332401547,\"updatedAt\":1794332401547}"
+    }
+   ],
+   "anzahlGoalEvents": 1,
+   "letzteEreignisse": [
+    {
+     "seq": 19,
+     "type": "turn/start",
+     "zeit": 1794332402006
+    },
+    {
+     "seq": 20,
+     "type": "agent/inbox/spliced",
+     "zeit": 1794332402007
+    },
+    {
+     "seq": 21,
+     "type": "step/start",
+     "zeit": 1794332402018
+    },
+    {
+     "seq": 22,
+     "type": "user/message",
+     "zeit": 1794332402018
+    },
+    {
+     "seq": 23,
+     "type": "request/header",
+     "zeit": 1794332402019
+    },
+    {
+     "seq": 24,
+     "type": "assistant/message",
+     "zeit": 1794332405032
+    },
+    {
+     "seq": 25,
+     "type": "step/end",
+     "zeit": 1794332405033
+    },
+    {
+     "seq": 26,
+     "type": "turn/end",
+     "zeit": 1794332405034
+    }
+   ],
+   "alleTypes": [
+    "subagent/descriptor",
+    "sandbox/mode",
+    "approval/policy",
+    "agent/inbox/spliced",
+    "turn/start",
+    "goal/change",
+    "step/start",
+    "system/message",
+    "user/message",
+    "request/header",
+    "request/context",
+    "session/title",
+    "assistant/message",
+    "step/end",
+    "turn/end"
+   ]
+  }
+ ],
+ "zielEventsWaehrendDesLaufs": [
+  {
+   "ms": 1614,
+   "wer": "3552bb",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 1666,
+   "wer": "c04d78",
+   "op": "create",
+   "phase": "active",
+   "akt": "armed",
+   "runden": 0
+  },
+  {
+   "ms": 3871,
+   "wer": "3552bb",
+   "op": "pause",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1
+  }
+ ]
+}

@@ -1,0 +1,17 @@
+# Wegwerf-Overlay fuer die Stand-Messung (2026-11-10): Attrappen-Modell, Team-Modus aus dem
+# Worktree umsetzung/team-stand-unteragenten, Messetreiber stand_treiber.mjs. Kein Profil eingriff.
+- id: headless-runner
+  disabled: true
+- id: headless-startup
+  disabled: true
+- id: agent-default-model
+  config:
+    provider: probe
+    model: m
+- insert:
+    - id: probe-fake-llm
+      name: '/tmp/teams_plus_umbau/probe/fake-llm.mjs'
+    - id: team-modus
+      name: '/Users/tmielsch/dsh-teams-plus/.worktrees/umsetzung-team-stand-unteragenten/patches/team-modus.mjs'
+    - id: probe-stand
+      name: '/tmp/teams_plus_umbau/probe/stand_treiber.mjs'

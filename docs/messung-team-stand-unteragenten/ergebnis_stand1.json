@@ -1,0 +1,321 @@
+{
+ "szenario": "stand",
+ "provider": [
+  "spawn",
+  "fork"
+ ],
+ "kinder": [
+  {
+   "name": "mitZiel",
+   "id": "ef5e599d-71d9-45df-bcb4-60781047cd81"
+  },
+  {
+   "name": "ohneZiel",
+   "id": "f05dd288-66e4-47f7-956a-1c0334252e89"
+  },
+  {
+   "name": "zweitesKind",
+   "id": "b8593f3a-7d27-4867-824a-de05462847a8"
+  },
+  {
+   "name": "abgebaut",
+   "id": "34d8b7d0-ae30-4537-bb90-ee9f6eb9df9a"
+  }
+ ],
+ "extra": {
+  "standIstOhneErweiterung": [
+   "[{\"type\":\"text\",\"text\":\"{\\\"teamModus\\\":false,\\\"notschalter\\\":false,\\\"mitglieder\\\":[],\\\"hinweis\\\":\\\"One row per teammate. 'ziel' is null when the member has no goal. 'zeitLetztesEreignis' is the time of the last session event; 'gelesenAus' says whether the live agent or the stored session was read.\\\"}\"}]"
+  ],
+  "zuegeLeadVorher": 9,
+  "direktKinder": [
+   {
+    "id": "47cd81",
+    "mode": "continuable",
+    "label": "Plan-Messung mitZiel",
+    "createdAt": 1794332054117
+   },
+   {
+    "id": "252e89",
+    "mode": "continuable",
+    "label": "Plan-Messung ohneZiel",
+    "createdAt": 1794332054156
+   },
+   {
+    "id": "2847a8",
+    "mode": "continuable",
+    "label": "Plan-Messung zweitesKind",
+    "createdAt": 1794332054201
+   },
+   {
+    "id": "b9df9a",
+    "mode": "continuable",
+    "label": "Plan-Messung abgebaut",
+    "createdAt": 1794332054249
+   }
+  ],
+  "direktFenster": {
+   "neueAgenten": 0,
+   "neueZuege": 0,
+   "lebtNeu": [],
+   "lebtWeg": []
+  },
+  "baum": [
+   {
+    "id": "47cd81",
+    "kind": "child",
+    "depth": 1,
+    "parentId": "054049",
+    "mode": "continuable",
+    "activity": "inactive",
+    "label": "Plan-Messung mitZiel",
+    "hasChildren": false
+   },
+   {
+    "id": "252e89",
+    "kind": "child",
+    "depth": 1,
+    "parentId": "054049",
+    "mode": "continuable",
+    "activity": "inactive",
+    "label": "Plan-Messung ohneZiel",
+    "hasChildren": false
+   },
+   {
+    "id": "2847a8",
+    "kind": "child",
+    "depth": 1,
+    "parentId": "054049",
+    "mode": "continuable",
+    "activity": "inactive",
+    "label": "Plan-Messung zweitesKind",
+    "hasChildren": false
+   },
+   {
+    "id": "b9df9a",
+    "kind": "child",
+    "depth": 1,
+    "parentId": "054049",
+    "mode": "continuable",
+    "activity": "inactive",
+    "label": "Plan-Messung abgebaut",
+    "hasChildren": false
+   }
+  ],
+  "baumFenster": {
+   "neueAgenten": 0,
+   "neueZuege": 0,
+   "lebtNeu": [],
+   "lebtWeg": []
+  },
+  "zeilen": [
+   {
+    "id": "47cd81",
+    "lebtVorher": false,
+    "lebtNachher": false,
+    "status": "TOT",
+    "zielLebend": null,
+    "projektionGoal": "keine Projektion",
+    "weitereProjektionen": [
+     "title",
+     "goal",
+     "plan",
+     "tokenUsage",
+     "contextPressure",
+     "contextBreakdown",
+     "todos",
+     "inbox",
+     "userQuestions",
+     "subagentCatalog",
+     "subagentTiming",
+     "subagent",
+     "agentTeam",
+     "permissions"
+    ],
+    "letzteEreignisZeit": 1794332057226,
+    "lesedauerMs": 1,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   {
+    "id": "252e89",
+    "lebtVorher": false,
+    "lebtNachher": false,
+    "status": "TOT",
+    "zielLebend": null,
+    "projektionGoal": "keine Projektion",
+    "weitereProjektionen": [
+     "title",
+     "goal",
+     "plan",
+     "tokenUsage",
+     "contextPressure",
+     "contextBreakdown",
+     "todos",
+     "inbox",
+     "userQuestions",
+     "subagentCatalog",
+     "subagentTiming",
+     "subagent",
+     "agentTeam",
+     "permissions"
+    ],
+    "letzteEreignisZeit": 1794332054644,
+    "lesedauerMs": 2,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   {
+    "id": "2847a8",
+    "lebtVorher": false,
+    "lebtNachher": false,
+    "status": "TOT",
+    "zielLebend": null,
+    "projektionGoal": "keine Projektion",
+    "weitereProjektionen": [
+     "title",
+     "goal",
+     "plan",
+     "tokenUsage",
+     "contextPressure",
+     "contextBreakdown",
+     "todos",
+     "inbox",
+     "userQuestions",
+     "subagentCatalog",
+     "subagentTiming",
+     "subagent",
+     "agentTeam",
+     "permissions"
+    ],
+    "letzteEreignisZeit": 1794332054679,
+    "lesedauerMs": 4,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   {
+    "id": "b9df9a",
+    "lebtVorher": false,
+    "lebtNachher": false,
+    "status": "TOT",
+    "zielLebend": null,
+    "projektionGoal": "keine Projektion",
+    "weitereProjektionen": [
+     "title",
+     "goal",
+     "plan",
+     "tokenUsage",
+     "contextPressure",
+     "contextBreakdown",
+     "todos",
+     "inbox",
+     "userQuestions",
+     "subagentCatalog",
+     "subagentTiming",
+     "subagent",
+     "agentTeam",
+     "permissions"
+    ],
+    "letzteEreignisZeit": 1794332057321,
+    "lesedauerMs": 1,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   }
+  ],
+  "teamKinderFenster": {
+   "neuAgentenImMessfenster": {
+    "neueAgenten": 0,
+    "neueZuege": 1,
+    "lebtNeu": [],
+    "lebtWeg": []
+   }
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1503,
+   "art": "provider",
+   "provider": [
+    "spawn",
+    "fork"
+   ]
+  },
+  {
+   "ms": 1564,
+   "art": "agent-created",
+   "id": "054049"
+  },
+  {
+   "ms": 1600,
+   "art": "agent-created",
+   "id": "47cd81"
+  },
+  {
+   "ms": 1606,
+   "art": "kind-angelegt",
+   "name": "mitZiel",
+   "id": "47cd81",
+   "messageId": "d63860"
+  },
+  {
+   "ms": 1652,
+   "art": "agent-created",
+   "id": "252e89"
+  },
+  {
+   "ms": 1654,
+   "art": "kind-angelegt",
+   "name": "ohneZiel",
+   "id": "252e89",
+   "messageId": "5df1c5"
+  },
+  {
+   "ms": 1701,
+   "art": "agent-created",
+   "id": "2847a8"
+  },
+  {
+   "ms": 1702,
+   "art": "kind-angelegt",
+   "name": "zweitesKind",
+   "id": "2847a8",
+   "messageId": "7e6c43"
+  },
+  {
+   "ms": 1741,
+   "art": "agent-created",
+   "id": "b9df9a"
+  },
+  {
+   "ms": 1744,
+   "art": "kind-angelegt",
+   "name": "abgebaut",
+   "id": "b9df9a",
+   "messageId": "c1af01"
+  },
+  {
+   "ms": 9246,
+   "art": "enkel-uebersprungen",
+   "grund": "Elternkind nicht lebendig"
+  }
+ ]
+}
