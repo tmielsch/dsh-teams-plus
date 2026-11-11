@@ -312,7 +312,7 @@ function markiereZugestellt(zielId, ordner = berichtOrdner()) {
 
 /** Der Hinweis, den das Modell bekommt, wenn es ein Ziel ohne Bericht abschließen will. */
 export const HINWEIS_OHNE_BERICHT =
-	"Team mode: a goal cannot be completed until you have written its report. Call goal_report with your closing report " +
+	"Team mode: a goal cannot be completed until you have written its report. Call goal_report with your closing report (a direct tool if it is in your schema list; if it is not listed there, call run_code and write await tools.goal_report({bericht: ...}) as its code) " +
 	"(what was achieved, evidence such as paths and measurements, what is left open), then call update_goal with action complete again.";
 
 /**
@@ -581,7 +581,7 @@ export function pruefeSendMessage(ausfuehrung, umgebung) {
 }
 
 const BESCHREIBUNG_AUFTRAG = [
-	"Give a teammate WORK. Creates a goal for the recipient from your goal brief and starts it; the recipient works on its own and reports back with goal_report when the goal is done. Use it for every assignment. For a plain question use ask_question.",
+	"Give a teammate WORK. Creates a goal for the recipient from your goal brief and starts it; the recipient works on its own and reports back through goal_report (direct tool if your schema lists it, otherwise call run_code and write await tools.goal_report({bericht: ...}) inside its code) when the goal is done. Use it for every assignment. For a plain question use ask_question.",
 	"",
 	"`zielbrief` is mandatory and must stand on its own: purpose, subject (paths, numbers), limits, instructions, acceptance (measurement and target value), reporting duties. `maxrunden` is the upper bound of work rounds. `aufgabenliste` (optional) holds the todo items the recipient should create first.",
 	"",
