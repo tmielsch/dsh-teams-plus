@@ -1,118 +1,134 @@
 {
+ "uebernahmen": [
+  {
+   "id": "9b134e1b-a858-43b8-af58-acb86751db4a",
+   "name": "exp1",
+   "zielId": "g-test-a",
+   "seit": "2026-11-12T21:31:28.970Z",
+   "pauseOffen": false
+  },
+  {
+   "id": "95c8f731-9fe1-4e2f-b763-e013fc725ca3",
+   "name": "Abnahme fachB ohne Ziel",
+   "zielId": "g-test-b",
+   "seit": "2026-11-12T21:30:58.970Z",
+   "pauseOffen": true
+  }
+ ],
  "szenario": "abnahme-nachbau-2026-11-12-v3",
  "kennungen": {
-  "lead": "137386",
-  "exp1": "96a915",
-  "exp2": "f23b1f",
-  "fachA": "e5ba4f",
-  "fachB": "a08494",
-  "blocked": "3179e6",
-  "enkel": "b633d8",
-  "eigen": "a21f3a",
-  "kaputtId": "a21f3a",
-  "zielId": "1e7833"
+  "lead": "148524",
+  "exp1": "51db4a",
+  "exp2": "670d14",
+  "fachA": "72ab24",
+  "fachB": "725ca3",
+  "blocked": "63b73e",
+  "enkel": "5648f2",
+  "eigen": "3ba8af",
+  "kaputtId": "3ba8af",
+  "zielId": "e6f25e"
  },
  "kinderVonExp1": [
   {
-   "id": "e5ba4f",
-   "createdAt": 1794509137556,
+   "id": "72ab24",
+   "createdAt": 1794519148686,
    "mode": "continuable",
    "label": "Abnahme fachA"
   },
   {
-   "id": "a08494",
-   "createdAt": 1794509137577,
+   "id": "725ca3",
+   "createdAt": 1794519148718,
    "mode": "continuable",
    "label": "Abnahme fachB ohne Ziel"
   },
   {
-   "id": "3179e6",
-   "createdAt": 1794509137670,
+   "id": "63b73e",
+   "createdAt": 1794519148810,
    "mode": "continuable",
    "label": "Abnahme blockedKind"
   }
  ],
  "kinderVonLead": [
   {
-   "id": "96a915",
-   "createdAt": 1794509137449,
+   "id": "51db4a",
+   "createdAt": 1794519148594,
    "mode": "continuable",
    "label": "Abnahme-Experte mit Kindern"
   },
   {
-   "id": "f23b1f",
-   "createdAt": 1794509137728,
+   "id": "670d14",
+   "createdAt": 1794519148872,
    "mode": "continuable",
    "label": "Abnahme-Experte ohne Kinder"
   },
   {
-   "id": "a21f3a",
-   "createdAt": 1794509137804,
+   "id": "3ba8af",
+   "createdAt": 1794519148952,
    "mode": "continuable",
    "label": "Abnahme eigenesLeadKind"
   }
  ],
  "baumVonLead": [
   {
-   "id": "96a915",
+   "id": "51db4a",
    "kind": "child",
    "depth": 1,
-   "parent": "137386",
+   "parent": "148524",
    "activity": "inactive",
    "label": "Abnahme-Experte mit Kindern"
   },
   {
-   "id": "e5ba4f",
+   "id": "72ab24",
    "kind": "child",
    "depth": 2,
-   "parent": "96a915",
+   "parent": "51db4a",
    "activity": "inactive",
    "label": "Abnahme fachA"
   },
   {
-   "id": "b633d8",
+   "id": "5648f2",
    "kind": "child",
    "depth": 3,
-   "parent": "e5ba4f",
+   "parent": "72ab24",
    "activity": "inactive",
    "label": "Abnahme Enkel"
   },
   {
-   "id": "a08494",
+   "id": "725ca3",
    "kind": "child",
    "depth": 2,
-   "parent": "96a915",
+   "parent": "51db4a",
    "activity": "inactive",
    "label": "Abnahme fachB ohne Ziel"
   },
   {
-   "id": "3179e6",
+   "id": "63b73e",
    "kind": "child",
    "depth": 2,
-   "parent": "96a915",
+   "parent": "51db4a",
    "activity": "inactive",
    "label": "Abnahme blockedKind"
   },
   {
-   "id": "f23b1f",
+   "id": "670d14",
    "kind": "child",
    "depth": 1,
-   "parent": "137386",
+   "parent": "148524",
    "activity": "inactive",
    "label": "Abnahme-Experte ohne Kinder"
   },
   {
-   "id": "a21f3a",
+   "id": "3ba8af",
    "kind": "diagnostic",
    "depth": 1,
-   "parent": "137386"
+   "parent": "148524"
   }
  ],
  "standNeu": [
   [
    {
     "type": "text",
-    "text": "{\"teamModus\":true,\"notschalter\":false,\"mitglieder\":[{\"name\":\"exp1\",\"id\":\"aa21caa9-c1f8-470b-99dd-ad303c96a915\",\"status\":\"inactive\",\"angehaltenSeit\":\"2026-11-12T18:44:37.822Z\",\"gelesenAus\":\"gespeicherte Sitzung\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"bericht\":false,\"zeitLetztesEreignis\":\"2026-11-12T18:45:44.185Z\"},{\"name\":\"exp2\",\"id\":\"97f4204a-d2a2-461e-8e4c-e7d658f23b1f\",\"status\":\"inactive\",\"angehaltenSeit\":null,\"gelesenAus\":\"gespeicherte Sitzung\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"bericht\":false,\"zeitLetztesEreignis\":\"2026-11-12T18:45:40.798Z\"}],\"untergruppen\":[{\"gruppe\":\"mitglied\",\"id\":\"aa21caa9-c1f8-470b-99dd-ad303c96a915\",\"unteragenten\":[{\"id\":\"3c7a410d-496a-4ca5-9182-0cbc8ee5ba4f\",\"label\":\"Abnahme fachA\",\"createdAt\":1794509137556,\"depth\":1,\"parentId\":\"aa21caa9-c1f8-470b-99dd-ad303c96a915\",\"zustand\":\"abgebaut\",\"ziel\":{\"phase\":\"paused\",\"runden\":0,\"maxRunden\":60,\"wortlaut\":\"Abnahme Kind-Ziel pausiert [[LONG]]\"},\"aktivierung\":\"unbekannt (sitzt nicht in der Datei)\",\"zeitLetztesEreignis\":\"2026-11-12T18:45:40.618Z\",\"angehaltenSeit\":null,\"bericht\":true,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"dd48c9a2-6e44-4140-bfe9-4a17f9a08494\",\"label\":\"Abnahme fachB ohne Ziel\",\"createdAt\":1794509137577,\"depth\":1,\"parentId\":\"aa21caa9-c1f8-470b-99dd-ad303c96a915\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":\"2026-11-12T18:45:40.659Z\",\"angehaltenSeit\":\"2026-11-12T18:44:07.822Z\",\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"4c70a8de-4256-4596-b542-8840c2b633d8\",\"label\":\"Abnahme Enkel\",\"createdAt\":1794509137627,\"depth\":2,\"parentId\":\"3c7a410d-496a-4ca5-9182-0cbc8ee5ba4f\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":\"2026-11-12T18:45:40.705Z\",\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"2bd644ba-41e4-4b56-9e21-84e3b13179e6\",\"label\":\"Abnahme blockedKind\",\"createdAt\":1794509137670,\"depth\":1,\"parentId\":\"aa21caa9-c1f8-470b-99dd-ad303c96a915\",\"zustand\":\"abgebaut\",\"ziel\":{\"phase\":\"blocked\",\"runden\":1,\"maxRunden\":1,\"wortlaut\":\"Ziel bis Rundenlimit [[SLOW]]\"},\"aktivierung\":\"unbekannt (sitzt nicht in der Datei)\",\"zeitLetztesEreignis\":\"2026-11-12T18:45:41.217Z\",\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"}]},{\"gruppe\":\"mitglied\",\"id\":\"97f4204a-d2a2-461e-8e4c-e7d658f23b1f\",\"unteragenten\":[]},{\"gruppe\":\"eigeneUnteragenten\",\"id\":\"lead-abnahme-1794509137386\",\"unteragenten\":[{\"id\":\"f33ea779-21f5-4a86-8a69-44887fa21f3a\",\"label\":\"Abnahme eigenesLeadKind\",\"createdAt\":1794509137804,\"depth\":1,\"parentId\":\"lead-abnahme-1794509137386\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":null,\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"nicht lesbar\",\"katalogFehler\":\"session \\\"f33ea779-21f5-4a86-8a69-44887fa21f3a\\\" not found\"}]}],\"hinweis\":\"One row per teammate ('mitglieder'); 'ziel' is null when the member has no goal; 'zeitLetztesEreignis' is the last session event; 'gelesenAus' says live agent or stored session. 'untergruppen' groups subagents per employee: one 'mitglied' group headed by that member's session id holding its own descendants (depth and parentId relative to the group head), then 'eigeneUnteragenten' for the caller's own subagents who belong to no member. A teammate is never listed twice; deduplication is by session id. For a torn-down ('abgebaut') child the goal stays readable but whether it runs on is not — 'aktivierung' then says 'unbekannt (sitzt nicht in der Datei)'.\"}"
+    "text": "{\"teamModus\":true,\"notschalter\":false,\"mitglieder\":[{\"name\":\"exp1\",\"id\":\"9b134e1b-a858-43b8-af58-acb86751db4a\",\"status\":\"inactive\",\"angehaltenSeit\":\"2026-11-12T21:31:28.970Z\",\"gelesenAus\":\"gespeicherte Sitzung\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"bericht\":false,\"zeitLetztesEreignis\":\"2026-11-12T21:32:35.327Z\"},{\"name\":\"exp2\",\"id\":\"3795745e-195e-4ce5-921d-6eea84670d14\",\"status\":\"inactive\",\"angehaltenSeit\":null,\"gelesenAus\":\"gespeicherte Sitzung\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"bericht\":false,\"zeitLetztesEreignis\":\"2026-11-12T21:32:31.948Z\"}],\"untergruppen\":[{\"gruppe\":\"mitglied\",\"id\":\"9b134e1b-a858-43b8-af58-acb86751db4a\",\"unteragenten\":[{\"id\":\"134b3dc4-967f-4e60-9c61-ff92b172ab24\",\"label\":\"Abnahme fachA\",\"createdAt\":1794519148686,\"depth\":1,\"parentId\":\"9b134e1b-a858-43b8-af58-acb86751db4a\",\"zustand\":\"abgebaut\",\"ziel\":{\"phase\":\"paused\",\"runden\":0,\"maxRunden\":60,\"wortlaut\":\"Abnahme Kind-Ziel pausiert [[LONG]]\"},\"aktivierung\":\"unbekannt (sitzt nicht in der Datei)\",\"zeitLetztesEreignis\":\"2026-11-12T21:32:31.756Z\",\"angehaltenSeit\":null,\"bericht\":true,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"95c8f731-9fe1-4e2f-b763-e013fc725ca3\",\"label\":\"Abnahme fachB ohne Ziel\",\"createdAt\":1794519148718,\"depth\":1,\"parentId\":\"9b134e1b-a858-43b8-af58-acb86751db4a\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":\"2026-11-12T21:32:31.806Z\",\"angehaltenSeit\":\"2026-11-12T21:30:58.970Z\",\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"2f39e3a8-e85a-42aa-a7e4-bf39315648f2\",\"label\":\"Abnahme Enkel\",\"createdAt\":1794519148769,\"depth\":2,\"parentId\":\"134b3dc4-967f-4e60-9c61-ff92b172ab24\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":\"2026-11-12T21:32:31.851Z\",\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"c2c50070-f3f2-470b-a659-d60d7d63b73e\",\"label\":\"Abnahme blockedKind\",\"createdAt\":1794519148810,\"depth\":1,\"parentId\":\"9b134e1b-a858-43b8-af58-acb86751db4a\",\"zustand\":\"abgebaut\",\"ziel\":{\"phase\":\"blocked\",\"runden\":1,\"maxRunden\":1,\"wortlaut\":\"Ziel bis Rundenlimit [[SLOW]]\"},\"aktivierung\":\"unbekannt (sitzt nicht in der Datei)\",\"zeitLetztesEreignis\":\"2026-11-12T21:32:32.358Z\",\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"}]},{\"gruppe\":\"mitglied\",\"id\":\"3795745e-195e-4ce5-921d-6eea84670d14\",\"unteragenten\":[]},{\"gruppe\":\"eigeneUnteragenten\",\"id\":\"lead-abnahme-1794519148524\",\"unteragenten\":[{\"id\":\"bc8f38f7-b501-4c51-803c-bb8af33ba8af\",\"label\":\"Abnahme eigenesLeadKind\",\"createdAt\":1794519148952,\"depth\":1,\"parentId\":\"lead-abnahme-1794519148524\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":null,\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"nicht lesbar\",\"katalogFehler\":\"session \\\"bc8f38f7-b501-4c51-803c-bb8af33ba8af\\\" not found\"}]}],\"hinweis\":\"One row per teammate ('mitglieder'); 'ziel' is null when the member has no goal; 'zeitLetztesEreignis' is the last session event; 'gelesenAus' says live agent or stored session. 'untergruppen' groups subagents per employee: one 'mitglied' group headed by that member's session id holding its own descendants (depth and parentId relative to the group head), then 'eigeneUnteragenten' for the caller's own subagents who belong to no member. A teammate is never listed twice; deduplication is by session id. For a torn-down ('abgebaut') child the goal stays readable but whether it runs on is not — 'aktivierung' then says 'unbekannt (sitzt nicht in der Datei)'.\"}"
    }
   ]
  ],
@@ -126,94 +142,94 @@
  },
  "protokoll": [
   {
-   "ms": 1672,
+   "ms": 1662,
    "art": "mitglied-exp1",
-   "id": "96a915"
+   "id": "51db4a"
   },
   {
-   "ms": 1672,
+   "ms": 1662,
    "art": "exp1-lebt-fuer-kinder",
    "lebt": true
   },
   {
-   "ms": 1741,
+   "ms": 1745,
    "art": "ziel-fachA",
-   "id": "1e7833",
+   "id": "e6f25e",
    "phase": "active"
   },
   {
-   "ms": 1742,
+   "ms": 1746,
    "art": "pause-fachA"
   },
   {
-   "ms": 1742,
+   "ms": 1746,
    "art": "bericht-fachA",
-   "pfad": "/tmp/teams_plus_umbau/probe_stand_home/.tm/teams-plus/state/berichte/1e7833.json"
+   "pfad": "/tmp/teams_plus_umbau/probe_stand_home/.tm/teams-plus/state/berichte/e6f25e.json"
   },
   {
-   "ms": 1786,
+   "ms": 1787,
    "art": "enkel-unter-fachA",
    "anlage": true,
-   "id": "b633d8"
+   "id": "5648f2"
   },
   {
-   "ms": 1833,
+   "ms": 1835,
    "art": "ziel-blockedKind",
-   "id": "eb2b81",
+   "id": "87ba56",
    "maxRunden": 1
   },
   {
-   "ms": 1920,
+   "ms": 1929,
    "art": "mitglied-exp2",
-   "id": "f23b1f"
+   "id": "670d14"
   },
   {
-   "ms": 1939,
+   "ms": 1948,
    "art": "uebernahmen-datei",
    "anzahl": 2
   },
   {
-   "ms": 8342,
-   "art": "abbau-96a915",
+   "ms": 8351,
+   "art": "abbau-51db4a",
    "tot": true
   },
   {
-   "ms": 8342,
-   "art": "abbau-f23b1f",
+   "ms": 8351,
+   "art": "abbau-670d14",
    "tot": true
   },
   {
-   "ms": 8342,
-   "art": "abbau-e5ba4f",
+   "ms": 8351,
+   "art": "abbau-72ab24",
    "tot": true
   },
   {
-   "ms": 8342,
-   "art": "abbau-a08494",
+   "ms": 8351,
+   "art": "abbau-725ca3",
    "tot": true
   },
   {
-   "ms": 8342,
-   "art": "abbau-3179e6",
+   "ms": 8351,
+   "art": "abbau-63b73e",
    "tot": true
   },
   {
-   "ms": 8342,
-   "art": "abbau-b633d8",
+   "ms": 8351,
+   "art": "abbau-5648f2",
    "tot": true
   },
   {
-   "ms": 8342,
-   "art": "abbau-a21f3a",
+   "ms": 8351,
+   "art": "abbau-3ba8af",
    "tot": true
   },
   {
-   "ms": 8344,
+   "ms": 8354,
    "art": "sitzung-zerstoert",
-   "pfad": "/tmp/teams_plus_umbau/probe_stand_home/sessions/--tmp-teams_plus_umbau-probe_stand--/f33ea779-21f5-4a86-8a69-44887fa21f3a"
+   "pfad": "/tmp/teams_plus_umbau/probe_stand_home/sessions/--tmp-teams_plus_umbau-probe_stand--/bc8f38f7-b501-4c51-803c-bb8af33ba8af"
   },
   {
-   "ms": 13613,
+   "ms": 13616,
    "art": "stand-ueber-sitzung",
    "ereignisse": 1
   }

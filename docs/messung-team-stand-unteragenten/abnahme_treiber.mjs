@@ -7,7 +7,7 @@
  * vor dem team_stand-Aufruf seinen Sitzungsordner (Nr. 3 nicht lesbar); die uebernahmen.json deckt Nr. 9 ab
  * (Mitglied pauseOffen false, Kind pauseOffen true). Weckrufzaehler je Sitzungskennung vor/nach jedem Fenster.
  */
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 export const name = "probe-abnahme";
@@ -141,6 +141,7 @@ export function apply(ctx) {
       const nS = schnapp();
 
       writeFileSync(AUSGABE, JSON.stringify({
+        uebernahmen: JSON.parse(readFileSync(uebernahmenPfad, 'utf8')),
         szenario: "abnahme-nachbau-2026-11-12-v3",
         kennungen: { lead: leadId.slice(-6), exp1: exp1Id.slice(-6), exp2: String(m2.member.id).slice(-6), fachA: String(kinderIds.fachA).slice(-6), fachB: String(kinderIds.fachB).slice(-6), blocked: String(kinderIds.blocked).slice(-6), enkel: String(kinderIds.enkel).slice(-6), eigen: String(kinderIds.eigen).slice(-6), kaputtId: String(kaputtId).slice(-6), zielId: zielId ? zielId.slice(-6) : null },
         kinderVonExp1, kinderVonLead, baumVonLead,

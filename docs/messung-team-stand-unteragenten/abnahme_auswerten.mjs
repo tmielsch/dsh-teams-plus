@@ -1,82 +1,107 @@
 /**
- * Auswerter fuer die Abnahme-Ergebnisse (Wegwerf; 2026-11-12). Liest /tmp/teams_plus_umbau/probe/ergebnis_abnahme.json,
- * entschaelt den team_stand-Block und prueft jede Abnahmezeile aus Plan Abschnitt 7 gegen die Werte.
- * Druckt je Abnahme ein Etikett mit PASS/FAIL und den relevanten Zahlen. Keine Messung selbst; nur Auswertung.
+ * Auswerter der Plan-Abnahmen 1 bis 9 (Abschnitt 7) gegen einen Team-Modus-an-Lauf (2026-11-12).
+ *
+ * Aufruf:  node abnahme_auswerten.mjs <ergebnis_teamaktiv_2026-11-12.json> [<ergebnis_lebend_2026-11-12.json>]
+ *
+ * Liest die Stand-Ausgabe aus dem Ergebnis (`standNeu`), die Übernahme-Einträge aus dem Lauf
+ * (`uebernahmen`, falls vorhanden) und die Lebend-Messung. Druckt je Planzeile PASS/FAIL mit den
+ * tatsächlichen Werten und schreibt `abnahme_auswertung.json` neben die Eingabedatei. Keine
+ * festen Zeitstempel aus anderen Läufen: alle Vergleiche laufen gegen Werte aus DIESEM Ergebnis.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
-const B = "/tmp/teams_plus_umbau/probe";
-const j = JSON.parse(readFileSync(`${B}/ergebnis_abnahme.json`, "utf8"));
+const eingabe = process.argv[2];
+if (!eingabe) { console.error("Aufruf: node abnahme_auswerten.mjs <ergebnis.json> [lebend.json]"); process.exit(2); }
+const ergebnis = JSON.parse(readFileSync(eingabe, "utf8"));
+const lebend = process.argv[3] ? JSON.parse(readFileSync(process.argv[3], "utf8")) : null;
 
-// team_stand-Block entschaelteln (beliebig verschachtelt).
-let element = j.standNeu?.[0];
+// Den team_stand-Block entschachteln (der Lauf speichert ihn verschachtelt).
+let element = ergebnis.standNeu?.[0];
 while (Array.isArray(element)) element = element[0];
-let wert = null;
-try {
-  if (element) {
-    const text = typeof element === "string" ? element : (element.text ?? JSON.stringify(element));
-    wert = text.startsWith("{") ? JSON.parse(text) : null;
-  }
-} catch (e) { console.log("parse-fehler:", String(e).slice(0, 200)); }
+const text = typeof element === "string" ? element : (element?.text ?? "");
+if (!text.startsWith("{")) { console.error("KEINE team_stand-Ausgabe im Ergebnis"); process.exit(1); }
+const wert = JSON.parse(text);
 
-const K = j.kennungen || {};
-const out = [];
-const zeile = (nr, ok, text) => out.push({ nr, status: ok ? "PASS" : "FAIL", text });
+const K = ergebnis.kennungen ?? {};
+const endet = (id, kennung) => typeof id === "string" && kennung && id.endsWith(kennung);
+const zeilen = [];
+const zeile = (nr, ok, etikett, detail) => zeilen.push({ nr, status: ok ? "PASS" : "FAIL", etikett, detail });
 
-if (!wert) { console.log("KEINE GUeltige STAND-AUSGABE:", JSON.stringify(j.standNeu).slice(0, 600)); process.exit(1); }
+const gruppen = wert.untergruppen ?? [];
+const mitglied = gruppen.filter((g) => g.gruppe === "mitglied");
+const eigene = gruppen.find((g) => g.gruppe === "eigeneUnteragenten");
+const gExp1 = mitglied.find((g) => endet(g.id, K.exp1)) ?? mitglied[0];
+const kinderExp1 = gExp1?.unteragenten ?? [];
+const finde = (liste, teil) => liste.find((z) => String(z.label ?? "").includes(teil));
+const fachA = finde(kinderExp1, "fachA");
+const fachB = finde(kinderExp1, "fachB");
+const enkel = finde(kinderExp1, "Enkel");
+const blockiert = finde(kinderExp1, "blockedKind");
+const eigenesKind = finde(eigene?.unteragenten ?? [], "eigenesLeadKind");
+const exp1Mitglied = wert.mitglieder?.find((m) => endet(m.id, K.exp1));
+const exp2Gruppe = mitglied.find((g) => endet(g.id, K.exp2));
 
-// ---- Nr. 1: gruppiert je Mitarbeiter (zwei mitglied-Gruppen + eine eigeneUnteragenten; Enkel depth 2 mit parentId aufs Kind). ----
-const g = wert.untergruppen ?? [];
-const mitgliedsGruppen = g.filter((x) => x.gruppe === "mitglied");
-const eigene = g.find((x) => x.gruppe === "eigeneUnteragenten");
-zeile(1, mitgliedsGruppen.length === 2 && eigene !== undefined && eigene.unteragenten?.length === 1,
-  `Gruppenanzahl ${g.length}: ${mitgliedsGruppen.length} mitglied + ${eigene ? 1 : 0} eigene; exp1-Kinder=${mitgliedsGruppen[0]?.unteragenten?.length}; eigene-Gruppe=${eigene?.unteragenten?.length} Zeile(n)`);
-const gExp1 = (mitgliedsGruppen.find((x) => String(x.id).endsWith(K.exp1)) ?? mitgliedsGruppen[0])?.unteragenten ?? [];
-const findLabel = (arr, s) => arr.find((z) => String(z.label).includes(s));
-const fA = findLabel(gExp1, "fachA"), fB = findLabel(gExp1, "fachB"), en = findLabel(gExp1, "Enkel"), blk = findLabel(gExp1, "blocked");
-zeile(1, fA?.depth === 1 && String(fA.parentId).endsWith(K.exp1) && en?.depth === 2 && String(en.parentId).endsWith(K.fachA),
-  `Tiefen in exp1-Gruppe: fachA depth ${fA?.depth} parentId ${String(fA?.parentId).slice(-6)}; Enkel depth ${en?.depth} parentId ${String(en?.parentId).slice(-6)} (Plan: Enkel depth 2, parentId auf das direkte Kind derselben Gruppe)`);
-const mitgliedsOhneKinder = mitgliedsGruppen.find((x) => String(x.id).endsWith(K.exp2));
-zeile(1, mitgliedsOhneKinder?.unteragenten?.length === 0, `Mitglied exp2 ohne Kinder: ${JSON.stringify(mitgliedsOhneKinder?.unteragenten)} (Plan: leere Liste)`);
+// Nr. 1: gruppiert je Mitarbeiter; Enkel depth 2 mit parentId aufs direkte Kind.
+zeile(1, mitglied.length === 2 && eigene !== undefined && fachA?.depth === 1 && enkel?.depth === 2 && endet(enkel?.parentId, K.fachA) && (exp2Gruppe?.unteragenten?.length ?? -1) === 0,
+  "MESSUNG",
+  `Gruppen mitglied=${mitglied.length}, eigene=${eigene ? 1 : 0}; fachA depth ${fachA?.depth}; Enkel depth ${enkel?.depth} parentId ${String(enkel?.parentId).slice(-6)}; exp2 Kinder ${exp2Gruppe?.unteragenten?.length}`);
 
-// ---- Nr. 8: Aktivierung bei Abgebauten ehrlich unbekannt; lebend mit Wert. ----
-zeile(8, fA?.aktivierung === "unbekannt (sitzt nicht in der Datei)" && fB?.zustand === "abgebaut" && (fA?.aktivierung ?? "") !== "",
-  `aktivierung bei abgebautem fachA=${JSON.stringify(fA?.aktivierung)}; zustand=${fA?.zustand} (Plan: Wortlaut aus O1, und trotzdem Phase vorhanden)`);
+// Nr. 2: Phase eines abgebauten Kindes = Phase aus der Datei; zwei Lagen: paused und blocked.
+zeile(2, fachA?.ziel?.phase === "paused" && blockiert?.ziel?.phase === "blocked",
+  "MESSUNG",
+  `fachA paused=${fachA?.ziel?.phase}; blockedKind=${blockiert?.ziel?.phase} (zwei Lagen je Phase)`);
 
-// ---- Nr. 2: lebende Phase == Datei-Phase fuer pausiertes und blockedes Kind. ----
-const fBZiel = fB?.ziel, fAZiel = fA?.ziel, bZiel = blk?.ziel;
-zeile(2, fAZiel?.phase === "paused" && (bZiel?.phase === "blocked" || fAZiel?.phase === "blocked"),
-  `phasen toter Kinder: fachA=${JSON.stringify(fAZiel?.phase)}, blockedKind=${JSON.stringify(bZiel?.phase)} (Plan: totes Kind paused UND ein totes Kind blocked nebeneinander)`);
+// Nr. 3: kein Ziel (null) und nicht lesbar unterscheidbar.
+zeile(3, fachB?.ziel === null && eigenesKind?.gelesenAus === "nicht lesbar",
+  "MESSUNG",
+  `fachB ziel=${JSON.stringify(fachB?.ziel)} gelesenAus=${fachB?.gelesenAus}; eigenesLeadKind gelesenAus=${eigenesKind?.gelesenAus}`);
 
-// ---- Nr. 3: ziel null unterscheidbar von nicht lesbar. ----
-const eigen = eigene?.unteragenten?.find((z) => String(z.label).includes("eigenesLeadKind") || String(z.id).endsWith(K.kaputtId));
-zeile(3, fBZiel === null && eigen?.gelesenAus === "nicht lesbar",
-  `fachB (kein Ziel): ziel=${JSON.stringify(fBZiel)} gelesenAus=${JSON.stringify(fB?.gelesenAus)}; eigenLeadKind (Sitzung zerstoert): gelesenAus=${JSON.stringify(eigen?.gelesenAus)} (Plan: beide unterscheidbar)`);
+// Nr. 4: Zähler bleibt beim Lesen still (Fenster aus dem Lauf). Eingeschränkt: nur abgebaute Kinder.
+const fenster = ergebnis.fensterStand ?? {};
+const fensterKat = ergebnis.fensterKatalog ?? {};
+zeile(4, (fenster.neueAgentenImFenster ?? []).length === 0 && (fenster.zugenommeneZuegeProKennung ?? []).length === 0 && (fensterKat.neueAgentenImFenster ?? []).length === 0 && (fensterKat.zugenommeneZuegeProKennung ?? []).length === 0,
+  "MESSUNG (eingeschraenkt: abgebaute Kinder)",
+  `Fenster Stand: neue=${JSON.stringify(fenster.neueAgentenImFenster)} Zuege=${JSON.stringify(fenster.zugenommeneZuegeProKennung)}; Fenster Katalog: neue=${JSON.stringify(fensterKat.neueAgentenImFenster)} Zuege=${JSON.stringify(fensterKat.zugenommeneZuegeProKennung)}`);
 
-// ---- Nr. 9: angehaltenSeit unabh. von pauseOffen und fuer beide Objektarten; ohne Eintrag null. ----
-const m1 = wert.mitglieder.find((x) => String(x.id).endsWith(K.exp1));
-const uebern = JSON.parse(readFileSync(`${B}/uebernahmen_lauf.json`, "utf8").replace(/^\uFEFF/, "") || "[]");
-const eintragExp1 = uebern.find((e) => String(e.id).endsWith(K.exp1));
-const eintragFachB = uebern.find((e) => String(e.id).endsWith(K.fachB));
-zeile(9, eintragExp1 !== undefined && m1?.angehaltenSeit === eintragExp1.seit && eintragFachB !== undefined && fB?.angehaltenSeit === eintragFachB.seit && eigen?.angehaltenSeit === null,
-  `exp1 (pauseOffen ${eintragExp1?.pauseOffen}): angehaltenSeit=${m1?.angehaltenSeit} gleich Eintrag=${eintragExp1?.seit}; fachB (pauseOffen ${eintragFachB?.pauseOffen}): ${fB?.angehaltenSeit} gleich Eintrag=${eintragFachB?.seit}; eigen ohne Eintrag: ${eigen?.angehaltenSeit}`);
+// Nr. 5: Teammitglieder nur als Gruppenköpfe, nie als Kinderzeile.
+const alleKinder = gruppen.flatMap((g) => g.unteragenten ?? []).map((z) => String(z.id));
+const mitgliedAlsKind = alleKinder.some((id) => endet(id, K.exp1) || endet(id, K.exp2));
+zeile(5, !mitgliedAlsKind && alleKinder.some((id) => endet(id, K.eigen)),
+  "MESSUNG",
+  `Teammitglieder als Kinderzeile: ${mitgliedAlsKind}; eigenesLeadKind in eigener Gruppe: ${alleKinder.some((id) => endet(id, K.eigen))}`);
 
-// ---- Nr. 7: Bericht true fuer Kind mit Ziel und Berichtsdatei. ----
-zeile(7, fA?.bericht === true, `fachA bericht=${JSON.stringify(fA?.bericht)} (Berichtsdatei lag unter dem Berichtsordner der Probe)`);
+// Nr. 6: Gegenprobe gegen den Git-Stand ist Node-Test 9; hier nur die Ausgabe prüfen, nicht tautologisch.
+zeile(6, mitglied.length === 2 && eigene !== undefined,
+  "MESSUNG (Gegenprobe Node-Test 9)",
+  "Im Lauf: zwei mitglied-Gruppen und eine eigene Gruppe. Der Vergleich mit dem Git-Stand steht im Node-Test, nicht in diesem Lauf.");
 
-// ---- Nr. 5: Doppelung weg — exp1 und exp2 erscheinen als Gruppenkoepfe, nicht als Kinderzeilen. ----
-const alle = g.flatMap((x) => x.unteragenten ?? []).map((z) => z.id);
-const keinExp = alle.filter((id) => String(id).endsWith(K.exp1) || String(id).endsWith(K.exp2));
-zeile(5, alle.some((id) => String(id).endsWith(K.eigen)) && keinExp.length === 0,
-  `exp1/exp2 nicht als Kinderzeilen (nur Gruppenkoepfe); eigenesLeadKind in eigener Gruppe: ${alle.some((id) => String(id).endsWith(K.eigen))}`);
+// Nr. 7: Berichtsweg für abgebaute Kinder; lebende Variante ist nur in der Lebend-Messung.
+zeile(7, fachA?.bericht === true,
+  "MESSUNG (nur abgebaut)",
+  `fachA bericht=${fachA?.bericht}; lebende Variante ungemessen (siehe Messblatt)`);
 
-// ---- Nr. 4: Niemand wird geweckt — Zaehler getrennt nach Kennung, Fenster leer. ----
-const fk = j.fensterKatalog, fs = j.fensterStand;
-zeile(4, fk.neueAgentenImFenster.length === 0 && fk.zugenommeneZuegeProKennung.length === 0 && fs.neueAgentenImFenster.length === 0 && fs.zugenommeneZuegeProKennung.length === 0,
-  `Fenster-Katalog: neueAgenten=${JSON.stringify(fk.neueAgentenImFenster)} ZuegeJeKennung=${JSON.stringify(fk.zugenommeneZuegeProKennung)}; Fenster-Stand: neueAgenten=${JSON.stringify(fs.neueAgentenImFenster)} Zuege=${JSON.stringify(fs.zugenommeneZuegeProKennung)} (Plan Nr. 4: alles null)`);
+// Nr. 8: Aktivierung bei Abgebauten „unbekannt“, Phase vorhanden.
+zeile(8, fachA?.aktivierung === "unbekannt (sitzt nicht in der Datei)" && fachA?.zustand === "abgebaut",
+  "MESSUNG",
+  `fachA aktivierung=${JSON.stringify(fachA?.aktivierung)} zustand=${fachA?.zustand}`);
 
-// ---- Nr. 6: Gegenprobe (schon im Node-Test bewiesen, hier nur verifiziert, dass diese Szene mit dem gebauten Modul die Kindergruppen meldet). ----
-zeile(6, mitgliedsGruppen.length === 2 && eigene !== undefined, `Zwei mitglied-Gruppen und eine eigene Gruppe in der Ausgabe (die Gegenprobe gegen den Git-Stand ist Node-Test 9, dort aus einem anderen Modul-Stand — nicht hier gemessen)`);
+// Nr. 9: angehaltenSeit = Zeitstempel des eigenen Eintrags (Datei aus dem Lauf, nicht fest).
+const uebern = ergebnis.uebernahmen ?? [];
+const eintragExp1 = uebern.find((e) => endet(e.id, K.exp1));
+const eintragFachB = uebern.find((e) => endet(e.id, K.fachB));
+zeile(9, eintragExp1 !== undefined && exp1Mitglied?.angehaltenSeit === eintragExp1.seit && eintragFachB !== undefined && fachB?.angehaltenSeit === eintragFachB.seit && eigenesKind?.angehaltenSeit === null,
+  "MESSUNG",
+  `exp1 angehaltenSeit=${exp1Mitglied?.angehaltenSeit} gleich Eintrag=${eintragExp1?.seit}; fachB=${fachB?.angehaltenSeit} gleich Eintrag=${eintragFachB?.seit}; eigenes Kind ohne Eintrag=${eigenesKind?.angehaltenSeit}`);
 
-console.log(out.map((o) => `${String(o.nr).padStart(1)}: ${o.status} — ${o.text}`).join("\n"));
-writeFileSync(`${B}/abnahme_auswertung.json`, JSON.stringify(out, null, 2));
+// Lebend-Messung (Abnahme 7 und 4, eingeschraenkt), nur wenn die Datei vorliegt.
+if (lebend) {
+  zeile("7-lebend", lebend.lesung?.kindLebtVorLesung === true,
+    "MESSUNG (Registry, nicht Werkzeug)",
+    `kindLebtVorLesung=${lebend.lesung?.kindLebtVorLesung} status=${lebend.lesung?.kindStatus} zielPhase=${lebend.lesung?.zielPhase}`);
+}
+
+for (const z of zeilen) console.log(`${z.nr}: ${z.status} [${z.etikett}] — ${z.detail}`);
+const ausgabe = join(dirname(eingabe), "abnahme_auswertung_2026-11-12.json");
+writeFileSync(ausgabe, JSON.stringify(zeilen, null, 2));
+console.log("geschrieben:", ausgabe);

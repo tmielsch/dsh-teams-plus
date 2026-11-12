@@ -14,8 +14,9 @@ mkdir -p "$P" "$H/.tm/teams-plus/state" "$H/profiles"
 cp "$WORKTREE/docs/messung-team-stand-unteragenten/abnahme_treiber.mjs" "$P/abnahme_treiber.mjs"
 [ -f "$P/fake-llm.mjs" ] && sed -i '' -e "s#/tmp/teams_plus_umbau/probe/#$P/#g" "$P/fake-llm.mjs"
 sed -i '' -e "s#const B = \"/tmp/teams_plus_umbau/probe\";#const B = \"$P\";#" -e "s#const H = \"/tmp/teams_plus_umbau/probe_home\";#const H = \"$H\";#" "$P/abnahme_treiber.mjs"
-# Team-Modus AN: kein Notschalter in der Probe.
+# Notschalter nur, wenn NOTSCHALTER=1 gesetzt ist; sonst Team-Modus AN (kein Notschalter).
 rm -f "$H/.tm/teams-plus/team-modus.json"
+if [ "${NOTSCHALTER:-0}" = "1" ]; then printf '{"aus": true}\n' > "$H/.tm/teams-plus/team-modus.json"; fi
 rm -f "$H/.tm/teams-plus/state/uebernahmen.json" "$AUSGABE"
 rm -rf "$H/.tm/teams-plus/state/berichte"
 cat > "$P/probe_stand.patch.yml" <<YEOF
@@ -35,7 +36,12 @@ cat > "$P/probe_stand.patch.yml" <<YEOF
     - id: probe-abnahme
       name: '$P/abnahme_treiber.mjs'
 YEOF
+PIDDATEI="$WORKTREE/docs/messung-team-stand-unteragenten/probe_pids.txt"
 perl -e "alarm $AL; exec @ARGV" env DSH_HOME="$H" PROBE_AUSGABE="$AUSGABE" \
-  dsh --profile probe --patch "$P/probe_stand.patch.yml" > "$P/lauf.log" 2>&1
+  dsh --profile probe --patch "$P/probe_stand.patch.yml" > "$P/lauf.log" 2>&1 &
+EIGENE_PID=$!
+echo "$EIGENE_PID" > "$PIDDATEI"
+wait "$EIGENE_PID"
 echo "exit=$?"
+rm -f "$PIDDATEI"
 echo "probe_procs_nach=$(ps aux | grep -c '[d]sh --profile probe')"

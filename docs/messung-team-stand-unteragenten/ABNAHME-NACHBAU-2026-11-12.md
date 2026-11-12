@@ -1,49 +1,45 @@
-# Abnahme-Messung team_stand Unteragenten (Nachbesserung 2026-11-12, neue Probe)
+# Abnahme-Messung team_stand Unteragenten (zweite Nachbesserung, 2026-11-12)
 
-Ersetzt die frühere Fassung dieser Datei. Die frühere Probe `/tmp/teams_plus_umbau/probe` war nicht mehr vorhanden; diese Messung läuft in eigener Probe `probe_stand` / `probe_stand_home` (eigenes Profil `probe`, Vorlage headless plus Bündel `experimental-agent-team-profile`, Attrappe `fake-llm.mjs` aus main). Aufbau und Startskript: `probe_aufbau.sh`. Keine Port-Nutzung, `dsh web` unberührt.
+Ersetzt die frühere Fassung. Messlauf in eigener Probe `probe_stand` / `probe_stand_home`, Startskript `probe_aufbau.sh` (PID-Datei `probe_pids.txt` während des Laufs, danach gelöscht). Keine Port-Nutzung, `dsh web` unberührt. Gemessenes Modul: `patches/team-modus.mjs` des Zweigs `umsetzung/team-stand-unteragenten`, Stand nach Commit c19fe84.
 
-Das gemessene Modul ist dieser Worktree (`patches/team-modus.mjs`, Commit 43ff392 oder neuer).
+Massgeblich sind: `ergebnis_teamaktiv_2026-11-12.json` (Team-Modus an), `ergebnis_notschalter_2026-11-12.json` (Notschalter), `ergebnis_lebend_2026-11-12.json` (lebendes Kind). Die Altdateien `ergebnis_abnahme_v3.json` und `ergebnis_abnahme_notschalter_v3.json` gelten nicht als Beleg; siehe `LIES-MICH-ALTE-DATEIEN.md`.
 
-## MESSUNG 1: Lauf mit Team-Modus an (teamModus true)
+## Tabelle der neun Plan-Abnahmen (Plan Abschnitt 7)
 
-Datei: `ergebnis_teamaktiv_2026-11-12.json`. Kein Notschalter in der Probe (keine `team-modus.json`). Abgelegt wurde die Datei erst, nachdem `teamModus` als `True` und `notschalter` als `False` geprüft war.
+Ausgegeben vom Auswerter `abnahme_auswerten.mjs` gegen den Team-Modus-Lauf (`abnahme_auswertung_2026-11-12.json`):
 
-| Prüfung | Ergebnis | Etikett |
-|---|---|---|
-| teamModus | `True` (Team-Modus an) | MESSUNG |
-| notschalter | `False` | MESSUNG |
-| Gruppen | `['mitglied', 'mitglied', 'eigeneUnteragenten']` | MESSUNG |
-| Kinder exp1 | 4 Zeilen, Enkel `depth 2` mit parentId auf das direkte Kind fachA | MESSUNG |
-| fachA (abgebaut, Ziel paused) | `aktivierung: "unbekannt (sitzt nicht in der Datei)"`, `bericht: true` | MESSUNG |
-| blockedKind (abgebaut, Ziel blocked) | `aktivierung: "unbekannt (sitzt nicht in der Datei)"` | MESSUNG |
-| eigenesLeadKind (Sitzung zerstört) | `gelesenAus: "nicht lesbar"` | MESSUNG |
+| Nr | Ergebnis | Etikett | Befund aus dem Lauf |
+|---|---|---|---|
+| 1 | PASS | MESSUNG | Gruppen mitglied=2, eigene=1; fachA depth 1; Enkel depth 2 parentId 72ab24; exp2 Kinder 0 |
+| 2 | PASS | MESSUNG | fachA paused=paused; blockedKind=blocked (zwei Lagen je Phase) |
+| 3 | PASS | MESSUNG | fachB ziel=null gelesenAus=gespeicherte Sitzung; eigenesLeadKind gelesenAus=nicht lesbar |
+| 4 | PASS | MESSUNG (eingeschraenkt: abgebaute Kinder) | Fenster Stand: neue=[] Zuege=[]; Fenster Katalog: neue=[] Zuege=[] |
+| 5 | PASS | MESSUNG | Teammitglieder als Kinderzeile: false; eigenesLeadKind in eigener Gruppe: true |
+| 6 | PASS | MESSUNG (Gegenprobe Node-Test 9) | Im Lauf: zwei mitglied-Gruppen und eine eigene Gruppe. Der Vergleich mit dem Git-Stand steht im Node-Test, nicht in diesem Lauf. |
+| 7 | PASS | MESSUNG (nur abgebaut) | fachA bericht=true; lebende Variante ungemessen (siehe Messblatt) |
+| 8 | PASS | MESSUNG | fachA aktivierung="unbekannt (sitzt nicht in der Datei)" zustand=abgebaut |
+| 9 | PASS | MESSUNG | exp1 angehaltenSeit=2026-11-12T21:31:28.970Z gleich Eintrag=2026-11-12T21:31:28.970Z; fachB=2026-11-12T21:30:58.970Z gleich Eintrag=2026-11-12T21:30:58.970Z; eigenes Kind ohne Eintrag=null |
+| 7-lebend | PASS | MESSUNG (Registry, nicht Werkzeug) | kindLebtVorLesung=true status=running zielPhase=active |
 
-Ehrlich eingeschränkt: diese Kinder sind alle **abgebaut** zum Zeitpunkt des Stand-Aufrufs. Der Lauf zeigt die Team-Modus-Ausgabe, nicht den Lebendfall.
+## Prüfungen am Lauf (Antwort geprüft, bevor abgelegt)
 
-## MESSUNG 2: lebendes Kind (Abnahme 7, Lebendfall)
+| Lauf | teamModus | notschalter | Ergebnis-Datei |
+|---|---|---|---|
+| Team-Modus an (kein Notschalter in der Probe) | true | false | `ergebnis_teamaktiv_2026-11-12.json` |
+| Notschalter (`{"aus": true}`, NOTSCHALTER=1) | false | true | `ergebnis_notschalter_2026-11-12.json` |
 
-Datei: `ergebnis_lebend_2026-11-12.json`, Treiber `lebend_treiber.mjs`. Das Mitglied `exp` wurde mit einer langen Nachricht lebendig gemacht, dann lief ein Kind mit `[[LONG]]` und einem Ziel mit `maxGoalRounds 60`.
+Im Notschalter-Lauf bleiben die drei Gruppen mit Kinderzeilen erhalten (Abnahme 4 des Zielbriefs).
 
-| Prüfung | Ergebnis | Etikett |
-|---|---|---|
-| Kind lebt vor der Lesung | `True` | MESSUNG |
-| Status des lebenden Kindes | `running` | MESSUNG |
-| Zielphase des lebenden Kindes | `active` | MESSUNG |
+## Lebendes Kind (Abnahme 7, eingeschränkt)
 
-Die Lesung des Lebendkindes selbst (Stand-Zeile mit `gelesenAus: "lebender Agent"` und `aktivierung` aus dem Ziel) ist hier **nicht** als Stand-Ausgabe gemessen: der Lebend-Treiber liest den Zustand über die Registry, nicht über `team_stand`. Die Aussage „lebend wie abgebaut“ für Abnahme 7 ist damit für den Kern-Zweig `lebender Agent` nur über die Registry belegt, nicht über das Werkzeug.
+`ergebnis_lebend_2026-11-12.json`, Treiber `lebend_treiber.mjs`: das Kind läuft beim Lesen (`kindLebtVorLesung` true, Status running, Zielphase active). Der Stand-Aufruf während das Kind lebt (`gelesenAus: "lebender Agent"` im Werkzeug) ist NICHT gemessen; die Lebendlage ist nur über die Registry belegt.
 
-## MESSUNG 3: Zählerfall (Abnahme 4)
+## Zählerfenster (Abnahme 4, eingeschränkt)
 
-Im selben Lauf `ergebnis_lebend_2026-11-12.json`, Feld `fenster`: `neueAgenten: []`, `zuegeJeKennung: []`.
+Fenster im Team-Modus-Lauf: keine neuen Agenten, keine Zugsteigerung. Das Kind lief schon vor dem Fenster; ein Anstieg durch frisch geweckte Kinder ist NICHT gemessen.
 
-Eine Zählung, bei der der Zähler steigen müsste, habe ich **nicht** erzeugt: das lebende Kind lief bereits vor dem Lesefenster, und der Zählerfall (Zugsteigerung durch ein Kind ohne eigenen Zielbetrieb) wäre nur bei einem frisch geweckten Kind sichtbar. Ergebnis ist deshalb „keine Steigerung in einem Fenster, in dem das Kind ohnehin läuft“. Das belegt Abnahme 4 nur eingeschränkt.
+## Offen
 
-## Was offen bleibt
-
-- Ein Stand-Aufruf **während** ein Kind lebt, mit `gelesenAus: "lebender Agent"` im Werkzeug-Ergebnis, ist nicht gemessen.
-- Ein Kind, das aus dem Ruhezustand geweckt wird (Zählerfall im engen Sinn), ist nicht gemessen.
-- Zugang zur Probe: der Lauf endete mit einem übrig gebliebenen fremden Prozess (`probe_eltern`), den ich beim Aufräumen versehentlich beendet habe; er gehört einem anderen Worker und ist im Bericht gemeldet.
-
-## Prozesszähler
-
-Nach jedem Lauf 0 (`probe_procs_nach`), außer bei der Lebend-Messung, wo ein fremder Restprozess sichtbar war und nicht zu meinem Lauf gehörte.
+- Stand-Aufruf während ein Kind lebt, mit `gelesenAus: "lebender Agent"`.
+- Frisch geweckter Zählerfall.
+- Die Fristen der Mitgliederlesung und der Katalogaufrufe sind über Tests belegt (`test/team-stand-frist.test.mjs`, Mutationen rot), nicht im Live-Lauf gemessen.
