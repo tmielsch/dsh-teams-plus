@@ -106,6 +106,9 @@ const LESE_FRIST_MS = 5000;
 /** Wie viele Sitzungen `team_stand` je Aufruf höchstens anfässt (Menschenentscheidung O3, 2026-11-10: 60). */
 export const KIND_GRENZE = 60;
 
+/** Sentinel: der Abfrageschritt lief in die Gesamtfrist. Wird als Zeile „Zeitgrenze erreicht“ gemeldet. */
+export const FRIST_ABGELAUFEN = Symbol("frist-abgelaufen");
+
 /** Gesamtzeitgrenze eines `team_stand`-Aufrufs in Sekunden (Menschenentscheidung O3, 2026-11-10: 120). */
 export const STAND_FRIST_S = 120;
 
@@ -416,8 +419,9 @@ export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, ueberna
 	const ergebnis = { gruppe, id: kopfId, unteragenten: [] };
 	if (dienstFehlt) { ergebnis.fehler = UNTERAGENTEN_DIENST_FEHLT; return ergebnis; }
 	let katalog;
-	try { katalog = await umgebung.kinderListe(String(kopfId)); }
+	try { katalog = await umgebung.mitFrist ? await umgebung.mitFrist(umgebung.kinderListe(String(kopfId))) : await umgebung.kinderListe(String(kopfId)); }
 	catch (fehler) { katalog = { fehler: kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120) }; }
+	if (katalog === FRIST_ABGELAUFEN) { ergebnis.fehler = "Zeitgrenze erreicht: Katalog des Gruppenkopfs nicht gelesen"; return ergebnis; }
 	if (katalog === null) { ergebnis.fehler = UNTERAGENTEN_DIENST_FEHLT; return ergebnis; } // Dienst fehlt (Plan Schritt 2).
 	if (!Array.isArray(katalog)) { ergebnis.fehler = `Katalog nicht lesbar: ${String(katalog?.fehler ?? "unbekannt")}`; return ergebnis; }
 	budget.gezaehlt += 1; // Der Gruppenkopf ist eine gelesene Sitzung.
@@ -438,9 +442,14 @@ export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, ueberna
 			zeitLetztesEreignis: kern.zeitLetztesEreignis, angehaltenSeit: kern.angehaltenSeit, bericht: kern.bericht, gelesenAus: kern.gelesenAus
 		});
 		let kinder;
-		try { kinder = await umgebung.kinderListe(id); }
+		try { kinder = await (umgebung.mitFrist ? umgebung.mitFrist(umgebung.kinderListe(id)) : umgebung.kinderListe(id)); }
 		catch (fehler) { kinder = { fehler: kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120) }; }
-		if (!Array.isArray(kinder)) continue; // Kinderkatalog nicht lesbar — die Zeile des Kindes selbst bleibt stehen.
+		if (kinder === FRIST_ABGELAUFEN) { abgeschnittenGrund = "zeit"; continue; }
+		if (!Array.isArray(kinder)) {
+			// Katalogfehler am Kind: sichtbar machen, sonst hielte der Lead es fuer kinderlos.
+			ergebnis.unteragenten[ergebnis.unteragenten.length - 1].katalogFehler = kinder?.fehler ?? "Katalog nicht lesbar";
+			continue;
+		}
 		for (const kind of kinder) warteschlange.push({ row: kind, tiefe: tiefe + 1, elternId: id });
 	}
 	if (abgeschnittenGrund !== null && warteschlange.length > 0) {
@@ -448,10 +457,13 @@ export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, ueberna
 		const text = abgeschnittenGrund === "zeit" ? `Zeitgrenze erreicht: ${anzahl} Kinder nicht gelesen` : `Grenze erreicht: ${anzahl} Kind-Sitzungen nicht gelesen`;
 		if (ergebnis.unteragenten.length === 0) { ergebnis.fehler = text; } // Vollständig ungelesene Gruppe: Meldung an den Gruppenkopf.
 		else {
-			for (const { row, tiefe } of warteschlange) ergebnis.unteragenten.push({
+			for (const { row, tiefe } of warteschlange) {
+				if (besprochen?.has(String(row.id))) continue; // Team-Mitglied: gehoert zu seiner eigenen Gruppe, nie als Kind.
+				ergebnis.unteragenten.push({
 				id: String(row.id), label: row.label ?? "", createdAt: row.createdAt ?? null, depth: tiefe, parentId: row.parentId ?? kopfId,
 				zustand: null, ziel: null, aktivierung: null, zeitLetztesEreignis: null, angehaltenSeit: null, bericht: false, gelesenAus: "nicht gelesen"
-			});
+				});
+			}
 			ergebnis.unteragenten.push({ marke: "grenze", text });
 		}
 		budget.gezaehlt += anzahl; // Nicht gelesene Sitzungen verbrauchen das Budget (Zeit- und Zahlengrenze bleiben ehrlich).
@@ -546,12 +558,23 @@ export function baueStandWerkzeug({ defineTool, umgebung, ordner = berichtOrdner
 			const fristBis = startMs + STAND_FRIST_S * 1000;
 			const budget = { gezaehlt: 0 };
 			const zeitVorbei = () => Date.now() >= fristBis;
+			/** Begrenzt jeden Abfrageschritt (Mitgliederzeile, Katalog, Sitzungslesung) auf die Gesamtfrist. */
+			const mitFrist = (promise) => {
+				const restMs = fristBis - Date.now();
+				if (restMs <= 0) return Promise.resolve(FRIST_ABGELAUFEN);
+				let uhr;
+				const frist = new Promise((fertig) => { uhr = setTimeout(() => fertig(FRIST_ABGELAUFEN), restMs); });
+				return Promise.race([promise, frist]).finally(() => clearTimeout(uhr));
+			};
 			/** Kinder-Erhebung nur, wenn es sie gibt; bei fehlendem Dienst wird sie übersprungen (Plan Schritt 2). */
 			const dienstFehlt = typeof umgebung.kinderListe !== "function";
 
+			let mitgliederAbgebrochen = 0;
 			for (const zeile of zeilen) {
 				if (zeile.role !== "teammate") continue;
-				mitglieder.push(await umgebung.leseMitglied(zeile, ordner, uebernahmenListe));
+				const erg = await mitFrist(umgebung.leseMitglied(zeile, ordner, uebernahmenListe));
+				if (erg === FRIST_ABGELAUFEN) { mitgliederAbgebrochen += 1; mitglieder.push({ name: zeile.name, id: zeile.id, status: zeile.status, gelesenAus: "Zeitgrenze erreicht", zustand: null, ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null, angehaltenSeit: null }); }
+				else mitglieder.push(erg);
 			}
 
 			// Kinder-Gruppen: je Teammitglied seine eigene Gruppe (in der Reihenfolge von listMembers),
@@ -607,6 +630,7 @@ export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), u
 				zeitLetztesEreignis: zeit === null ? null : new Date(zeit).toISOString() };
 		}
 		const beobachtung = await umgebung.beobachte(id, LESE_FRIST_MS);
+		if (beobachtung === FRIST_ABGELAUFEN) return { ...basis, gelesenAus: "Zeitgrenze erreicht", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 		if (beobachtung === undefined) return { ...basis, gelesenAus: "nicht lesbar", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 		try {
 			const projektion = beobachtung.projections?.values?.goal;
@@ -961,6 +985,14 @@ export function apply(ctx, optionen = {}) {
 	// Probe und für einen Menschenkontakt ohne laufenden Speicher-Modulzustand gilt. Die Map darunter ist
 	// nur für das schnelle Prüfen in `uebernommen()` und für Freigabe-Löschungen aktuell.
 	umgebung.uebernahmenListe = () => leseUebernahmen();
+	/** Begrenzt einen Abfrageschritt auf eine Frist; FRIST_ABGELAUFEN bei Treffer. Für Tests ueber `fristMs` steuerbar. */
+	umgebung.mitFrist = (promise, restMs = Infinity) => {
+		if (!Number.isFinite(restMs)) return promise;
+		if (restMs <= 0) return Promise.resolve(FRIST_ABGELAUFEN);
+		let uhr;
+		const frist = new Promise((fertig) => { uhr = setTimeout(() => fertig(FRIST_ABGELAUFEN), restMs); });
+		return Promise.race([promise, frist]).finally(() => clearTimeout(uhr));
+	};
 	umgebung.uebernommen = (id) => uebernahmen.has(id);
 	umgebung.erzeugeZiel = (agent, anfrage) => ctx.goals.create(agent, anfrage);
 	umgebung.wecke = async (absender, zeile, signal) => {

@@ -6,7 +6,7 @@
  * Plan: `docs/PLAN-TEAM-STAND-UNTERAGENTEN.md`, Zielbrief: `docs/ZIELBRIEF-BAU-TEAM-STAND-2026-11-10.md`.
  * Die Nummern unten nennen die Abnahmezeile des Plans, wo eine Attrappenform möglich ist; die Proben,
  * die einen echten Kernbaum brauchen (Gruppen gegen echten Katalog, Weckrufzähler, echte Übernahme-Datei),
- * laufen in der Wegwerf-Probeinstanz: `docs/messung-team-stand-unteragenten/ABNAHME-NACHBAU-2026-11-11.md`.
+ * laufen in der Wegwerf-Probeinstanz: `docs/messung-team-stand-unteragenten/ABNAHME-NACHBAU-2026-11-12.md`.
  *
  * Gegenprobe (Prüfung 9): das Alte Modul aus Git (Commit de28469 = Stand vor diesem Bau, noch ohne diese
  * Erweiterung) muss auf derselben Szene die Kinderzeilen schuldig bleiben. Wie in `team-modus.test.mjs`
@@ -32,7 +32,7 @@ const REPO = fileURLToPath(new URL('..', MODUL_URL)).replace(/\/$/, '')
 const M = await import(MODUL_URL.href)
 const {
 	baueStandWerkzeug, leseMitglied, leseKinderGruppe, angehaltenSeitAus,
-	UNTERAGENTEN_DIENST_FEHLT, UNBEKANNT_AKTIVIERUNG, KIND_GRENZE, STAND_FRIST_S,
+	UNTERAGENTEN_DIENST_FEHLT, UNBEKANNT_AKTIVIERUNG, KIND_GRENZE, STAND_FRIST_S, FRIST_ABGELAUFEN,
 	schreibeBericht, notschalterGedrueckt
 } = M
 
@@ -75,6 +75,14 @@ function baueSzene({ kataloge = {}, mitglieder = [], lebendeZiele = {}, beobacht
 		}
 	}
 	umgebung.leseMitglied = (zeile, o, liste) => leseMitglied(zeile, umgebung, o, liste)
+	// Dieselbe Fristlogik wie in apply(): begrenzt einen Abfrageschritt; FRIST_ABGELAUFEN bei Treffer.
+	umgebung.mitFrist = (promise, restMs = Infinity) => {
+		if (!Number.isFinite(restMs)) return promise
+		if (restMs <= 0) return Promise.resolve(FRIST_ABGELAUFEN)
+		let uhr
+		const frist = new Promise((fertig) => { uhr = setTimeout(() => fertig(FRIST_ABGELAUFEN), restMs) })
+		return Promise.race([promise, frist]).finally(() => clearTimeout(uhr))
+	}
 	const lead = { id: 'lead', status: 'inactive' }
 	return { umgebung, ordner, lead, geleseneKataloge, baue: (modul, werkzeugOrdner = ordner) => modul.baueStandWerkzeug({ defineTool: (d) => d, umgebung, ordner: werkzeugOrdner }) }
 }
@@ -352,4 +360,106 @@ test('9. Gegenprobe gegen das Git-Alte Modul: dieselbe Szene meldet dort keine U
 	const standAlt = await s.baue(ALT).execute({}, { agent: s.lead })
 	assert.equal(standAlt.untergruppen, undefined, 'Gegenprobe: im Alten fehlt das Feld — dieselbe Kinderzeile kann es dort nicht melden')
 	assert.equal(standAlt.mitglieder.length, 1, 'und es bleibt nur die Mitgliederzeile (Messung T4c)')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 11. Prüfer-Fund 2: ein Teammitglied, das in der abgeschnittenen Warteschlange eines Kopfes steht,
+//     erscheint dort NICHT als Kinderzeile (es gehört zu seiner eigenen Gruppe).
+// ---------------------------------------------------------------------------------------------------
+
+test('11. abgeschnittene Gruppe: ein Teammitglied in der Restwarteschlange steht nicht als Kind (Fund 2)', async () => {
+	const kinder = Array.from({ length: 62 }, (_, i) => katalogZeile(`k${i}`, 'Kind ' + i, `2026-11-11T00:${String(i).padStart(2, '0')}:00Z`))
+	kinder.push(katalogZeile('exp', 'Probe-Experte', '2026-11-11T02:00:00Z'))
+	const s = baueSzene({ kataloge: { lead: kinder }, mitglieder: [{ role: 'teammate', name: 'exp', id: 'exp', status: 'inactive' }], beobachtungen: Object.fromEntries(kinder.map((z) => [z.id, null])) })
+	const stand = await s.baue(M).execute({}, { agent: s.lead })
+	const eigene = stand.untergruppen.find((g) => g.gruppe === 'eigeneUnteragenten')
+	const alleKinder = eigene.unteragenten.filter((z) => !z.marke).map((z) => z.id)
+	assert.equal(alleKinder.includes('exp'), false, 'das Teammitglied darf in der abgeschnittenen Restzeile nicht als Kind stehen')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 12. Prüfer-Fund 3, Mutation „Frist 120 ms statt 120 s“: die Frist ist 120 Sekunden.
+// ---------------------------------------------------------------------------------------------------
+
+test('12. Frist ist 120 Sekunden: STAND_FRIST_S und die Restfrist im Werkzeug (Fund 3, Mutation 120 ms)', async () => {
+	assert.equal(STAND_FRIST_S, 120, 'Konstante ist 120 Sekunden')
+	const s = baueSzene({ kataloge: {}, mitglieder: [] })
+	const erg = await s.umgebung.mitFrist(new Promise((f) => setTimeout(() => f('ok'), 150)), 120_000)
+	assert.equal(erg, 'ok', 'ein 150-ms-Schritt bleibt bei 120 s Frist erhalten (würde bei 120 ms abbrechen)')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 13. Prüfer-Fund 3, Mutation „Frist ignoriert“: läuft die Frist ab, kommt der Sentinel.
+// ---------------------------------------------------------------------------------------------------
+
+test('13. abgelaufene Frist: der Schritt wird begrenzt und liefert FRIST_ABGELAUFEN (Fund 3 + 4)', async () => {
+	const s = baueSzene({ kataloge: {}, mitglieder: [] })
+	const erg = await s.umgebung.mitFrist(new Promise((f) => setTimeout(() => f('zu-spaet'), 200)), 20)
+	assert.equal(erg, FRIST_ABGELAUFEN, 'ein Schritt, der in die Frist läuft, liefert den Sentinel statt des Ergebnisses')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 14. Prüfer-Fund 3, Mutation „Feld notschalter immer false“: der Stand meldet den tatsächlichen Schalter.
+// ---------------------------------------------------------------------------------------------------
+
+test('14. notschalter ist true, wenn die Datei {"aus": true} enthält (Fund 3, Mutation notschalter=false)', async () => {
+	const pfad = join(HEIM, 'team-modus-notschalter-14.json')
+	writeFileSync(pfad, '{"aus": true}\n')
+	const s = baueSzene({ kataloge: {}, mitglieder: [] })
+	const umg = { ...s.umgebung, notschalter: () => notschalterGedrueckt(() => {}, pfad) }
+	const werkzeug = M.baueStandWerkzeug({ defineTool: (d) => d, umgebung: umg, ordner: s.ordner })
+	const stand = await werkzeug.execute({}, { agent: s.lead })
+	assert.equal(stand.notschalter, true, 'mit gedrücktem Notschalter muss notschalter true sein')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 15. Prüfer-Fund 3, Mutation „Sortierung nach Anlegezeit entfernt“: aufsteigend nach createdAt.
+// ---------------------------------------------------------------------------------------------------
+
+test('15. Kinder aufsteigend nach Anlegezeit, ohne createdAt ans Ende (Fund 3, Mutation Sortierung)', async () => {
+	const kinder = [
+		katalogZeile('spaet', 'Spaet', '2026-11-11T00:09:00Z'),
+		katalogZeile('frueh', 'Frueh', '2026-11-11T00:01:00Z'),
+		{ id: 'ohneZeit', label: 'Ohne Zeit', mode: 'continuable' },
+		katalogZeile('mitte', 'Mitte', '2026-11-11T00:05:00Z')
+	]
+	const s = baueSzene({ kataloge: { lead: kinder }, mitglieder: [], beobachtungen: Object.fromEntries(kinder.map((z) => [z.id, null])) })
+	const stand = await s.baue(M).execute({}, { agent: s.lead })
+	const reihe = stand.untergruppen.find((g) => g.gruppe === 'eigeneUnteragenten').unteragenten.filter((z) => !z.marke).map((z) => z.id)
+	assert.deepEqual(reihe, ['frueh', 'mitte', 'spaet', 'ohneZeit'], 'aufsteigend nach createdAt, das Kind ohne Zeit steht ans Ende')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 16. Prüfer-Fund 5: Katalogfehler eines Zwischenkinds erscheint als Feld katalogFehler am Kind.
+// ---------------------------------------------------------------------------------------------------
+
+test('16. Katalogfehler eines Zwischenkinds: Feld katalogFehler am Kind, nicht still verschluckt (Fund 5)', async () => {
+	const s = baueSzene({ kataloge: { exp: [katalogZeile('zwischen', 'Zwischen', '2026-11-11T00:01:00Z')] }, mitglieder: [{ role: 'teammate', name: 'exp', id: 'exp', status: 'running' }], beobachtungen: { zwischen: null } })
+	const stand = await s.baue(M).execute({}, { agent: s.lead })
+	const kind = stand.untergruppen.find((g) => g.id === 'exp').unteragenten.find((z) => z.id === 'zwischen')
+	assert.ok(kind, 'das Zwischenkind steht in der Gruppe')
+	assert.match(String(kind.katalogFehler ?? ''), /Katalog|kaputt/i, 'der Katalogfehler ist am Kind sichtbar')
+})
+
+// ---------------------------------------------------------------------------------------------------
+// 17. Prüfer-Fund 3 + 4, Mutation „Frist ignoriert“: läuft die Gesamtfrist durch execute, kommt eine
+//     Zeitgrenze-Zeile statt aller Kinder. Die Frist wird über Date.now gesteuert.
+// ---------------------------------------------------------------------------------------------------
+
+test('17. Frist in execute: nach Ablauf kommt die Zeile „Zeitgrenze erreicht“, keine Kinder mehr (Fund 3 + 4)', async () => {
+	const kinder = Array.from({ length: 5 }, (_, i) => katalogZeile(`f${i}`, 'Kind ' + i, `2026-11-11T00:0${i}:00Z`))
+	const s = baueSzene({ kataloge: { lead: kinder }, mitglieder: [], beobachtungen: Object.fromEntries(kinder.map((z) => [z.id, null])) })
+	const echtesNow = Date.now
+	// Die Uhr springt beim ersten Aufruf über die Gesamtfrist (120 s), damit die Schleife sofort abbricht.
+	let aufrufe = 0
+	Date.now = () => { aufrufe += 1; return aufrufe === 1 ? echtesNow() : echtesNow() + 121_000 }
+	try {
+		const stand = await s.baue(M).execute({}, { agent: s.lead })
+		const eigene = stand.untergruppen.find((g) => g.gruppe === 'eigeneUnteragenten')
+		// Vollständig ungelesene Gruppe (keine Kind-Zeile gelesen): die Meldung steht im Feld fehler des Gruppenkopfs (Plan Schritt 3).
+		assert.match(String(eigene.fehler ?? ''), /Zeitgrenze erreicht/, 'die Gruppe meldet die Zeitgrenze am Kopf')
+		assert.equal(eigene.unteragenten.filter((z) => !z.marke && z.gelesenAus !== 'nicht gelesen').length, 0, 'bei abgelaufener Frist wird kein Kind mehr gelesen')
+	} finally {
+		Date.now = echtesNow
+	}
 })
