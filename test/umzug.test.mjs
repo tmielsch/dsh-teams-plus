@@ -2,11 +2,11 @@
  * umzug.test.mjs — Selbstpruefung fuer den Umzug aus dsh-projectOS.
  *
  * Der Test belegt sieben Dinge:
- *   1. alle 28 Dateien in patches/ liegen im Paket (27 .mjs plus package.json). Davon sind
+ *   1. alle 29 .mjs-Dateien in patches/ liegen im Paket (dazu package.json, zusammen 30). Davon sind
  *      19 byte-gleich zum Original (sha256, SHA256_ORIGINAL), vier tragen ABSICHTLICH die neue
  *      Fassung (SHA256_ABWEICHEND), eine entsteht in diesem Paket und hat einen eigenen Anker
  *      (SHA256_EIGEN), zwei entstehen hier ohne Anker gegen projectOS (send-to-session,
- *      team-board); die Listen sind die Zaehlung, nicht diese Zeile,
+ *      team-board, dazu team-anruf, team-modus und eltern-laden); die Listen sind die Zaehlung, nicht diese Zeile,
  *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die zehn B-Patches,
  *   3. jede der 18 A-Dateien antwortet auf --status, ohne die DSH-Installation anzufassen,
  *   4. bin/teams-plus.mjs ist ausfuehrbar und `status` listet die A-Patches,
@@ -296,7 +296,7 @@ function zieldateien() {
 	return stan.sort()
 }
 
-test('alle 28 Dateien in patches/ liegen im Paket: 19 byte-gleich, vier mit Absicht geaendert, eine eigene mit eigenem Anker', () => {
+test('alle 29 .mjs-Dateien in patches/ liegen im Paket: 19 byte-gleich, vier mit Absicht geaendert, eine eigene mit eigenem Anker', () => {
 	const alle = { ...SHA256_ORIGINAL, ...SHA256_ABWEICHEND }
 	assert.equal(Object.keys(SHA256_ORIGINAL).length, 19, 'die Liste der unveraenderten Originale muss 19 Dateien haben')
 	assert.equal(Object.keys(SHA256_ABWEICHEND).length, 4, 'es sind genau vier Dateien mit Absicht geaendert (zwei Rollen + goal-await + stille-nachrichten)')
@@ -315,9 +315,10 @@ test('alle 28 Dateien in patches/ liegen im Paket: 19 byte-gleich, vier mit Absi
 	// `send-to-session.mjs` und `team-board.mjs` sind EIGENE Werkzeuge dieses Pakets, keine
 	// umgezogenen Patches: sie entstehen hier und haben deshalb keinen sha256-Anker gegen projectOS.
 	// `team-bremse.mjs` entsteht hier ebenfalls; fuer sie steht der Anker in SHA256_EIGEN.
+	// `eltern-laden.mjs` ist eigen, ohne sha256-Anker (Issue DSH-Verwaltung 175, Plan docs/PLAN-ELTERN-LADEN.md).
 	// `team-modus.mjs` ist ebenfalls eigen und ohne sha256-Anker; seit 2026-11-09 steht es als
 	// zehnter Eintrag in cordis.patch.yml (Issue DSH-Verwaltung 121).
-	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs', 'team-anruf.mjs', 'team-modus.mjs'].sort()
+	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs', 'team-anruf.mjs', 'team-modus.mjs', 'eltern-laden.mjs'].sort()
 	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
@@ -482,9 +483,9 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
 		// 23 umgezogene Patch-Dateien, dazu team-bremse.mjs als neue eigene Datei dieses
 		// Auftrags sowie send-to-session.mjs und team-board.mjs als eigene Werkzeuge dieses
-		// Pakets sowie team-modus.mjs (Entwurf); patches/package.json ist die Paketgrenze fuer den
+		// Pakets sowie team-modus.mjs (Entwurf) und eltern-laden.mjs (Issue DSH-Verwaltung 175); patches/package.json ist die Paketgrenze fuer den
 		// Client-Modul-Regler und zaehlt nicht mit (.mjs-Filter).
-		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 28)
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 29)
 		// Der Verweis muss jede Rollendatei erreichbar machen — Namen, nicht nur die Anzahl.
 		assert.deepEqual(readdirSync(join(ziel, 'rollen')).sort(), [...ROLLEN].sort(), 'der Verweis auf rollen/ erreicht nicht jede Rollendatei')
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))
