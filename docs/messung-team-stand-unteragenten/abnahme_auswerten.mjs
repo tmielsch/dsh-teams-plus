@@ -55,8 +55,11 @@ zeile(3, fBZiel === null && eigen?.gelesenAus === "nicht lesbar",
 
 // ---- Nr. 9: angehaltenSeit unabh. von pauseOffen und fuer beide Objektarten; ohne Eintrag null. ----
 const m1 = wert.mitglieder.find((x) => String(x.id).endsWith(K.exp1));
-zeile(9, m1?.angehaltenSeit === "2026-11-12T05:25:34.651Z" || (m1?.angehaltenSeit !== null && fB?.angehaltenSeit !== null && eigen?.angehaltenSeit === null),
-  `exp1 (pauseOffen false): angehaltenSeit=${JSON.stringify(m1?.angehaltenseit ?? m1?.angehaltenSeit)}; fachB (pauseOffen true): ${JSON.stringify(fB?.angehaltenSeit)}; eigen (ohne Eintrag): ${JSON.stringify(eigen?.angehaltenSeit)}`);
+const uebern = JSON.parse(readFileSync(`${B}/uebernahmen_lauf.json`, "utf8").replace(/^\uFEFF/, "") || "[]");
+const eintragExp1 = uebern.find((e) => String(e.id).endsWith(K.exp1));
+const eintragFachB = uebern.find((e) => String(e.id).endsWith(K.fachB));
+zeile(9, eintragExp1 !== undefined && m1?.angehaltenSeit === eintragExp1.seit && eintragFachB !== undefined && fB?.angehaltenSeit === eintragFachB.seit && eigen?.angehaltenSeit === null,
+  `exp1 (pauseOffen ${eintragExp1?.pauseOffen}): angehaltenSeit=${m1?.angehaltenSeit} gleich Eintrag=${eintragExp1?.seit}; fachB (pauseOffen ${eintragFachB?.pauseOffen}): ${fB?.angehaltenSeit} gleich Eintrag=${eintragFachB?.seit}; eigen ohne Eintrag: ${eigen?.angehaltenSeit}`);
 
 // ---- Nr. 7: Bericht true fuer Kind mit Ziel und Berichtsdatei. ----
 zeile(7, fA?.bericht === true, `fachA bericht=${JSON.stringify(fA?.bericht)} (Berichtsdatei lag unter dem Berichtsordner der Probe)`);
@@ -73,7 +76,7 @@ zeile(4, fk.neueAgentenImFenster.length === 0 && fk.zugenommeneZuegeProKennung.l
   `Fenster-Katalog: neueAgenten=${JSON.stringify(fk.neueAgentenImFenster)} ZuegeJeKennung=${JSON.stringify(fk.zugenommeneZuegeProKennung)}; Fenster-Stand: neueAgenten=${JSON.stringify(fs.neueAgentenImFenster)} Zuege=${JSON.stringify(fs.zugenommeneZuegeProKennung)} (Plan Nr. 4: alles null)`);
 
 // ---- Nr. 6: Gegenprobe (schon im Node-Test bewiesen, hier nur verifiziert, dass diese Szene mit dem gebauten Modul die Kindergruppen meldet). ----
-zeile(6, mitgliedsGruppen.length === 2, `Mit dem Bau aus diesem Worktree sind genau die Gruppen vorhanden, die im Git-Alten Stand fehlen wuerden (Plan Nr. 6; Gegenprobe laeuft in Test-Nummer 9)`);
+zeile(6, mitgliedsGruppen.length === 2 && eigene !== undefined, `Zwei mitglied-Gruppen und eine eigene Gruppe in der Ausgabe (die Gegenprobe gegen den Git-Stand ist Node-Test 9, dort aus einem anderen Modul-Stand — nicht hier gemessen)`);
 
 console.log(out.map((o) => `${String(o.nr).padStart(1)}: ${o.status} — ${o.text}`).join("\n"));
 writeFileSync(`${B}/abnahme_auswertung.json`, JSON.stringify(out, null, 2));
