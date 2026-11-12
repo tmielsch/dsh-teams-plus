@@ -1,0 +1,170 @@
+{
+ "szenario": "laden",
+ "modus": "mit",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "vorLaden": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "nachLaden": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "17678197"
+  ]
+ },
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "17678197"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1330,
+   "sitzung": "a227fcdb",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1810,
+   "sitzung": "17678197",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1231,
+   "id": "17678197",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1239,
+   "id": "17678197",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1274,
+   "id": "a227fcdb",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1275,
+   "id": "a227fcdb",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1767,
+   "id": "a227fcdb",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5292,
+   "id": "17678197",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5845,
+   "id": "17678197",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5848,
+   "id": "17678197",
+   "agentAvailable": true
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=oeffnen-page eltern=eltern-1794517678197",
+  "geladen eltern=eltern-1794517678197 ms=46"
+ ],
+ "protokoll": [
+  {
+   "ms": 1239,
+   "art": "agent/created",
+   "id": "17678197",
+   "source": "startup"
+  },
+  {
+   "ms": 1275,
+   "art": "agent/created",
+   "id": "a227fcdb",
+   "source": "startup"
+  },
+  {
+   "ms": 5848,
+   "art": "agent/created",
+   "id": "17678197",
+   "source": "resume"
+  },
+  {
+   "ms": 6836,
+   "art": "nach-laden",
+   "lebt": true,
+   "llm": 0,
+   "llmEltern": 0,
+   "llmKind": 0
+  },
+  {
+   "ms": 7838,
+   "art": "nach-laden",
+   "lebt": true,
+   "llm": 0,
+   "llmEltern": 0,
+   "llmKind": 0
+  },
+  {
+   "ms": 8840,
+   "art": "nach-laden",
+   "lebt": true,
+   "llm": 0,
+   "llmEltern": 0,
+   "llmKind": 0
+  },
+  {
+   "ms": 9842,
+   "art": "nach-laden",
+   "lebt": true,
+   "llm": 0,
+   "llmEltern": 0,
+   "llmKind": 0
+  },
+  {
+   "ms": 10845,
+   "art": "nach-laden",
+   "lebt": true,
+   "llm": 0,
+   "llmEltern": 0,
+   "llmKind": 0
+  }
+ ]
+}

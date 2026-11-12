@@ -1,0 +1,32 @@
+{
+ "szenario": "neustart-a",
+ "modus": "mit",
+ "vorHartemEnde": {
+  "ziel": "{\"id\":\"goal-9d1c0133-dec1-4260-93f3-94835e3c869e\",\"revision\":1,\"objective\":\"Eltern-Ziel: arbeite weiter [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":100,\"roundsStarted\":1,\"createdAt\":1794517778461,\"updatedAt\":1794517778461,\"activation\":\"armed\"}",
+  "status": "running",
+  "llm": 3,
+  "llmJe": {
+   "eltern": 2
+  },
+  "zuegeJe": {
+   "eltern": 2
+  },
+  "lebend": [
+   "17775877"
+  ]
+ },
+ "protokoll": [
+  {
+   "ms": 1233,
+   "art": "agent/created",
+   "id": "17775877",
+   "source": "startup"
+  },
+  {
+   "ms": 1276,
+   "art": "agent/created",
+   "id": "ceb8fa9c",
+   "source": "startup"
+  }
+ ]
+}

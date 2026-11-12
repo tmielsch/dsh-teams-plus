@@ -1,0 +1,272 @@
+{
+ "szenario": "neustart-b",
+ "modus": "mit",
+ "beimStart": {
+  "llm": 3,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 0,
+   "kind": 0
+  },
+  "lebend": []
+ },
+ "listeKalt": {
+  "ok": true,
+  "r": "[{\"id\":\"ceb8fa9c\",\"agentAvailable\":false},{\"id\":\"17775877\",\"agentAvailable\":false}]",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 0,
+    "kind": 0
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 0,
+    "kind": 0
+   },
+   "lebend": []
+  }
+ },
+ "seite": {
+  "ok": true,
+  "r": "{\"records\":0,\"dauerMs\":33}",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 0,
+    "kind": 0
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 0,
+    "kind": 0
+   },
+   "lebend": []
+  }
+ },
+ "llmGesamtDifferenzSofortNachLaden": 0,
+ "zielNachLaden": "{\"id\":\"goal-9d1c0133-dec1-4260-93f3-94835e3c869e\",\"revision\":1,\"objective\":\"Eltern-Ziel: arbeite weiter [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":100,\"roundsStarted\":1,\"createdAt\":1794517778461,\"updatedAt\":1794517778461,\"activation\":\"disarmed\"}",
+ "torNachLaden": {
+  "ok": true,
+  "r": "{\"messageId\":\"b2b59604-f878-4ad2-8651-cccace85120a\"}",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 0,
+    "kind": 0
+   },
+   "lebend": [
+    "17775877"
+   ]
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 0,
+    "kind": 1
+   },
+   "lebend": [
+    "17775877",
+    "ceb8fa9c"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 5,
+  "llmJe": {
+   "eltern": 3,
+   "kind": 2
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "17775877"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": -4324,
+   "sitzung": "ceb8fa9c",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3852,
+   "sitzung": "17775877",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -1824,
+   "sitzung": "17775877",
+   "text": "<goal_round>\nObjective: \"Eltern-Ziel: arbeite weiter [[LONG]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6394,
+   "sitzung": "ceb8fa9c",
+   "text": "Nach Neustart und Laden [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6861,
+   "sitzung": "17775877",
+   "text": "<goal_round>\nObjective: \"Eltern-Ziel: arbeite weiter [[LONG]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1300,
+   "id": "17775877",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1303,
+   "id": "17775877",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6325,
+   "id": "ceb8fa9c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6328,
+   "id": "ceb8fa9c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6823,
+   "id": "ceb8fa9c",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=oeffnen-page eltern=eltern-1794517775877",
+  "geladen eltern=eltern-1794517775877 ms=56"
+ ],
+ "protokoll": [
+  {
+   "ms": 1245,
+   "art": "session-list-kalt",
+   "ok": true
+  },
+  {
+   "ms": 1278,
+   "art": "page-oeffnen",
+   "ok": true
+  },
+  {
+   "ms": 1303,
+   "art": "agent/created",
+   "id": "17775877",
+   "source": "resume"
+  },
+  {
+   "ms": 2281,
+   "art": "ziel-verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0,
+   "llmGesamt": 0
+  },
+  {
+   "ms": 3284,
+   "art": "ziel-verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0,
+   "llmGesamt": 0
+  },
+  {
+   "ms": 4286,
+   "art": "ziel-verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0,
+   "llmGesamt": 0
+  },
+  {
+   "ms": 5293,
+   "art": "ziel-verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0,
+   "llmGesamt": 0
+  },
+  {
+   "ms": 6296,
+   "art": "ziel-verlauf",
+   "lebt": true,
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0,
+   "llmGesamt": 0
+  },
+  {
+   "ms": 6328,
+   "art": "agent/created",
+   "id": "ceb8fa9c",
+   "source": "resume"
+  },
+  {
+   "ms": 6336,
+   "art": "tor-prompt-nach-laden",
+   "ok": true
+  }
+ ]
+}

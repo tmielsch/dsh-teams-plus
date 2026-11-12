@@ -1,0 +1,281 @@
+{
+ "szenario": "kette",
+ "modus": "mit",
+ "lebendVorTest": {
+  "gp": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "promptEnkel": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"af2fdb2e-fcca-47f7-9f91-9ea52a52ff52\" is not live — Teams Plus (eltern-laden): Die Eltern-Sitzung ist selbst ein Unteragent und kann nicht automatisch geladen werden. Das ist eine bekannte Grenze (Issue DSH-Verwaltung 177); die Eltern-Sitzung muss zuerst von ihrem Vorgesetzten angeschrieben werden.",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": [
+    "17751828"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": [
+    "17751828"
+   ]
+  }
+ },
+ "seiteEnkel": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": [
+    "17751828"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": [
+    "17751828"
+   ]
+  }
+ },
+ "mitteLebtDanach": false,
+ "gpPromptMitte": {
+  "ok": true,
+  "r": "{\"messageId\":\"c9e2c9e1-57ab-43a7-9eca-f7823116545b\"}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": [
+    "17751828"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "lebend": [
+    "17751828",
+    "2a52ff52"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 6,
+  "llmJe": {
+   "eltern": 2,
+   "mitte": 3,
+   "enkel": 1
+  },
+  "zuegeJe": {
+   "eltern": 2,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "lebend": [
+   "17751828"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1325,
+   "sitzung": "2a52ff52",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1872,
+   "sitzung": "0b12ebee",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 4367,
+   "sitzung": "2a52ff52",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7439,
+   "sitzung": "17751828",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 10457,
+   "sitzung": "2a52ff52",
+   "text": "Mensch an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 10919,
+   "sitzung": "17751828",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1230,
+   "id": "17751828",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1237,
+   "id": "17751828",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1274,
+   "id": "2a52ff52",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1275,
+   "id": "2a52ff52",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1826,
+   "id": "0b12ebee",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1828,
+   "id": "0b12ebee",
+   "agentAvailable": true
+  },
+  {
+   "ms": 2298,
+   "id": "0b12ebee",
+   "agentAvailable": false
+  },
+  {
+   "ms": 7394,
+   "id": "2a52ff52",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10426,
+   "id": "2a52ff52",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10427,
+   "id": "2a52ff52",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10883,
+   "id": "2a52ff52",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=af2fdb2e-fcca-47f7-9f91-9ea52a52ff52",
+  "eltern-ist-kind eltern=af2fdb2e-fcca-47f7-9f91-9ea52a52ff52 code=session/agent-busy: Eltern-Sitzung ist selbst ein Kind, wird nicht geladen (bekannte Grenze, Issue 177)",
+  "laedt art=oeffnen-page eltern=af2fdb2e-fcca-47f7-9f91-9ea52a52ff52",
+  "eltern-ist-kind eltern=af2fdb2e-fcca-47f7-9f91-9ea52a52ff52 code=session/agent-busy: Eltern-Sitzung ist selbst ein Kind, wird nicht geladen (bekannte Grenze, Issue 177)"
+ ],
+ "protokoll": [
+  {
+   "ms": 1237,
+   "art": "agent/created",
+   "id": "17751828",
+   "source": "startup"
+  },
+  {
+   "ms": 1275,
+   "art": "agent/created",
+   "id": "2a52ff52",
+   "source": "startup"
+  },
+  {
+   "ms": 1829,
+   "art": "agent/created",
+   "id": "0b12ebee",
+   "source": "startup"
+  },
+  {
+   "ms": 9880,
+   "art": "prompt-enkel-mitte-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 9891,
+   "art": "page-enkel-mitte-kalt",
+   "ok": true
+  },
+  {
+   "ms": 10427,
+   "art": "agent/created",
+   "id": "2a52ff52",
+   "source": "resume"
+  },
+  {
+   "ms": 10430,
+   "art": "gp-schreibt-mitte-an",
+   "ok": true
+  }
+ ]
+}

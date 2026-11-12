@@ -1,0 +1,377 @@
+{
+ "szenario": "oeffnen2",
+ "modus": "ohne",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "followIntakt": {
+  "ok": true,
+  "r": "snapshot",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "elternLebtNachFollow": false,
+ "defektDateien": 1,
+ "defektFollow": {
+  "ok": true,
+  "r": "snapshot",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "defektPage": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "defektElternLebt": false,
+ "defektPrompt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-defekt-1794518081837\" is not live",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "fremdFollow": {
+  "ok": false,
+  "code": "subagent/unauthorized",
+  "fehler": "subagent does not belong to the supplied parent",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "fremdPage": {
+  "ok": false,
+  "code": "subagent/unauthorized",
+  "fehler": "subagent does not belong to the supplied parent",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "fremdPrompt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"gibt-es-nicht\" is not live",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "ende": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1345,
+   "sitzung": "fe2e9536",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1819,
+   "sitzung": "18076621",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6497,
+   "sitzung": "c2084dd8",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6959,
+   "sitzung": "18081837",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1228,
+   "id": "18076621",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1236,
+   "id": "18076621",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1272,
+   "id": "fe2e9536",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1274,
+   "id": "fe2e9536",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1776,
+   "id": "fe2e9536",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5285,
+   "id": "18076621",
+   "agentAvailable": false
+  },
+  {
+   "ms": 6424,
+   "id": "18081837",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6429,
+   "id": "18081837",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6461,
+   "id": "c2084dd8",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6462,
+   "id": "c2084dd8",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6916,
+   "id": "c2084dd8",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9970,
+   "id": "18081837",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1236,
+   "art": "agent/created",
+   "id": "18076621",
+   "source": "startup"
+  },
+  {
+   "ms": 1274,
+   "art": "agent/created",
+   "id": "fe2e9536",
+   "source": "startup"
+  },
+  {
+   "ms": 5817,
+   "art": "follow",
+   "ok": true
+  },
+  {
+   "ms": 6429,
+   "art": "agent/created",
+   "id": "18081837",
+   "source": "startup"
+  },
+  {
+   "ms": 6462,
+   "art": "agent/created",
+   "id": "c2084dd8",
+   "source": "startup"
+  },
+  {
+   "ms": 10487,
+   "art": "follow-defekter-eltern",
+   "ok": true
+  },
+  {
+   "ms": 10497,
+   "art": "page-defekter-eltern",
+   "ok": true
+  },
+  {
+   "ms": 10501,
+   "art": "prompt-defekter-eltern",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 10504,
+   "art": "follow-eltern-ohne-datei",
+   "ok": false,
+   "code": "subagent/unauthorized"
+  },
+  {
+   "ms": 10507,
+   "art": "page-eltern-ohne-datei",
+   "ok": false,
+   "code": "subagent/unauthorized"
+  },
+  {
+   "ms": 10508,
+   "art": "prompt-eltern-ohne-datei",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}

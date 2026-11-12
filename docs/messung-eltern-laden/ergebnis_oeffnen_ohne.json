@@ -1,0 +1,166 @@
+{
+ "szenario": "oeffnen",
+ "modus": "ohne",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "seite": {
+  "ok": true,
+  "r": "{\"records\":0,\"dauerMs\":20}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "sofortNachPage": {
+  "elternLebt": false
+ },
+ "nachEinerSekunde": {
+  "elternLebt": false,
+  "ereignisse": []
+ },
+ "listeDanach": {
+  "ok": true,
+  "r": "[{\"id\":\"138221e1\",\"agentAvailable\":false},{\"id\":\"17662223\",\"agentAvailable\":false}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "llmNachOeffnen": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1335,
+   "sitzung": "138221e1",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1804,
+   "sitzung": "17662223",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1224,
+   "id": "17662223",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1232,
+   "id": "17662223",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1279,
+   "id": "138221e1",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1280,
+   "id": "138221e1",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1765,
+   "id": "138221e1",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5297,
+   "id": "17662223",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1233,
+   "art": "agent/created",
+   "id": "17662223",
+   "source": "startup"
+  },
+  {
+   "ms": 1280,
+   "art": "agent/created",
+   "id": "138221e1",
+   "source": "startup"
+  },
+  {
+   "ms": 5820,
+   "art": "page",
+   "ok": true
+  },
+  {
+   "ms": 6840,
+   "art": "session-list-danach",
+   "ok": true
+  }
+ ]
+}

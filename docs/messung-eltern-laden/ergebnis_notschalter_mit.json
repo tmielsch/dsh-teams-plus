@@ -1,0 +1,337 @@
+{
+ "szenario": "notschalter",
+ "modus": "mit",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "torSchalterAus": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-1794517738399\" is not live",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "seiteSchalterAus": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "elternLebtSchalterAus": false,
+ "torSchalterWeg": {
+  "ok": true,
+  "r": "{\"messageId\":\"7bf08937-2f0b-4869-9616-04e4b581720e\"}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 2
+   },
+   "lebend": [
+    "17738399",
+    "9da77df9"
+   ]
+  }
+ },
+ "elternLebtSchalterWeg": true,
+ "torSchalterKaputt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-schalter-1794517745907\" is not live",
+  "vor": {
+   "llm": 6,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "zuegeJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "lebend": [
+    "17738399"
+   ]
+  },
+  "nach": {
+   "llm": 6,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "zuegeJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "lebend": [
+    "17738399"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 6,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "zuegeJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "lebend": [
+   "17738399"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1341,
+   "sitzung": "9da77df9",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1820,
+   "sitzung": "17738399",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6729,
+   "sitzung": "9da77df9",
+   "text": "Schalter weg [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7194,
+   "sitzung": "17738399",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 8810,
+   "sitzung": "d611dca6",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 9267,
+   "sitzung": "17745907",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1228,
+   "id": "17738399",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1235,
+   "id": "17738399",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1283,
+   "id": "9da77df9",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1284,
+   "id": "9da77df9",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1775,
+   "id": "9da77df9",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5295,
+   "id": "17738399",
+   "agentAvailable": false
+  },
+  {
+   "ms": 6672,
+   "id": "17738399",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6677,
+   "id": "17738399",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6701,
+   "id": "9da77df9",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6703,
+   "id": "9da77df9",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7151,
+   "id": "9da77df9",
+   "agentAvailable": false
+  },
+  {
+   "ms": 8715,
+   "id": "17745907",
+   "agentAvailable": true
+  },
+  {
+   "ms": 8722,
+   "id": "17745907",
+   "agentAvailable": true
+  },
+  {
+   "ms": 8761,
+   "id": "d611dca6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 8762,
+   "id": "d611dca6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9228,
+   "id": "d611dca6",
+   "agentAvailable": false
+  },
+  {
+   "ms": 12281,
+   "id": "17745907",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=eltern-1794517738399",
+  "geladen eltern=eltern-1794517738399 ms=34",
+  "warn Notschalter-Datei /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json ist unlesbar (Unexpected token 'd', \"das ist kein json\" is not valid JSON); das Modul bleibt AUS"
+ ],
+ "protokoll": [
+  {
+   "ms": 1236,
+   "art": "agent/created",
+   "id": "17738399",
+   "source": "startup"
+  },
+  {
+   "ms": 1284,
+   "art": "agent/created",
+   "id": "9da77df9",
+   "source": "startup"
+  },
+  {
+   "ms": 5809,
+   "art": "tor-schalter-aus",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 5838,
+   "art": "page-schalter-aus",
+   "ok": true
+  },
+  {
+   "ms": 6677,
+   "art": "agent/created",
+   "id": "17738399",
+   "source": "resume"
+  },
+  {
+   "ms": 6703,
+   "art": "agent/created",
+   "id": "9da77df9",
+   "source": "resume"
+  },
+  {
+   "ms": 6707,
+   "art": "tor-schalter-weg",
+   "ok": true
+  },
+  {
+   "ms": 8723,
+   "art": "agent/created",
+   "id": "17745907",
+   "source": "startup"
+  },
+  {
+   "ms": 8763,
+   "art": "agent/created",
+   "id": "d611dca6",
+   "source": "startup"
+  },
+  {
+   "ms": 12788,
+   "art": "tor-schalter-kaputt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}

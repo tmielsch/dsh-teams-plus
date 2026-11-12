@@ -1,0 +1,436 @@
+{
+ "szenario": "oeffnen2",
+ "modus": "mit",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "followIntakt": {
+  "ok": true,
+  "r": "snapshot",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "elternLebtNachFollow": true,
+ "defektDateien": 1,
+ "defektFollow": {
+  "ok": true,
+  "r": "snapshot",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  }
+ },
+ "defektPage": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  }
+ },
+ "defektElternLebt": false,
+ "defektPrompt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-defekt-1794517731969\" is not live",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  }
+ },
+ "fremdFollow": {
+  "ok": false,
+  "code": "subagent/unauthorized",
+  "fehler": "subagent does not belong to the supplied parent",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  }
+ },
+ "fremdPage": {
+  "ok": false,
+  "code": "subagent/unauthorized",
+  "fehler": "subagent does not belong to the supplied parent",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  }
+ },
+ "fremdPrompt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"gibt-es-nicht\" is not live",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17726708"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "17726708"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1338,
+   "sitzung": "694eb7c1",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1812,
+   "sitzung": "17726708",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6552,
+   "sitzung": "2011c370",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7013,
+   "sitzung": "17731969",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1228,
+   "id": "17726708",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1237,
+   "id": "17726708",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1280,
+   "id": "694eb7c1",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1281,
+   "id": "694eb7c1",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1770,
+   "id": "694eb7c1",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5304,
+   "id": "17726708",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5871,
+   "id": "17726708",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5875,
+   "id": "17726708",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6471,
+   "id": "17731969",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6475,
+   "id": "17731969",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6504,
+   "id": "2011c370",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6506,
+   "id": "2011c370",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6970,
+   "id": "2011c370",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10018,
+   "id": "17731969",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=oeffnen-follow eltern=eltern-1794517726708",
+  "geladen eltern=eltern-1794517726708 ms=68",
+  "laedt art=oeffnen-follow eltern=eltern-defekt-1794517731969",
+  "warn ladefehler eltern=eltern-defekt-1794517731969 code=gateway/internal meldung=resume failed for session \"eltern-defekt-1794517731969\": SessionQueryError: stored session \"eltern-defekt-1794517731969\" is corrupt: corrupt Zstandard session l",
+  "laedt art=oeffnen-page eltern=eltern-defekt-1794517731969",
+  "warn ladefehler eltern=eltern-defekt-1794517731969 code=gateway/internal meldung=resume failed for session \"eltern-defekt-1794517731969\": SessionQueryError: stored session \"eltern-defekt-1794517731969\" is corrupt: corrupt Zstandard session l",
+  "laedt art=anschreiben eltern=eltern-defekt-1794517731969",
+  "warn ladefehler eltern=eltern-defekt-1794517731969 code=gateway/internal meldung=resume failed for session \"eltern-defekt-1794517731969\": SessionQueryError: stored session \"eltern-defekt-1794517731969\" is corrupt: corrupt Zstandard session l",
+  "laedt art=oeffnen-follow eltern=gibt-es-nicht",
+  "eltern-fehlt eltern=gibt-es-nicht code=session/not-found",
+  "laedt art=oeffnen-page eltern=gibt-es-nicht",
+  "eltern-fehlt eltern=gibt-es-nicht code=session/not-found",
+  "laedt art=anschreiben eltern=gibt-es-nicht",
+  "eltern-fehlt eltern=gibt-es-nicht code=session/not-found"
+ ],
+ "protokoll": [
+  {
+   "ms": 1237,
+   "art": "agent/created",
+   "id": "17726708",
+   "source": "startup"
+  },
+  {
+   "ms": 1281,
+   "art": "agent/created",
+   "id": "694eb7c1",
+   "source": "startup"
+  },
+  {
+   "ms": 5861,
+   "art": "follow",
+   "ok": true
+  },
+  {
+   "ms": 5875,
+   "art": "agent/created",
+   "id": "17726708",
+   "source": "resume"
+  },
+  {
+   "ms": 6475,
+   "art": "agent/created",
+   "id": "17731969",
+   "source": "startup"
+  },
+  {
+   "ms": 6507,
+   "art": "agent/created",
+   "id": "2011c370",
+   "source": "startup"
+  },
+  {
+   "ms": 10539,
+   "art": "follow-defekter-eltern",
+   "ok": true
+  },
+  {
+   "ms": 10551,
+   "art": "page-defekter-eltern",
+   "ok": true
+  },
+  {
+   "ms": 10557,
+   "art": "prompt-defekter-eltern",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 10560,
+   "art": "follow-eltern-ohne-datei",
+   "ok": false,
+   "code": "subagent/unauthorized"
+  },
+  {
+   "ms": 10563,
+   "art": "page-eltern-ohne-datei",
+   "ok": false,
+   "code": "subagent/unauthorized"
+  },
+  {
+   "ms": 10565,
+   "art": "prompt-eltern-ohne-datei",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}
