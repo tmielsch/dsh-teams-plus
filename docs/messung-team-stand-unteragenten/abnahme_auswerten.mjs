@@ -57,12 +57,17 @@ zeile(3, fachB?.ziel === null && eigenesKind?.gelesenAus === "nicht lesbar",
   "MESSUNG",
   `fachB ziel=${JSON.stringify(fachB?.ziel)} gelesenAus=${fachB?.gelesenAus}; eigenesLeadKind gelesenAus=${eigenesKind?.gelesenAus}`);
 
-// Nr. 4: Zähler bleibt beim Lesen still (Fenster aus dem Lauf). Eingeschränkt: nur abgebaute Kinder.
-const fenster = ergebnis.fensterStand ?? {};
-const fensterKat = ergebnis.fensterKatalog ?? {};
-zeile(4, (fenster.neueAgentenImFenster ?? []).length === 0 && (fenster.zugenommeneZuegeProKennung ?? []).length === 0 && (fensterKat.neueAgentenImFenster ?? []).length === 0 && (fensterKat.zugenommeneZuegeProKennung ?? []).length === 0,
+// Nr. 4: Zähler bleibt beim Lesen still (Fenster aus dem Lauf). Fehlende Fensterfelder sind FAIL.
+const fenster = ergebnis.fensterStand;
+const fensterKat = ergebnis.fensterKatalog;
+const fensterVollstaendig = fenster !== undefined && fensterKat !== undefined
+	&& Array.isArray(fenster.neueAgentenImFenster) && Array.isArray(fenster.zugenommeneZuegeProKennung)
+	&& Array.isArray(fensterKat.neueAgentenImFenster) && Array.isArray(fensterKat.zugenommeneZuegeProKennung);
+zeile(4, fensterVollstaendig && fenster.neueAgentenImFenster.length === 0 && fenster.zugenommeneZuegeProKennung.length === 0 && fensterKat.neueAgentenImFenster.length === 0 && fensterKat.zugenommeneZuegeProKennung.length === 0,
   "MESSUNG (eingeschraenkt: abgebaute Kinder)",
-  `Fenster Stand: neue=${JSON.stringify(fenster.neueAgentenImFenster)} Zuege=${JSON.stringify(fenster.zugenommeneZuegeProKennung)}; Fenster Katalog: neue=${JSON.stringify(fensterKat.neueAgentenImFenster)} Zuege=${JSON.stringify(fensterKat.zugenommeneZuegeProKennung)}`);
+  fensterVollstaendig
+    ? `Fenster Stand: neue=${JSON.stringify(fenster.neueAgentenImFenster)} Zuege=${JSON.stringify(fenster.zugenommeneZuegeProKennung)}; Fenster Katalog: neue=${JSON.stringify(fensterKat.neueAgentenImFenster)} Zuege=${JSON.stringify(fensterKat.zugenommeneZuegeProKennung)}`
+    : "FEHLT: fensterStand/fensterKatalog nicht vollständig im Ergebnis (kein Standardwert eingesetzt)");
 
 // Nr. 5: Teammitglieder nur als Gruppenköpfe, nie als Kinderzeile.
 const alleKinder = gruppen.flatMap((g) => g.unteragenten ?? []).map((z) => String(z.id));
@@ -71,10 +76,13 @@ zeile(5, !mitgliedAlsKind && alleKinder.some((id) => endet(id, K.eigen)),
   "MESSUNG",
   `Teammitglieder als Kinderzeile: ${mitgliedAlsKind}; eigenesLeadKind in eigener Gruppe: ${alleKinder.some((id) => endet(id, K.eigen))}`);
 
-// Nr. 6: Gegenprobe gegen den Git-Stand ist Node-Test 9; hier nur die Ausgabe prüfen, nicht tautologisch.
-zeile(6, mitglied.length === 2 && eigene !== undefined,
+// Nr. 6: die Gruppen tragen echten Inhalt: beide Mitglieder-Gruppen sind da, die eigene Gruppe trägt das
+// Leadkind, und mindestens eine Gruppe trägt ein Kind. Leere Gruppen allein beweisen nichts.
+const gruppenMitInhalt = gruppen.filter((g) => (g.unteragenten ?? []).some((z) => !z.marke));
+const leadkindInEigener = (eigene?.unteragenten ?? []).some((z) => endet(z.id, K.eigen));
+zeile(6, mitglied.length === 2 && eigene !== undefined && gruppenMitInhalt.length >= 1 && leadkindInEigener,
   "MESSUNG (Gegenprobe Node-Test 9)",
-  "Im Lauf: zwei mitglied-Gruppen und eine eigene Gruppe. Der Vergleich mit dem Git-Stand steht im Node-Test, nicht in diesem Lauf.");
+  `Mitglieder-Gruppen ${mitglied.length}; Gruppen mit Kindern ${gruppenMitInhalt.length}; Leadkind in eigener Gruppe: ${leadkindInEigener}. Der Vergleich mit dem Git-Stand steht im Node-Test.`);
 
 // Nr. 7: Berichtsweg für abgebaute Kinder; lebende Variante ist nur in der Lebend-Messung.
 zeile(7, fachA?.bericht === true,
@@ -102,6 +110,6 @@ if (lebend) {
 }
 
 for (const z of zeilen) console.log(`${z.nr}: ${z.status} [${z.etikett}] — ${z.detail}`);
-const ausgabe = join(dirname(eingabe), "abnahme_auswertung_2026-11-12.json");
+const ausgabe = join(dirname(eingabe), `abnahme_auswertung_${eingabe.replace(/^.*\//, "").replace(/\.json$/, "")}.json`);
 writeFileSync(ausgabe, JSON.stringify(zeilen, null, 2));
 console.log("geschrieben:", ausgabe);

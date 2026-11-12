@@ -6,7 +6,7 @@ Massgeblich sind: `ergebnis_teamaktiv_2026-11-12.json` (Team-Modus an), `ergebni
 
 ## Tabelle der neun Plan-Abnahmen (Plan Abschnitt 7)
 
-Ausgegeben vom Auswerter `abnahme_auswerten.mjs` gegen den Team-Modus-Lauf (`abnahme_auswertung_2026-11-12.json`):
+Ausgegeben vom Auswerter `abnahme_auswerten.mjs` gegen den Team-Modus-Lauf (`abnahme_auswertung_ergebnis_teamaktiv_2026-11-12.json`):
 
 | Nr | Ergebnis | Etikett | Befund aus dem Lauf |
 |---|---|---|---|
@@ -15,7 +15,7 @@ Ausgegeben vom Auswerter `abnahme_auswerten.mjs` gegen den Team-Modus-Lauf (`abn
 | 3 | PASS | MESSUNG | fachB ziel=null gelesenAus=gespeicherte Sitzung; eigenesLeadKind gelesenAus=nicht lesbar |
 | 4 | PASS | MESSUNG (eingeschraenkt: abgebaute Kinder) | Fenster Stand: neue=[] Zuege=[]; Fenster Katalog: neue=[] Zuege=[] |
 | 5 | PASS | MESSUNG | Teammitglieder als Kinderzeile: false; eigenesLeadKind in eigener Gruppe: true |
-| 6 | PASS | MESSUNG (Gegenprobe Node-Test 9) | Im Lauf: zwei mitglied-Gruppen und eine eigene Gruppe. Der Vergleich mit dem Git-Stand steht im Node-Test, nicht in diesem Lauf. |
+| 6 | PASS | MESSUNG (Gegenprobe Node-Test 9) | Mitglieder-Gruppen 2; Gruppen mit Kindern 2; Leadkind in eigener Gruppe: true. Der Vergleich mit dem Git-Stand steht im Node-Test. |
 | 7 | PASS | MESSUNG (nur abgebaut) | fachA bericht=true; lebende Variante ungemessen (siehe Messblatt) |
 | 8 | PASS | MESSUNG | fachA aktivierung="unbekannt (sitzt nicht in der Datei)" zustand=abgebaut |
 | 9 | PASS | MESSUNG | exp1 angehaltenSeit=2026-11-12T21:31:28.970Z gleich Eintrag=2026-11-12T21:31:28.970Z; fachB=2026-11-12T21:30:58.970Z gleich Eintrag=2026-11-12T21:30:58.970Z; eigenes Kind ohne Eintrag=null |
@@ -26,7 +26,7 @@ Ausgegeben vom Auswerter `abnahme_auswerten.mjs` gegen den Team-Modus-Lauf (`abn
 | Lauf | teamModus | notschalter | Ergebnis-Datei |
 |---|---|---|---|
 | Team-Modus an (kein Notschalter in der Probe) | true | false | `ergebnis_teamaktiv_2026-11-12.json` |
-| Notschalter (`{"aus": true}`, NOTSCHALTER=1) | false | true | `ergebnis_notschalter_2026-11-12.json` |
+| Notschalter (`{"aus": true}`, NOTSCHALTER=1), neu gemessen mit erweitertem Treiber (Feld `uebernahmen` im Ergebnis) | false | true | `ergebnis_notschalter_2026-11-12.json`; Auswertung `abnahme_auswertung_ergebnis_notschalter_2026-11-12.json`: alle neun Abnahmen PASS |
 
 Im Notschalter-Lauf bleiben die drei Gruppen mit Kinderzeilen erhalten (Abnahme 4 des Zielbriefs).
 

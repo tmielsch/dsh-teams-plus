@@ -33,7 +33,7 @@
     "nr": 6,
     "status": "PASS",
     "etikett": "MESSUNG (Gegenprobe Node-Test 9)",
-    "detail": "Im Lauf: zwei mitglied-Gruppen und eine eigene Gruppe. Der Vergleich mit dem Git-Stand steht im Node-Test, nicht in diesem Lauf."
+    "detail": "Mitglieder-Gruppen 2; Gruppen mit Kindern 2; Leadkind in eigener Gruppe: true. Der Vergleich mit dem Git-Stand steht im Node-Test."
   },
   {
     "nr": 7,
