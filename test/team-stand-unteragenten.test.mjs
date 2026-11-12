@@ -288,8 +288,53 @@ test('8. bericht true bei Kind mit Schlussbericht, lebend und aus der Datei (Pla
 })
 
 // ---------------------------------------------------------------------------------------------------
-// 9. Plan-Abnahme 6 (Gegenprobe): mit dem Stand VOR diesem Bau fehlt alles — dieser Test wäre dort rot
+// 10. Plan Nr. 2 + Kern-Ausgabepruefung: die Ausgabe ist in jedem Zweig verlustfrei JSON.
+//     Die Kernpruefung wirft undefined-Werte, nicht-finite Zahlen, BigInt und Prototypen ausser Object/Array.
+//     Ein Test, der nur „er läuft durch“ prueft, haette den Original-Fehler (aktivierung: undefined) durchgelassen.
 // ---------------------------------------------------------------------------------------------------
+
+function istPlainObjekt(wert) {
+	if (wert === null || typeof wert !== "object") return false;
+	const p = Object.getPrototypeOf(wert);
+	return p === null || (typeof p === "object" && Object.getPrototypeOf(p) === null);
+}
+
+/** Prueft die Ausgabe gegen dieselben Regeln wie `snapshotJsonValue` in `dsh-util-values`. */
+function pruefeVerlust(pfad, wert, funde) {
+	const art = typeof wert;
+	if (art === "function") { funde.push({ pfad, grund: "function" }); return; }
+	if (wert === undefined) { funde.push({ pfad, grund: "undefined-Wert" }); return; }
+	if (art === "number") { if (!Number.isFinite(wert) || Object.is(wert, -0)) funde.push({ pfad, grund: `Zahl ${String(wert)}` }); return; }
+	if (art === "bigint") { funde.push({ pfad, grund: "BigInt" }); return; }
+	if (art === "boolean" || art === "string" || wert === null) return;
+	if (art !== "object") { funde.push({ pfad, grund: `Typ ${art}` }); return; }
+	if (Array.isArray(wert)) {
+		const own = Reflect.ownKeys(wert);
+		if (own.length !== wert.length + 1) { funde.push({ pfad, grund: `Array-Extra-Keys ${own.length}` }); return; }
+		for (const k of own) if (typeof k !== "string" && k !== "length") { funde.push({ pfad, grund: `Array-Symbol-Key ${String(k)}` }); return; }
+		for (let i = 0; i < wert.length; i += 1) pruefeVerlust(`${pfad}[${i}]`, wert[i], funde); return;
+	}
+	if (!istPlainObjekt(wert)) { funde.push({ pfad, grund: `Prototyp ${String(Object.getPrototypeOf(wert)?.constructor?.name ?? "?")}` }); return; }
+	for (const k of Reflect.ownKeys(wert)) if (typeof k !== "string" || !Object.prototype.propertyIsEnumerable.call(wert, k)) { funde.push({ pfad, grund: `Key ${String(k)}` }); return; }
+	for (const k of Object.keys(wert)) pruefeVerlust(`${pfad}.${k}`, wert[k], funde);
+}
+
+test('10. Ausgabe verlustfrei: kein Zweig schreibt undefined-Werte, auch nicht "nicht lesbar" (Kern-Ausgabepruefung)', async () => {
+	// Szenario mit "nicht lesbar" (beobachte -> undefined), Kind ohne Ziel und abgebautes Kind mit Ziel.
+	const s = baueSzene({
+		kataloge: { exp: [katalogZeile('nl', 'NichtLesbar', '2026-11-11T00:01:00Z'), katalogZeile('nz', 'KeinZiel', '2026-11-11T00:02:00Z')] },
+		mitglieder: [{ role: 'teammate', name: 'exp', id: 'exp', status: 'inactive' }],
+		beobachtungen: { nz: null } // nl fehlt -> beobachte gibt undefined zurueck -> "nicht lesbar"
+	})
+	const stand = await s.baue(M).execute({}, { agent: s.lead })
+	const funde = [];
+	pruefeVerlust('root', stand, funde);
+	assert.deepEqual(funde, [], `Kein verlustbehafteter Wert in der Ausgabe — funde=${JSON.stringify(funde)}`)
+	// Gegenprobe: fuege ein Feld mit undefined von Hand ein, der Pruefer muss es finden.
+	const kaputt = { a: { b: undefined } }
+	const probe = []; pruefeVerlust('root', kaputt, probe)
+	assert.deepEqual(probe.length, 1, `Der Pruefer findet undefined-Werte (Sonst ist die Pruefung wertlos): ${JSON.stringify(probe)}`)
+})
 
 test('9. Gegenprobe gegen das Git-Alte Modul: dieselbe Szene meldet dort keine Untergruppen (Plan Nr. 6)', async () => {
 	const s = baueSzene({ kataloge: { exp: [katalogZeile('fachA', 'A', '2026-11-11T00:01:00Z')], fachA: [] }, mitglieder: [{ role: 'teammate', name: 'exp', id: 'exp', status: 'inactive' }], beobachtungen: { fachA: null } })

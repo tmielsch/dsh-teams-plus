@@ -607,7 +607,7 @@ export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), u
 				zeitLetztesEreignis: zeit === null ? null : new Date(zeit).toISOString() };
 		}
 		const beobachtung = await umgebung.beobachte(id, LESE_FRIST_MS);
-		if (beobachtung === undefined) return { ...basis, gelesenAus: "nicht lesbar", zustand: "abgebaut", ziel: null, bericht: false, zeitLetztesEreignis: null };
+		if (beobachtung === undefined) return { ...basis, gelesenAus: "nicht lesbar", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 		try {
 			const projektion = beobachtung.projections?.values?.goal;
 			const ziel = projektion?.goal;
@@ -619,7 +619,7 @@ export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), u
 				zeitLetztesEreignis: typeof zeit === "number" ? new Date(zeit).toISOString() : null };
 		} finally { beobachtung[Symbol.dispose]?.(); }
 	} catch (fehler) {
-		return { ...basis, gelesenAus: `Fehler: ${kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120)}`, zustand: "abgebaut", ziel: null, bericht: false, zeitLetztesEreignis: null };
+		return { ...basis, gelesenAus: `Fehler: ${kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120)}`, zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 	}
 }
 
@@ -957,7 +957,10 @@ export function apply(ctx, optionen = {}) {
 	const uebernahmen = new Map(leseUebernahmen().map((e) => [e.id, e]));
 	const sichereUebernahmen = () => schreibeUebernahmen([...uebernahmen.values()]);
 	/** Die Live-Liste für die Stand-Übersicht: dasselbe Gedächtnis, nicht nochmal aus der Datei. */
-	umgebung.uebernahmenListe = () => [...uebernahmen.values()];
+	// Der Stand liest die Übernahme-Liste direkt aus der Datei (Plan Schritt 3), damit sie auch für eine
+	// Probe und für einen Menschenkontakt ohne laufenden Speicher-Modulzustand gilt. Die Map darunter ist
+	// nur für das schnelle Prüfen in `uebernommen()` und für Freigabe-Löschungen aktuell.
+	umgebung.uebernahmenListe = () => leseUebernahmen();
 	umgebung.uebernommen = (id) => uebernahmen.has(id);
 	umgebung.erzeugeZiel = (agent, anfrage) => ctx.goals.create(agent, anfrage);
 	umgebung.wecke = async (absender, zeile, signal) => {
