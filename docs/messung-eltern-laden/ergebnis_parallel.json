@@ -1,0 +1,281 @@
+{
+ "szenario": "parallel",
+ "nachStart": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 1
+  },
+  "zuege": {
+   "cffdffb2": 1,
+   "4b6b5b33": 1,
+   "09388042": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "09388042"
+  ]
+ },
+ "nachAbbau": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 1
+  },
+  "zuege": {
+   "cffdffb2": 1,
+   "4b6b5b33": 1,
+   "09388042": 1
+  },
+  "erzeugt": 3,
+  "lebend": []
+ },
+ "elternLebt": false,
+ "kindLebt": false,
+ "parallel": [
+  "ok",
+  "ok"
+ ],
+ "haken": [
+  {
+   "ms": 5870,
+   "art": "haken-laedt",
+   "eltern": "09388042"
+  },
+  {
+   "ms": 5871,
+   "art": "haken-laedt",
+   "eltern": "09388042"
+  },
+  {
+   "art": "haken-geladen",
+   "lebt": true
+  },
+  {
+   "art": "haken-geladen",
+   "lebt": true
+  }
+ ],
+ "erzeugtLeadAgenten": 2,
+ "ende": {
+  "llm": 8,
+  "llmJe": {
+   "eltern": 4,
+   "kind": 2
+  },
+  "zuege": {
+   "cffdffb2": 2,
+   "4b6b5b33": 2,
+   "09388042": 2
+  },
+  "erzeugt": 6,
+  "lebend": [
+   "09388042"
+  ]
+ },
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1228,
+   "id": "09388042",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1237,
+   "id": "09388042",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1277,
+   "id": "cffdffb2",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1278,
+   "id": "cffdffb2",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1345,
+   "id": "4b6b5b33",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1346,
+   "id": "4b6b5b33",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1773,
+   "id": "cffdffb2",
+   "agentAvailable": false
+  },
+  {
+   "ms": 1800,
+   "id": "4b6b5b33",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5358,
+   "id": "09388042",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5907,
+   "id": "09388042",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5910,
+   "id": "09388042",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5931,
+   "id": "4b6b5b33",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5932,
+   "id": "4b6b5b33",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5936,
+   "id": "cffdffb2",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5937,
+   "id": "cffdffb2",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6397,
+   "id": "4b6b5b33",
+   "agentAvailable": false
+  },
+  {
+   "ms": 6406,
+   "id": "cffdffb2",
+   "agentAvailable": false
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1349,
+   "sitzung": "cffdffb2",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1376,
+   "sitzung": "4b6b5b33",
+   "text": "Start2 [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1824,
+   "sitzung": "09388042",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1845,
+   "sitzung": "09388042",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5972,
+   "sitzung": "4b6b5b33",
+   "text": "Parallel B [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5972,
+   "sitzung": "cffdffb2",
+   "text": "Parallel A [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6448,
+   "sitzung": "09388042",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6466,
+   "sitzung": "09388042",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1236,
+   "art": "agent/created",
+   "id": "09388042",
+   "source": "startup"
+  },
+  {
+   "ms": 1237,
+   "art": "eltern-angelegt",
+   "id": "09388042"
+  },
+  {
+   "ms": 1278,
+   "art": "agent/created",
+   "id": "cffdffb2",
+   "source": "startup"
+  },
+  {
+   "ms": 1346,
+   "art": "agent/created",
+   "id": "4b6b5b33",
+   "source": "startup"
+  },
+  {
+   "ms": 1772,
+   "art": "agent/disposed",
+   "id": "cffdffb2"
+  },
+  {
+   "ms": 1799,
+   "art": "agent/disposed",
+   "id": "4b6b5b33"
+  },
+  {
+   "ms": 5355,
+   "art": "agent/disposed",
+   "id": "09388042"
+  },
+  {
+   "ms": 5909,
+   "art": "agent/created",
+   "id": "09388042",
+   "source": "resume"
+  },
+  {
+   "ms": 5932,
+   "art": "agent/created",
+   "id": "4b6b5b33",
+   "source": "resume"
+  },
+  {
+   "ms": 5937,
+   "art": "agent/created",
+   "id": "cffdffb2",
+   "source": "resume"
+  },
+  {
+   "ms": 6396,
+   "art": "agent/disposed",
+   "id": "4b6b5b33"
+  },
+  {
+   "ms": 6405,
+   "art": "agent/disposed",
+   "id": "cffdffb2"
+  }
+ ]
+}

@@ -1,0 +1,189 @@
+{
+ "szenario": "ziel",
+ "zielAnlegen": "{\"id\":\"goal-ab2794bd-206c-4e2f-ad10-1262b9d63603\",\"revision\":1,\"objective\":\"Eltern-Ziel: arbeite weiter [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":100,\"roundsStarted\":0,\"createdAt\":1794509275281,\"upda",
+ "vorAbbau": {
+  "ziel": "{\"id\":\"goal-ab2794bd-206c-4e2f-ad10-1262b9d63603\",\"revision\":1,\"objective\":\"Eltern-Ziel: arbeite weiter [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":100,\"roundsStarted\":1,\"createdAt\":1794509275281,\"updatedAt\":1794509275281,\"activation\":\"armed\"}",
+  "llm": 1,
+  "llmJe": {
+   "eltern": 1
+  },
+  "zuege": {
+   "09275251": 1
+  },
+  "erzeugt": 1,
+  "lebend": [
+   "09275251"
+  ]
+ },
+ "nachAbbau": {
+  "llm": 1,
+  "llmJe": {
+   "eltern": 1
+  },
+  "zuege": {
+   "09275251": 1
+  },
+  "erzeugt": 1,
+  "lebend": []
+ },
+ "laden": {
+  "ok": true,
+  "r": "09275251",
+  "vor": {
+   "llm": 1,
+   "llmJe": {
+    "eltern": 1
+   },
+   "zuege": {
+    "09275251": 1
+   },
+   "erzeugt": 1,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 1,
+   "llmJe": {
+    "eltern": 1
+   },
+   "zuege": {
+    "09275251": 1
+   },
+   "erzeugt": 2,
+   "lebend": [
+    "09275251"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 1,
+  "llmJe": {
+   "eltern": 1
+  },
+  "zuege": {
+   "09275251": 1
+  },
+  "erzeugt": 2,
+  "lebend": [
+   "09275251"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1226,
+   "id": "09275251",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1233,
+   "id": "09275251",
+   "agentAvailable": true
+  },
+  {
+   "ms": 4368,
+   "id": "09275251",
+   "agentAvailable": false
+  },
+  {
+   "ms": 4713,
+   "id": "09275251",
+   "agentAvailable": true
+  },
+  {
+   "ms": 4718,
+   "id": "09275251",
+   "agentAvailable": true
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1339,
+   "sitzung": "09275251",
+   "text": "<goal_round>\nObjective: \"Eltern-Ziel: arbeite weiter [[LONG]",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1232,
+   "art": "agent/created",
+   "id": "09275251",
+   "source": "startup"
+  },
+  {
+   "ms": 1233,
+   "art": "eltern-angelegt",
+   "id": "09275251"
+  },
+  {
+   "ms": 4367,
+   "art": "agent/disposed",
+   "id": "09275251"
+  },
+  {
+   "ms": 4716,
+   "art": "agent/created",
+   "id": "09275251",
+   "source": "resume"
+  },
+  {
+   "ms": 4718,
+   "art": "eltern-laden",
+   "ok": true
+  },
+  {
+   "ms": 5721,
+   "art": "ziel-verlauf",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 6725,
+   "art": "ziel-verlauf",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 7727,
+   "art": "ziel-verlauf",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 8731,
+   "art": "ziel-verlauf",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 9733,
+   "art": "ziel-verlauf",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 10735,
+   "art": "ziel-verlauf",
+   "phase": "paused",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  }
+ ]
+}

@@ -1,0 +1,249 @@
+{
+ "szenario": "tor",
+ "nachStart": {
+  "llm": 2,
+  "zuege": {
+   "5f18bdeb": 1,
+   "09038619": 1
+  },
+  "erzeugt": 2,
+  "lebend": [
+   "09038619"
+  ]
+ },
+ "elternStatusVorAbbau": "idle",
+ "sitzungsdateien": [
+  "--tmp-teams_plus_umbau-probe_eltern--",
+  "--tmp-teams_plus_umbau-probe_eltern--/e577ceb0-e439-41de-bf58-9c6a5f18bdeb",
+  "--tmp-teams_plus_umbau-probe_eltern--/eltern-1794509038619",
+  "--tmp-teams_plus_umbau-probe_eltern--/e577ceb0-e439-41de-bf58-9c6a5f18bdeb/session.lock",
+  "--tmp-teams_plus_umbau-probe_eltern--/e577ceb0-e439-41de-bf58-9c6a5f18bdeb/session.v4.jsonl.zstd",
+  "--tmp-teams_plus_umbau-probe_eltern--/eltern-1794509038619/session.lock",
+  "--tmp-teams_plus_umbau-probe_eltern--/eltern-1794509038619/session.v4.jsonl.zstd"
+ ],
+ "nachAbbau": {
+  "llm": 2,
+  "zuege": {
+   "5f18bdeb": 1,
+   "09038619": 1
+  },
+  "erzeugt": 2,
+  "lebend": []
+ },
+ "elternLebt": false,
+ "kindLebt": false,
+ "listeKalt": {
+  "ok": false,
+  "code": "gateway/arguments-invalid",
+  "fehler": "typert gateway: session/list: args fields do not match the descriptor: missing \"_request\"; unexpected \"request\"",
+  "vor": {
+   "llm": 2,
+   "zuege": {
+    "5f18bdeb": 1,
+    "09038619": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "zuege": {
+    "5f18bdeb": 1,
+    "09038619": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  }
+ },
+ "torKalt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-1794509038619\" is not live",
+  "vor": {
+   "llm": 2,
+   "zuege": {
+    "5f18bdeb": 1,
+    "09038619": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "zuege": {
+    "5f18bdeb": 1,
+    "09038619": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  }
+ },
+ "torMitHaken": {
+  "ok": true,
+  "r": "{\"messageId\":\"70ed02fa-963c-4835-93cb-58fe88ef8f3e\"}",
+  "vor": {
+   "llm": 2,
+   "zuege": {
+    "5f18bdeb": 1,
+    "09038619": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "zuege": {
+    "5f18bdeb": 2,
+    "09038619": 1
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09038619",
+    "5f18bdeb"
+   ]
+  }
+ },
+ "haken": [
+  {
+   "ms": 5814,
+   "art": "haken-laedt",
+   "eltern": "09038619",
+   "anbieterDa": true
+  },
+  {
+   "art": "haken-geladen",
+   "lebt": true
+  }
+ ],
+ "listeNachLaden": {
+  "ok": false,
+  "code": "gateway/arguments-invalid",
+  "fehler": "typert gateway: session/list: args fields do not match the descriptor: missing \"_request\"; unexpected \"request\"",
+  "vor": {
+   "llm": 4,
+   "zuege": {
+    "5f18bdeb": 2,
+    "09038619": 2
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09038619"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "zuege": {
+    "5f18bdeb": 2,
+    "09038619": 2
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09038619"
+   ]
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": 1359,
+   "sitzung": "5f18bdeb",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1836,
+   "sitzung": "09038619",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5902,
+   "sitzung": "5f18bdeb",
+   "text": "Tor 2 [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6366,
+   "sitzung": "09038619",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1230,
+   "art": "agent/created",
+   "id": "09038619",
+   "source": "startup"
+  },
+  {
+   "ms": 1231,
+   "art": "eltern-angelegt",
+   "id": "09038619"
+  },
+  {
+   "ms": 1285,
+   "art": "agent/created",
+   "id": "5f18bdeb",
+   "source": "startup"
+  },
+  {
+   "ms": 1295,
+   "art": "kind-gestartet",
+   "id": "5f18bdeb"
+  },
+  {
+   "ms": 1788,
+   "art": "agent/disposed",
+   "id": "5f18bdeb"
+  },
+  {
+   "ms": 5301,
+   "art": "agent/disposed",
+   "id": "09038619"
+  },
+  {
+   "ms": 5806,
+   "art": "session-list-kalt",
+   "ok": false,
+   "code": "gateway/arguments-invalid",
+   "f": "typert gateway: session/list: args fields do not match the descriptor: missing \"_request\"; unexpected \"request\""
+  },
+  {
+   "ms": 5812,
+   "art": "tor-prompt-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable",
+   "f": "parent session \"eltern-1794509038619\" is not live"
+  },
+  {
+   "ms": 5854,
+   "art": "agent/created",
+   "id": "09038619",
+   "source": "resume"
+  },
+  {
+   "ms": 5874,
+   "art": "agent/created",
+   "id": "5f18bdeb",
+   "source": "resume"
+  },
+  {
+   "ms": 5877,
+   "art": "tor-prompt-mit-haken",
+   "ok": true,
+   "r": "{\"messageId\":\"70ed02fa-963c-4835-93cb-58fe88ef8f3e\"}"
+  },
+  {
+   "ms": 6320,
+   "art": "agent/disposed",
+   "id": "5f18bdeb"
+  },
+  {
+   "ms": 8379,
+   "art": "session-list-nach-laden",
+   "ok": false,
+   "code": "gateway/arguments-invalid",
+   "f": "typert gateway: session/list: args fields do not match the descriptor: missing \"_request\"; unexpected \"request\""
+  }
+ ]
+}
