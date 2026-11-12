@@ -87,7 +87,7 @@ Aktivierung: bei lebendem Kind gesetzt, sonst das Wort „unbekannt (sitzt nicht
 
 Die Feldliste je Gruppe und je Kind-Zeile:
 - Je Gruppe: das Feld `gruppe` mit dem Wert „mitglied“ oder „eigeneUnteragenten“; dazu als Kennung die Sitzungskennung des Mitarbeiters (`id`) bei Mitgliedern, sonst null; dann die Unterliste `unteragenten`.
-- Je Kinderzeile (in `unteragenten`): Sitzungskennung (`id`), lesbarer Name aus dem Label (`label`; leer bei einem one-shot-Kind ohne Label), Anlegezeit (`createdAt`), Tiefenstufe (`depth`, absolute Tiefe unter dem Aufrufer, also „1“ für ein direktes Kind und „2“ für einen Enkel), Elternkennung (`parentId`; im Kernfeld `parentId`, in Treiber-Ausgabe `parent` — siehe A3), Zustand („läuft“, „ruht“, „abgebaut“), Zielwortlaut gekürzt (die bestehende Funktion `kuerze(text, 200)`), Phase, Runden und Rundengrenze, Zeit des letzten Ereignisses, **vom Menschen angehalten seit** (`angehaltenSeit`, siehe unten), Bericht vorhanden.
+- Je Kinderzeile (in `unteragenten`): Sitzungskennung (`id`), lesbarer Name aus dem Label (`label`; leer bei einem one-shot-Kind ohne Label), Anlegezeit (`createdAt`), Tiefenstufe (`depth`, Tiefe unter dem Gruppenkopf: bei einer Mitglied-Gruppe also „1“ für ein direktes Kind des Mitglieds und „2“ für dessen Enkel; bei der eigenen Gruppe des Aufrufers „1“ für dessen direktes Kind; so entschieden 2026-11-12), Elternkennung (`parentId`; im Kernfeld `parentId`, in Treiber-Ausgabe `parent` — siehe A3), Zustand („läuft“, „ruht“, „abgebaut“), Zielwortlaut gekürzt (die bestehende Funktion `kuerze(text, 200)`), Phase, Runden und Rundengrenze, Zeit des letzten Ereignisses, **vom Menschen angehalten seit** (`angehaltenSeit`, siehe unten), Bericht vorhanden.
 
 Die Gruppierung selbst ist wie folgt:
 - **Je Teammitglied seine eigenen Kinder.** Das Kind gehört zur Gruppe desjenigen Elternteils, dessen Katalog es enthält. In der Gruppe erscheinen **alle Nachkommen darunter**: ein direktes Kind steht bei `depth: 1`, sein Enkel wird in derselben Gruppe mit `depth: 2` und `parentId = <Kennung des Elternteils>` aufgelistet. Eine eigene Ebene „Enkel“ braucht die Struktur nicht — der Baum wird aus `parentId` und `depth` gebildet; der Name ist das Label und dient nie zum Sortieren.
@@ -106,6 +106,10 @@ Stelle für spätere Änderung: `agents/teams-plus-agents.voll.md` (Quelle im se
 
 **Schritt 6 — Plan zur Abnahme.**
 Red-Team liest diesen Plan gegen Spec und Messung, danach der Lead mit Ja oder Nein, danach der Mensch. Erst nach seinem Ja geht ein abgenommener Bau an einen Worker (Regel „Der Weg eines Plans“). Der vorliegende Stand endet hier.
+
+## 5a. Folgeschritt nach dem Einspielen (nicht Teil dieses Baus)
+
+- **Offene Frage je Mitarbeiter zeigen** (Spec `docs/KONZEPT-GESPRAECHSMODUS.md` Abschnitt 5.7, Feld „offene Frage an den Menschen“): `team_stand` zeigt je Mitglied noch nicht, ob es dem Menschen eine Frage gestellt hat. Die Frage liegt in `state/fragen-an-mensch.jsonl`, die Zuordnung zur Kennung ist dort vorhanden. Entscheidung des Menschen 2026-11-12: **kommt NICHT jetzt**, sondern als eigener Schritt nach dem Einspielen der Anweisungsdatei.
 
 ## 6. Risiken und was nicht bekannt ist
 
