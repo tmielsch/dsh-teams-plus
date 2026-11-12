@@ -425,12 +425,13 @@ export const UNBEKANNT_AKTIVIERUNG = "unbekannt (sitzt nicht in der Datei)";
  * jedes behandelte Kind) erscheint nie als Kinderzeile; sein Unterlauf wird dort nicht noch einmal
  * betreten — er bekommt seine eigene Gruppe.
  */
-export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, uebernahmenListe, budget, zeitVorbei, dienstFehlt, besprochen, restZeit = () => Infinity) {
+export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, uebernahmenListe, budget, zeitVorbei, dienstFehlt, besprochen, restZeit) {
+	if (typeof restZeit !== "function") throw new TypeError("leseKinderGruppe braucht eine Restzeit-Funktion");
 	if (gruppe !== "mitglied" && gruppe !== "eigeneUnteragenten") throw new Error(`leseKinderGruppe: unbekannter gruppe-Wert "${gruppe}"`);
 	const ergebnis = { gruppe, id: kopfId, unteragenten: [] };
 	if (dienstFehlt) { ergebnis.fehler = UNTERAGENTEN_DIENST_FEHLT; return ergebnis; }
 	let katalog;
-	try { katalog = await umgebung.mitFrist(umgebung.kinderListe(String(kopfId)), restZeit()); }
+	try { katalog = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.kinderListe(String(kopfId)), restZeit()); }
 	catch (fehler) { katalog = { fehler: kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120) }; }
 	if (katalog === FRIST_ABGELAUFEN) { ergebnis.fehler = "Zeitgrenze erreicht: Katalog des Gruppenkopfs nicht gelesen"; return ergebnis; }
 	if (katalog === null) { ergebnis.fehler = UNTERAGENTEN_DIENST_FEHLT; return ergebnis; } // Dienst fehlt (Plan Schritt 2).
@@ -453,7 +454,7 @@ export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, ueberna
 			zeitLetztesEreignis: kern.zeitLetztesEreignis, angehaltenSeit: kern.angehaltenSeit, bericht: kern.bericht, gelesenAus: kern.gelesenAus
 		});
 		let kinder;
-		try { kinder = await umgebung.mitFrist(umgebung.kinderListe(id), restZeit()); }
+		try { kinder = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.kinderListe(id), restZeit()); }
 		catch (fehler) { kinder = { fehler: kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120) }; }
 		if (kinder === FRIST_ABGELAUFEN) { abgeschnittenGrund = "zeit"; continue; }
 		if (!Array.isArray(kinder)) {
@@ -576,7 +577,7 @@ export function baueStandWerkzeug({ defineTool, umgebung, ordner = berichtOrdner
 			let mitgliederAbgebrochen = 0;
 			for (const zeile of zeilen) {
 				if (zeile.role !== "teammate") continue;
-				const erg = await umgebung.mitFrist(umgebung.leseMitglied(zeile, ordner, uebernahmenListe), restZeit());
+				const erg = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.leseMitglied(zeile, ordner, uebernahmenListe, restZeit), restZeit());
 				if (erg === FRIST_ABGELAUFEN) { mitgliederAbgebrochen += 1; mitglieder.push({ name: zeile.name, id: zeile.id, status: zeile.status, gelesenAus: "Zeitgrenze erreicht", zustand: null, ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null, angehaltenSeit: null }); }
 				else mitglieder.push(erg);
 			}
@@ -609,7 +610,8 @@ export function baueStandWerkzeug({ defineTool, umgebung, ordner = berichtOrdner
  * Kinderzeilen ihn nicht gesondert bestimmen müssen. Dieser Kern wirft nie: eine fehlgeschlagene
  * Lesung steht lesbar in `gelesenAus`, und `ziel: null` (kein Ziel) bleibt von „nicht lesbar“ unterscheidbar.
  */
-export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), uebernahmen, restZeit = () => Infinity) {
+export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), uebernahmen, restZeit) {
+	if (typeof restZeit !== "function") throw new TypeError("leseSitzungsKern braucht eine Restzeit-Funktion");
 	const formen = (z, aktivierung) => ({
 		phase: z.phase,
 		...(aktivierung === undefined ? {} : { aktivierung }),
@@ -633,7 +635,7 @@ export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), u
 				bericht: ziel === undefined ? false : hatBericht(ziel.id, ordner),
 				zeitLetztesEreignis: zeit === null ? null : new Date(zeit).toISOString() };
 		}
-		const beobachtung = await umgebung.beobachte(id, Math.min(LESE_FRIST_MS, Math.max(0, restZeitMs(restZeit))));
+		const beobachtung = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.beobachte(id, Math.min(LESE_FRIST_MS, restZeit())), restZeit());
 		if (beobachtung === FRIST_ABGELAUFEN) return { ...basis, gelesenAus: "Zeitgrenze erreicht", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 		if (beobachtung === undefined) return { ...basis, gelesenAus: "nicht lesbar", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 		try {
@@ -656,8 +658,8 @@ export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), u
  * Die Abfrage der gespeicherten Sitzung bekommt eine Frist, damit eine sehr große Sitzung die Übersicht nicht
  * aufhält (nicht gemessen, wie lange das bei den größten Sitzungen dauert — siehe Konzept, offene Punkte).
  */
-export async function leseMitglied(zeile, umgebung, ordner = berichtOrdner(), uebernahmen) {
-	return { name: zeile.name, id: zeile.id, status: zeile.status, ...await leseSitzungsKern(zeile.id, umgebung, ordner, uebernahmen) };
+export async function leseMitglied(zeile, umgebung, ordner = berichtOrdner(), uebernahmen, restZeit) {
+	return { name: zeile.name, id: zeile.id, status: zeile.status, ...await leseSitzungsKern(zeile.id, umgebung, ordner, uebernahmen, restZeit) };
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -973,7 +975,7 @@ export function apply(ctx, optionen = {}) {
 			try { return await abfrage.observeSession(sitzungsId, { signal: abbruch.signal }); } catch { return undefined; } finally { clearTimeout(uhr); }
 		}
 	};
-	umgebung.leseMitglied = (zeile, o, uebernahmenListe) => leseMitglied(zeile, umgebung, o, uebernahmenListe);
+	umgebung.leseMitglied = (zeile, o, uebernahmenListe, restZeit) => leseMitglied(zeile, umgebung, o, uebernahmenListe, restZeit);
 	// Kinder-Erhebung über den öffentlichen Unteragenten-Dienst (`subagents`), Fassade wie bei `teams`,
 	// damit ein fehlendes Kernpaket das Modul nicht ganz scheitern lässt (Plan Schritt 2).
 	umgebung.unteragenten = () => hole("subagents");
@@ -994,10 +996,14 @@ export function apply(ctx, optionen = {}) {
 	/** Begrenzt einen Abfrageschritt auf eine Frist; FRIST_ABGELAUFEN bei Treffer. Für Tests ueber `fristMs` steuerbar. */
 	umgebung.mitFrist = (promise, restMs) => {
 		if (typeof restMs !== "number" || Number.isNaN(restMs)) throw new TypeError("mitFrist braucht eine Restzeit in ms");
-		if (restMs <= 0) return Promise.resolve(FRIST_ABGELAUFEN);
+		// Eine unendliche Frist ist keine Frist: setTimeout(Infinity) liefe nach 1 ms ab. Dann gilt das Versprechen unverändert.
+		if (restMs === Infinity) return promise;
+		// Die Abfrage läuft schon (oder nicht): ihre spätere Ablehnung wird abgefangen, sonst beendet der Host den Prozess.
+		const abgefangen = Promise.resolve(promise).catch(() => undefined);
+		if (restMs <= 0) { abgefangen.catch(() => undefined); return Promise.resolve(FRIST_ABGELAUFEN); }
 		let uhr;
 		const frist = new Promise((fertig) => { uhr = setTimeout(() => fertig(FRIST_ABGELAUFEN), restMs); });
-		return Promise.race([promise, frist]).finally(() => clearTimeout(uhr));
+		return Promise.race([abgefangen, frist]).finally(() => clearTimeout(uhr));
 	};
 	umgebung.uebernommen = (id) => uebernahmen.has(id);
 	umgebung.erzeugeZiel = (agent, anfrage) => ctx.goals.create(agent, anfrage);

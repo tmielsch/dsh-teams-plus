@@ -74,7 +74,7 @@ function baueSzene({ kataloge = {}, mitglieder = [], lebendeZiele = {}, beobacht
 			return kataloge[id]
 		}
 	}
-	umgebung.leseMitglied = (zeile, o, liste) => leseMitglied(zeile, umgebung, o, liste)
+	umgebung.leseMitglied = (zeile, o, liste, restZeit) => leseMitglied(zeile, umgebung, o, liste, restZeit ?? (() => 120_000))
 	// Dieselbe Fristlogik wie in apply(): begrenzt einen Abfrageschritt; FRIST_ABGELAUFEN bei Treffer.
 	umgebung.mitFrist = (promise, restMs = Infinity) => {
 		if (!Number.isFinite(restMs)) return promise
@@ -250,11 +250,11 @@ test('6. O3-Werte gesetzt: Grenze 60 Sitzungen, Frist 120 Sekunden; beide Schnit
 	assert.equal(eigene.unteragenten.filter((z) => z.gelesenAus === 'nicht gelesen').length, 4, 'die übrigen vier stehen als „nicht gelesen“ darunter')
 
 	// Zeitgrenze direkt an der Gruppenfunktion: abgelaufene Frist vor dem ersten Kind -> Meldung am Kopf.
-	const g1 = await leseKinderGruppe('eigeneUnteragenten', 'lead', s.umgebung, s.ordner, [], { gezaehlt: 0 }, () => true, false, new Set())
+	const g1 = await leseKinderGruppe('eigeneUnteragenten', 'lead', s.umgebung, s.ordner, [], { gezaehlt: 0 }, () => true, false, new Set(), () => 120_000)
 	assert.match(g1.fehler ?? '', /^Zeitgrenze erreicht: \d+ Kinder nicht gelesen$/, 'vollständig ungelesene Gruppe trägt die Zeitmeldung im Feld fehler')
 	// Teilweise gelesen: drei Zeilen schaffen es noch vor der Frist, dann kommt der Marker.
 	let tacker = 0
-	const g2 = await leseKinderGruppe('eigeneUnteragenten', 'lead', s.umgebung, s.ordner, [], { gezaehlt: 0 }, () => (tacker += 1) > 3, false, new Set())
+	const g2 = await leseKinderGruppe('eigeneUnteragenten', 'lead', s.umgebung, s.ordner, [], { gezaehlt: 0 }, () => (tacker += 1) > 3, false, new Set(), () => 120_000)
 	assert.equal(g2.fehler, undefined)
 	const m2 = g2.unteragenten.filter((z) => z.marke === 'grenze')
 	assert.equal(m2.length, 1); assert.match(m2[0].text, /^Zeitgrenze erreicht: \d+ Kinder nicht gelesen$/)
@@ -379,24 +379,10 @@ test('11. abgeschnittene Gruppe: ein Teammitglied in der Restwarteschlange steht
 
 // ---------------------------------------------------------------------------------------------------
 // 12. Prüfer-Fund 3, Mutation „Frist 120 ms statt 120 s“: die Frist ist 120 Sekunden.
-// ---------------------------------------------------------------------------------------------------
-
-test('12. Frist ist 120 Sekunden: STAND_FRIST_S und die Restfrist im Werkzeug (Fund 3, Mutation 120 ms)', async () => {
-	assert.equal(STAND_FRIST_S, 120, 'Konstante ist 120 Sekunden')
-	const s = baueSzene({ kataloge: {}, mitglieder: [] })
-	const erg = await s.umgebung.mitFrist(new Promise((f) => setTimeout(() => f('ok'), 150)), 120_000)
-	assert.equal(erg, 'ok', 'ein 150-ms-Schritt bleibt bei 120 s Frist erhalten (würde bei 120 ms abbrechen)')
-})
-
-// ---------------------------------------------------------------------------------------------------
-// 13. Prüfer-Fund 3, Mutation „Frist ignoriert“: läuft die Frist ab, kommt der Sentinel.
-// ---------------------------------------------------------------------------------------------------
-
-test('13. abgelaufene Frist: der Schritt wird begrenzt und liefert FRIST_ABGELAUFEN (Fund 3 + 4)', async () => {
-	const s = baueSzene({ kataloge: {}, mitglieder: [] })
-	const erg = await s.umgebung.mitFrist(new Promise((f) => setTimeout(() => f('zu-spaet'), 200)), 20)
-	assert.equal(erg, FRIST_ABGELAUFEN, 'ein Schritt, der in die Frist läuft, liefert den Sentinel statt des Ergebnisses')
-})
+// Die früheren Tests 12 und 13 (Fristfunktion als Kopie in dieser Datei) sind entfernt: sie prüften eine
+// nachgebaute Kopie mit abweichender Bedeutung, nicht die echte apply()-Funktion (Prüfer, 2026-11-12).
+// Ihre Stelle übernehmen die Prüfungen 18–22 in test/team-stand-frist.test.mjs und 31–37 in
+// test/team-stand-absturz.test.mjs, die patches/team-modus.mjs über apply() laden.
 
 // ---------------------------------------------------------------------------------------------------
 // 14. Prüfer-Fund 3, Mutation „Feld notschalter immer false“: der Stand meldet den tatsächlichen Schalter.

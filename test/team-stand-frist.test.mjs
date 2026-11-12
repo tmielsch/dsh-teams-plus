@@ -174,7 +174,7 @@ test('24. Restzeile einer Tiefe 2: parentId ist die Elternkennung a, nicht der G
 	}
 	// Budget 58 vorbelegt: der Kopf zählt 1, a zählt 1; b rutscht in die Restzeilen, damit die Kette abgeschnitten wird.
 	const budget = { gezaehlt: 58 }
-	const gruppe = await M.leseKinderGruppe('eigeneUnteragenten', 'lead', umgebung, undefined, [], budget, () => false, false, new Set())
+	const gruppe = await M.leseKinderGruppe('eigeneUnteragenten', 'lead', umgebung, undefined, [], budget, () => false, false, new Set(), () => 120_000)
 	const b = gruppe.unteragenten.find((z) => z.id === 'b')
 	assert.ok(b, 'b steht in der Gruppe (als Restzeile)')
 	assert.equal(b.parentId, 'a', 'die Restzeile b trägt die Elternkennung a, nicht den Gruppenkopf')
@@ -186,7 +186,7 @@ test('24. Restzeile einer Tiefe 2: parentId ist die Elternkennung a, nicht der G
 
 test('25. Dienst fehlt (kinderListe liefert null): der Gruppenkopf trägt „Unteragenten nicht gelesen: Dienst fehlt“ (Fund 6)', async () => {
 	const umgebung = { kinderListe: async () => null, beobachte: async () => undefined, mitFrist: (p) => p, leseMitglied: async () => ({}), uebernahmenListe: () => [] }
-	const gruppe = await M.leseKinderGruppe('mitglied', 'exp', umgebung, undefined, [], { gezaehlt: 0 }, () => false, false, new Set())
+	const gruppe = await M.leseKinderGruppe('mitglied', 'exp', umgebung, undefined, [], { gezaehlt: 0 }, () => false, false, new Set(), () => 120_000)
 	assert.equal(gruppe.fehler, M.UNTERAGENTEN_DIENST_FEHLT, 'der Null-Pfad erreicht den Dienst-fehlt-Text')
 })
 
@@ -223,12 +223,12 @@ test('27. Budget: Restzeilen zählen nur, wenn sie eingetragen werden; vollstän
 	}
 	// Fall A: Budget voll (60): keine Kindzeile, Meldung am Kopf, Budget 61 (nur der Kopf).
 	const budgetA = { gezaehlt: 60 }
-	const gA = await M.leseKinderGruppe('eigeneUnteragenten', 'lead', umgebung, undefined, [], budgetA, () => false, false, new Set())
+	const gA = await M.leseKinderGruppe('eigeneUnteragenten', 'lead', umgebung, undefined, [], budgetA, () => false, false, new Set(), () => 120_000)
 	assert.match(gA.fehler, /Grenze erreicht: 3 Kind-Sitzungen nicht gelesen/, 'vollständig ungelesene Gruppe trägt die Meldung am Kopf')
 	assert.equal(budgetA.gezaehlt, 61, 'Budget steht bei 60 Vorbelegung + Kopf 1; die Grenze verhindert jede Kindzeile, und Restzeilen ohne Eintrag zählen nicht')
 	// Fall B: Budget 57: Kopf 58, eine Kindzeile 59, dann Abbruch; die zwei übrigen werden Restzeilen.
 	const budgetB = { gezaehlt: 57 }
-	const gB = await M.leseKinderGruppe('eigeneUnteragenten', 'lead', umgebung, undefined, [], budgetB, () => false, false, new Set())
+	const gB = await M.leseKinderGruppe('eigeneUnteragenten', 'lead', umgebung, undefined, [], budgetB, () => false, false, new Set(), () => 120_000)
 	const kindZeilen = gB.unteragenten.filter((z) => !z.marke)
 	const restzeilen = kindZeilen.filter((z) => z.gelesenAus === 'nicht gelesen')
 	assert.equal(restzeilen.length, 1, 'eine Restzeile: die dritte Kindzeile, weil das Budget nach zwei gelesenen Kindzeilen abbricht')

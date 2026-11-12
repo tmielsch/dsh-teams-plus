@@ -81,7 +81,7 @@ function baueSzene(optionen = {}) {
 		ziel: (agent) => ziele.get(agent),
 		beobachte: async () => optionen.beobachtung
 	}
-	umgebung.leseMitglied = (zeile, o) => M.leseMitglied(zeile, umgebung, o)
+	umgebung.leseMitglied = (zeile, o, liste, restZeit) => M.leseMitglied(zeile, umgebung, o, liste, restZeit ?? (() => 120_000))
 	// Dieselbe Fristfunktion wie in apply(): begrenzt einen Schritt auf die Restzeit.
 	umgebung.mitFrist = (promise, restMs) => {
 		if (typeof restMs !== 'number' || Number.isNaN(restMs)) throw new TypeError('mitFrist braucht eine Restzeit in ms')
