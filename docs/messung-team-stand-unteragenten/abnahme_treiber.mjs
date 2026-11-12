@@ -132,7 +132,7 @@ export function apply(ctx) {
       let standNeu = null;
       try {
         const ab = lead.session.seq;
-        lead.followup((await import("@deepseek-ai/dsh-llm")).createUserMessage({ content: [{ type: "text", text: "Rufe [[TOOL:team_stand:{}]]" }], source: { kind: "user" } }));
+        lead.followup((await import("/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/index.js")).createUserMessage({ content: [{ type: "text", text: "Rufe [[TOOL:team_stand:{}]]" }], source: { kind: "user" } }));
         await warte(4000);
         const ereignisse = lead.session.snapshotEvents(ab).filter((e) => e.type === "tool/result");
         standNeu = ereignisse.map((e) => { try { return JSON.parse(JSON.stringify(e.data?.message?.content ?? e.data)); } catch { return String(e.data); } });
