@@ -1,0 +1,69 @@
+{
+ "szenario": "team1-C",
+ "modus": "ohne",
+ "lage": "C",
+ "phase": 1,
+ "nachStart": {
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:subagent-settled",
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "vorHartemEnde": {
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:subagent-settled",
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "platte": {
+  "dateien": 1,
+  "queued": [],
+  "delivered": [],
+  "quellen": []
+ },
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1358,
+   "art": "team-angelegt",
+   "lead": "91378667",
+   "exp": "ce8a9a76"
+  }
+ ]
+}

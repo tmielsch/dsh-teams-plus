@@ -68,3 +68,7 @@ Voraussetzung: Der Lead hat den Eintrag `eltern-laden` in `cordis.patch.yml` ein
 8. **Der Sonderfall, der bewusst nicht gelöst ist:** ein Unteragent unter einem Experten, der selbst ein Unteragent ist und kalt liegt (Issue 177). Hier bleibt die Sperre; die Meldung enthält jetzt den Hinweis auf die Grenze.
 
 Beim Einspielen zusätzlich (Aufgabe des Leads, Plan Schritt 7): der Satz in `agents/teams-plus-agents.voll.md` Zeile 181 „Außerhalb des Team-Modus ändert Teams Plus nichts“ muss geöffnet werden (Entscheidung O1).
+
+## Ergänzung 2026-11-13: Probe zu Issue 181 (wartende Team-Nachricht im Journal eines kalten Leads)
+
+Ergebnis: **Ja, das Laden löst bei wartender Team-Nachricht eine Modellrunde aus** (Lead bei Nachricht an den Lead: ein Aufruf binnen 400 ms nach dem Öffnen eines Kindes; Mitglied bei Nachricht an das Mitglied: wird kalt geweckt, ein Aufruf des Mitglieds). Ohne wartende Nachricht: 0 Aufrufe, wie in Abnahme 2. Zahlen, Aufbau, Gegenprobe ohne Patch und Grenzen der Messung: `docs/messung-eltern-laden/ERGEBNIS-ISSUE-181-2026-11-13.md`, Rohdaten `docs/messung-eltern-laden/issue-181/`. Das schränkt die Aussage zu Abnahme 2 und 3 ein: **sie gilt nur für Sitzungen ohne wartende Team-Nachricht.**

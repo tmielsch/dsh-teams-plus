@@ -1,0 +1,190 @@
+{
+ "szenario": "team2-A-page",
+ "modus": "mit",
+ "lage": "A",
+ "phase": 2,
+ "nachrichtId": "team-message-bbce6083-6160-4b4c-94fe-46454786ee50",
+ "plattePhase2Start": {
+  "dateien": 1,
+  "queued": [
+   "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+  ],
+  "delivered": [],
+  "quellen": []
+ },
+ "beimStart": {
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "vorAusloeser": {
+  "ms": 1221,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "ausloeser": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "dauerMs": 30
+ },
+ "direktDanach": {
+  "ms": 1251,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach400ms": {
+  "ms": 1652,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 3,
+  "llmLead": 2,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+   ],
+   "delivered": [
+    "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+   ]
+  },
+  "leadEreignisse": [
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header",
+   "team/message/delivered",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "nach5s": {
+  "ms": 6255,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 3,
+  "llmLead": 2,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+   ],
+   "delivered": [
+    "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+   ]
+  },
+  "leadEreignisse": [
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header",
+   "team/message/delivered",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "patchProtokollNachAusloeser": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=oeffnen-page eltern=lead181-A-1794591214167",
+  "geladen eltern=lead181-A-1794591214167 ms=57"
+ ],
+ "platteEnde": {
+  "dateien": 1,
+  "queued": [
+   "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+  ],
+  "delivered": [
+   "team-message-bbce6083-6160-4b4c-94fe-46454786ee50"
+  ],
+  "quellen": [
+   "team-message-bbce6083-6160-4b4c-94fe-46454786ee"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": -4463,
+   "sitzung": "f95c1169",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4000,
+   "sitzung": "91214167",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1340,
+   "sitzung": "91214167",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1279,
+   "id": "91214167",
+   "status": "running"
+  },
+  {
+   "ms": 1345,
+   "id": "91214167",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1276,
+   "id": "91214167",
+   "source": "resume"
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=oeffnen-page eltern=lead181-A-1794591214167",
+  "geladen eltern=lead181-A-1794591214167 ms=57"
+ ],
+ "protokoll": [
+  {
+   "ms": 1250,
+   "art": "ausloeser-page",
+   "ok": true
+  }
+ ]
+}

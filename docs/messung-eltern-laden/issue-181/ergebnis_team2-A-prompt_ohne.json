@@ -1,0 +1,240 @@
+{
+ "szenario": "team2-A-prompt",
+ "modus": "ohne",
+ "lage": "A",
+ "phase": 2,
+ "nachrichtId": "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c",
+ "plattePhase2Start": {
+  "dateien": 1,
+  "queued": [
+   "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+  ],
+  "delivered": [],
+  "quellen": []
+ },
+ "beimStart": {
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "vorAusloeser": {
+  "ms": 1217,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "ausloeser": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"lead181-A-1794591307943\" is not live",
+  "dauerMs": 7
+ },
+ "direktDanach": {
+  "ms": 1225,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach400ms": {
+  "ms": 1626,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach5s": {
+  "ms": 6228,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "patchProtokollNachAusloeser": [],
+ "zusatzExplizitesLaden": {
+  "ok": true,
+  "r": "91307943"
+ },
+ "zusatzDirektDanach": {
+  "ms": 6297,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "running",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+   ],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "team/message/queued",
+   "session/end-seed",
+   "agent/inbox/spliced",
+   "turn/start",
+   "agent/inbox/spliced"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach400ms": {
+  "ms": 6699,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 3,
+  "llmLead": 2,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+   ],
+   "delivered": [
+    "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+   ]
+  },
+  "leadEreignisse": [
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header",
+   "team/message/delivered",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach5s": {
+  "ms": 11301,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 3,
+  "llmLead": 2,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+   ],
+   "delivered": [
+    "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+   ]
+  },
+  "leadEreignisse": [
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header",
+   "team/message/delivered",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "platteEnde": {
+  "dateien": 1,
+  "queued": [
+   "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+  ],
+  "delivered": [
+   "team-message-82513cee-0003-4ba5-b07c-5ffd51c0528c"
+  ],
+  "quellen": [
+   "team-message-82513cee-0003-4ba5-b07c-5ffd51c052"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": -4156,
+   "sitzung": "e24f2aee",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3691,
+   "sitzung": "91307943",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6355,
+   "sitzung": "91307943",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 6292,
+   "id": "91307943",
+   "status": "running"
+  },
+  {
+   "ms": 6358,
+   "id": "91307943",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 6290,
+   "id": "91307943",
+   "source": "resume"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1225,
+   "art": "ausloeser-prompt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 6297,
+   "art": "zusatz-explizit-laden",
+   "ok": true
+  }
+ ]
+}

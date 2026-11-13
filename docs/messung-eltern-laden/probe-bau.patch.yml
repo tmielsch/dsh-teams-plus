@@ -21,4 +21,4 @@
 #MIT#     - id: eltern-laden
 #MIT#       name: '@@REPO@@/patches/eltern-laden.mjs'
     - id: probe-treiber
-      name: '@@B@@/treiber-bau.mjs'
+      name: '@@B@@/@@TREIBER@@'

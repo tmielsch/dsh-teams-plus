@@ -25,11 +25,12 @@ mkdir -p "$B" "$H"
 DSH_PAKET="$(cd "$(dirname "$(readlink -f "$(command -v dsh)")")/.." && pwd)"
 ln -sfn "$DSH_PAKET/node_modules" "$B/node_modules"
 cp "$HIER/fake-llm.mjs" "$HIER/stub-dienste.mjs" "$B/"
-cp "$HIER/treiber-bau.mjs" "$B/treiber-bau.mjs"
+TREIBER="${TREIBER:-treiber-bau.mjs}"
+cp "$HIER/$TREIBER" "$B/$TREIBER"
 if [ "$MODUS" = "mit" ]; then
-  sed "s#@@B@@#$B#g; s#@@REPO@@#$REPO#g; s/^#MIT# //" "$HIER/probe-bau.patch.yml" > "$B/probe.patch.yml"
+  sed "s#@@B@@#$B#g; s#@@REPO@@#$REPO#g; s#@@TREIBER@@#$TREIBER#g; s/^#MIT# //" "$HIER/probe-bau.patch.yml" > "$B/probe.patch.yml"
 else
-  sed "s#@@B@@#$B#g; s#@@REPO@@#$REPO#g; /^#MIT# /d" "$HIER/probe-bau.patch.yml" > "$B/probe.patch.yml"
+  sed "s#@@B@@#$B#g; s#@@REPO@@#$REPO#g; s#@@TREIBER@@#$TREIBER#g; /^#MIT# /d" "$HIER/probe-bau.patch.yml" > "$B/probe.patch.yml"
 fi
 if [ ! -f "$H/profiles/probe/package.json" ]; then
   DSH_HOME="$H" perl -e 'alarm 60; exec @ARGV' dsh probe --from-default-profile headless --dump-config > /dev/null 2>&1

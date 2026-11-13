@@ -1,0 +1,224 @@
+{
+ "szenario": "team2-C-prompt",
+ "modus": "mit",
+ "lage": "C",
+ "phase": 2,
+ "plattePhase2Start": {
+  "dateien": 1,
+  "queued": [],
+  "delivered": [],
+  "quellen": []
+ },
+ "beimStart": {
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "vorAusloeser": {
+  "ms": 1220,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "ausloeser": {
+  "ok": true,
+  "r": "{\"messageId\":\"9fc6676b-b888-4842-ab55-5ef6e11935c4\"}",
+  "dauerMs": 91
+ },
+ "direktDanach": {
+  "ms": 1311,
+  "leadLebt": true,
+  "expLebt": true,
+  "leadStatus": "idle",
+  "expStatus": "running",
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "session/end-seed"
+  ],
+  "expEreignisse": [
+   "session/title:fallback",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "session/end-seed",
+   "agent/inbox/spliced",
+   "turn/start",
+   "agent/inbox/spliced"
+  ]
+ },
+ "nach400ms": {
+  "ms": 1713,
+  "leadLebt": true,
+  "expLebt": true,
+  "leadStatus": "idle",
+  "expStatus": "running",
+  "llmGesamt": 3,
+  "llmLead": 1,
+  "llmExp": 2,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "session/end-seed"
+  ],
+  "expEreignisse": [
+   "turn/end",
+   "session/end-seed",
+   "agent/inbox/spliced",
+   "turn/start",
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:user",
+   "request/header"
+  ]
+ },
+ "nach5s": {
+  "ms": 6314,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 4,
+  "llmLead": 2,
+  "llmExp": 2,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "turn/start",
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:subagent-settled",
+   "request/header",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "patchProtokollNachAusloeser": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=lead181-C-1794591277748",
+  "geladen eltern=lead181-C-1794591277748 ms=60"
+ ],
+ "platteEnde": {
+  "dateien": 1,
+  "queued": [],
+  "delivered": [],
+  "quellen": []
+ },
+ "llmLog": [
+  {
+   "zeit": -4112,
+   "sitzung": "cdcf98c5",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3679,
+   "sitzung": "91277748",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1347,
+   "sitzung": "cdcf98c5",
+   "text": "Mensch an Experte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1814,
+   "sitzung": "91277748",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1307,
+   "id": "cdcf98c5",
+   "status": "running"
+  },
+  {
+   "ms": 1759,
+   "id": "cdcf98c5",
+   "status": "idle"
+  },
+  {
+   "ms": 1783,
+   "id": "91277748",
+   "status": "running"
+  },
+  {
+   "ms": 1817,
+   "id": "91277748",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1285,
+   "id": "91277748",
+   "source": "resume"
+  },
+  {
+   "ms": 1306,
+   "id": "cdcf98c5",
+   "source": "resume"
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=lead181-C-1794591277748",
+  "geladen eltern=lead181-C-1794591277748 ms=60"
+ ],
+ "protokoll": [
+  {
+   "ms": 1311,
+   "art": "ausloeser-prompt",
+   "ok": true
+  }
+ ]
+}
