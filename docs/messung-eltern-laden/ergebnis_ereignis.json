@@ -1,0 +1,191 @@
+{
+ "szenario": "ereignis",
+ "nachStart": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuege": {
+   "8bd33f43": 1,
+   "09196895": 1
+  },
+  "erzeugt": 2,
+  "lebend": [
+   "09196895"
+  ]
+ },
+ "nachAbbau": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuege": {
+   "8bd33f43": 1,
+   "09196895": 1
+  },
+  "erzeugt": 2,
+  "lebend": []
+ },
+ "elternLebt": false,
+ "kindLebt": false,
+ "ereignisseBeimLaden": [
+  {
+   "ms": 5827,
+   "id": "09196895",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5830,
+   "id": "09196895",
+   "agentAvailable": true
+  }
+ ],
+ "listeNachLaden": {
+  "ok": true,
+  "r": "[{\"id\":\"8bd33f43\",\"agentAvailable\":false},{\"id\":\"09196895\",\"agentAvailable\":true}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "8bd33f43": 1,
+    "09196895": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09196895"
+   ]
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "8bd33f43": 1,
+    "09196895": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09196895"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuege": {
+   "8bd33f43": 1,
+   "09196895": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "09196895"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1221,
+   "id": "09196895",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1230,
+   "id": "09196895",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1270,
+   "id": "8bd33f43",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1271,
+   "id": "8bd33f43",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1758,
+   "id": "8bd33f43",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5285,
+   "id": "09196895",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5827,
+   "id": "09196895",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5830,
+   "id": "09196895",
+   "agentAvailable": true
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1336,
+   "sitzung": "8bd33f43",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1789,
+   "sitzung": "09196895",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1229,
+   "art": "agent/created",
+   "id": "09196895",
+   "source": "startup"
+  },
+  {
+   "ms": 1230,
+   "art": "eltern-angelegt",
+   "id": "09196895"
+  },
+  {
+   "ms": 1271,
+   "art": "agent/created",
+   "id": "8bd33f43",
+   "source": "startup"
+  },
+  {
+   "ms": 1758,
+   "art": "agent/disposed",
+   "id": "8bd33f43"
+  },
+  {
+   "ms": 5284,
+   "art": "agent/disposed",
+   "id": "09196895"
+  },
+  {
+   "ms": 5829,
+   "art": "agent/created",
+   "id": "09196895",
+   "source": "resume"
+  },
+  {
+   "ms": 6345,
+   "art": "session-list-nach-laden",
+   "ok": true
+  }
+ ]
+}

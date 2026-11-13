@@ -1,0 +1,191 @@
+{
+ "szenario": "post",
+ "nachKindEnde": {
+  "llm": 1,
+  "llmJe": {
+   "eltern": 0,
+   "kind": 1
+  },
+  "zuege": {
+   "e0fefc4b": 1
+  },
+  "erzeugt": 2,
+  "lebend": []
+ },
+ "laden": {
+  "ok": true,
+  "r": "09368076",
+  "vor": {
+   "llm": 1,
+   "llmJe": {
+    "eltern": 0,
+    "kind": 1
+   },
+   "zuege": {
+    "e0fefc4b": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 1,
+   "llmJe": {
+    "eltern": 0,
+    "kind": 1
+   },
+   "zuege": {
+    "e0fefc4b": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09368076"
+   ]
+  }
+ },
+ "nachLaden": {
+  "llm": 1,
+  "llmJe": {
+   "eltern": 0,
+   "kind": 1
+  },
+  "zuege": {
+   "e0fefc4b": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "09368076"
+  ]
+ },
+ "elternModellaufrufeSeitLaden": 0,
+ "elternEreignisse": [
+  {
+   "t": "permission/preset",
+   "v": "undefined"
+  },
+  {
+   "t": "sandbox/mode",
+   "v": "undefined"
+  },
+  {
+   "t": "approval/policy",
+   "v": "undefined"
+  },
+  {
+   "t": "subagent/catalog",
+   "v": "undefined"
+  },
+  {
+   "t": "session/end-seed",
+   "v": "undefined"
+  }
+ ],
+ "ende": {
+  "llm": 1,
+  "llmJe": {
+   "eltern": 0,
+   "kind": 1
+  },
+  "zuege": {
+   "e0fefc4b": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "09368076"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1228,
+   "id": "09368076",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1236,
+   "id": "09368076",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1277,
+   "id": "e0fefc4b",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1278,
+   "id": "e0fefc4b",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1695,
+   "id": "09368076",
+   "agentAvailable": false
+  },
+  {
+   "ms": 4365,
+   "id": "e0fefc4b",
+   "agentAvailable": false
+  },
+  {
+   "ms": 7754,
+   "id": "09368076",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7758,
+   "id": "09368076",
+   "agentAvailable": true
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1336,
+   "sitzung": "e0fefc4b",
+   "text": "Lang [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1235,
+   "art": "agent/created",
+   "id": "09368076",
+   "source": "startup"
+  },
+  {
+   "ms": 1236,
+   "art": "eltern-angelegt",
+   "id": "09368076"
+  },
+  {
+   "ms": 1278,
+   "art": "agent/created",
+   "id": "e0fefc4b",
+   "source": "startup"
+  },
+  {
+   "ms": 1694,
+   "art": "agent/disposed",
+   "id": "09368076"
+  },
+  {
+   "ms": 1698,
+   "art": "eltern-abgebaut-waehrend-kind-laeuft"
+  },
+  {
+   "ms": 4365,
+   "art": "agent/disposed",
+   "id": "e0fefc4b"
+  },
+  {
+   "ms": 7757,
+   "art": "agent/created",
+   "id": "09368076",
+   "source": "resume"
+  },
+  {
+   "ms": 7759,
+   "art": "eltern-laden",
+   "ok": true
+  }
+ ]
+}

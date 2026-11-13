@@ -1,0 +1,23 @@
+# Overlay der Probe "Eltern-Sitzung laden": Attrappen-Modell und Treiber, ohne headless-runner.
+# Die Platzhalter @@B@@ und @@HIER@@ ersetzt probe-eltern.sh beim Start.
+- id: headless-runner
+  disabled: true
+- id: headless-startup
+  disabled: true
+- id: agent-default-model
+  config:
+    provider: probe
+    model: m
+# Der echte Session-Controller des Web-Profils (ohne Webserver, ohne Port): er veröffentlicht agentAvailable und
+# enthält resolve(); ohne ihn wäre die Messung der Verfügbarkeit nur Quelltext-Lesen.
+- insert:
+    - id: workspace
+      name: '@deepseek-ai/dsh-workspace'
+    - id: probe-stub-dienste
+      name: '@@B@@/stub-dienste.mjs'
+    - id: session-controller
+      name: '@deepseek-ai/dsh-api-session-controller'
+    - id: probe-fake-llm
+      name: '@@B@@/fake-llm.mjs'
+    - id: probe-treiber
+      name: '@@B@@/treiber.mjs'

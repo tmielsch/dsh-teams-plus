@@ -1,0 +1,210 @@
+{
+ "szenario": "parallel",
+ "modus": "mit",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "parallel": [
+  "ok",
+  "ok"
+ ],
+ "erzeugtLeadAgenten": 2,
+ "ende": {
+  "llm": 8,
+  "llmJe": {
+   "eltern": 4,
+   "kind": 2,
+   "kind2": 2
+  },
+  "zuegeJe": {
+   "eltern": 2,
+   "kind": 2,
+   "kind2": 2
+  },
+  "lebend": [
+   "17689747"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1339,
+   "sitzung": "0833f348",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1353,
+   "sitzung": "c90c9571",
+   "text": "Start2 [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1819,
+   "sitzung": "17689747",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1843,
+   "sitzung": "17689747",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5936,
+   "sitzung": "0833f348",
+   "text": "Parallel A [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5944,
+   "sitzung": "c90c9571",
+   "text": "Parallel B [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6413,
+   "sitzung": "17689747",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6438,
+   "sitzung": "17689747",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1230,
+   "id": "17689747",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1237,
+   "id": "17689747",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1271,
+   "id": "0833f348",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1272,
+   "id": "0833f348",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1323,
+   "id": "c90c9571",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1323,
+   "id": "c90c9571",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1775,
+   "id": "c90c9571",
+   "agentAvailable": false
+  },
+  {
+   "ms": 1783,
+   "id": "0833f348",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5334,
+   "id": "17689747",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5883,
+   "id": "17689747",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5887,
+   "id": "17689747",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5907,
+   "id": "0833f348",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5908,
+   "id": "0833f348",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5911,
+   "id": "c90c9571",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5912,
+   "id": "c90c9571",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6364,
+   "id": "0833f348",
+   "agentAvailable": false
+  },
+  {
+   "ms": 6373,
+   "id": "c90c9571",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=eltern-1794517689747",
+  "geladen eltern=eltern-1794517689747 ms=41"
+ ],
+ "protokoll": [
+  {
+   "ms": 1237,
+   "art": "agent/created",
+   "id": "17689747",
+   "source": "startup"
+  },
+  {
+   "ms": 1272,
+   "art": "agent/created",
+   "id": "0833f348",
+   "source": "startup"
+  },
+  {
+   "ms": 1324,
+   "art": "agent/created",
+   "id": "c90c9571",
+   "source": "startup"
+  },
+  {
+   "ms": 5887,
+   "art": "agent/created",
+   "id": "17689747",
+   "source": "resume"
+  },
+  {
+   "ms": 5908,
+   "art": "agent/created",
+   "id": "0833f348",
+   "source": "resume"
+  },
+  {
+   "ms": 5912,
+   "art": "agent/created",
+   "id": "c90c9571",
+   "source": "resume"
+  }
+ ]
+}

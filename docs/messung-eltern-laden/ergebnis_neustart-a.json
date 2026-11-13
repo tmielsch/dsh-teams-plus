@@ -1,0 +1,43 @@
+{
+ "szenario": "neustart-a",
+ "vorHartemEnde": {
+  "ziel": "{\"id\":\"goal-6898f54b-8264-47aa-9f24-980635ca46e3\",\"revision\":1,\"objective\":\"Eltern-Ziel: arbeite weiter [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":100,\"roundsStarted\":1,\"createdAt\":1794509326529,\"updatedAt\":1794509326529,\"activation\":\"armed\"}",
+  "status": "running",
+  "llm": 3,
+  "llmJe": {
+   "eltern": 2
+  },
+  "zuege": {
+   "4bdfe6bd": 1,
+   "09323951": 2
+  },
+  "erzeugt": 2,
+  "lebend": [
+   "09323951"
+  ]
+ },
+ "protokoll": [
+  {
+   "ms": 1233,
+   "art": "agent/created",
+   "id": "09323951",
+   "source": "startup"
+  },
+  {
+   "ms": 1234,
+   "art": "eltern-angelegt",
+   "id": "09323951"
+  },
+  {
+   "ms": 1268,
+   "art": "agent/created",
+   "id": "4bdfe6bd",
+   "source": "startup"
+  },
+  {
+   "ms": 1758,
+   "art": "agent/disposed",
+   "id": "4bdfe6bd"
+  }
+ ]
+}

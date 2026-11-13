@@ -1,0 +1,182 @@
+{
+ "szenario": "oeffnen3",
+ "seite": {
+  "ok": true,
+  "r": "{\"records\":0,\"dauerMs\":37}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "10026055": 1,
+    "532b8340": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "10026055": 1,
+    "532b8340": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  }
+ },
+ "sofortNachPage": {
+  "elternLebt": false
+ },
+ "spaeter": {
+  "elternLebt": true,
+  "daten": {
+   "hakenStart": 5802,
+   "hakenFertig": 5844
+  },
+  "ereignisse": [
+   {
+    "ms": 5840,
+    "id": "10026055",
+    "agentAvailable": true
+   },
+   {
+    "ms": 5843,
+    "id": "10026055",
+    "agentAvailable": true
+   }
+  ]
+ },
+ "llmNachHaken": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuege": {
+   "10026055": 1,
+   "532b8340": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "10026055"
+  ]
+ },
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuege": {
+   "10026055": 1,
+   "532b8340": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "10026055"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1225,
+   "id": "10026055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1231,
+   "id": "10026055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1275,
+   "id": "532b8340",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1276,
+   "id": "532b8340",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1769,
+   "id": "532b8340",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5290,
+   "id": "10026055",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5840,
+   "id": "10026055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5843,
+   "id": "10026055",
+   "agentAvailable": true
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1339,
+   "sitzung": "532b8340",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1805,
+   "sitzung": "10026055",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1231,
+   "art": "agent/created",
+   "id": "10026055",
+   "source": "startup"
+  },
+  {
+   "ms": 1231,
+   "art": "eltern-angelegt",
+   "id": "10026055"
+  },
+  {
+   "ms": 1276,
+   "art": "agent/created",
+   "id": "532b8340",
+   "source": "startup"
+  },
+  {
+   "ms": 1769,
+   "art": "agent/disposed",
+   "id": "532b8340"
+  },
+  {
+   "ms": 5291,
+   "art": "agent/disposed",
+   "id": "10026055"
+  },
+  {
+   "ms": 5830,
+   "art": "page-hintergrund-haken",
+   "ok": true
+  },
+  {
+   "ms": 5843,
+   "art": "agent/created",
+   "id": "10026055",
+   "source": "resume"
+  }
+ ]
+}

@@ -1,0 +1,183 @@
+{
+ "szenario": "tor",
+ "modus": "ohne",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "listeKalt": {
+  "ok": true,
+  "r": "[{\"id\":\"5048110a\",\"agentAvailable\":false},{\"id\":\"17640911\",\"agentAvailable\":false}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "torKalt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-1794517640911\" is not live",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "elternLebtDanach": false,
+ "listeDanach": {
+  "ok": true,
+  "r": "[{\"id\":\"5048110a\",\"agentAvailable\":false},{\"id\":\"17640911\",\"agentAvailable\":false}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1337,
+   "sitzung": "5048110a",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1816,
+   "sitzung": "17640911",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1223,
+   "id": "17640911",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1230,
+   "id": "17640911",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1275,
+   "id": "5048110a",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1276,
+   "id": "5048110a",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1771,
+   "id": "5048110a",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5297,
+   "id": "17640911",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1231,
+   "art": "agent/created",
+   "id": "17640911",
+   "source": "startup"
+  },
+  {
+   "ms": 1276,
+   "art": "agent/created",
+   "id": "5048110a",
+   "source": "startup"
+  },
+  {
+   "ms": 5827,
+   "art": "session-list-kalt",
+   "ok": true
+  },
+  {
+   "ms": 5830,
+   "art": "tor-prompt-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 8345,
+   "art": "session-list-danach",
+   "ok": true
+  }
+ ]
+}

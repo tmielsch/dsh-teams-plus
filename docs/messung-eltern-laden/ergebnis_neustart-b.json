@@ -1,0 +1,296 @@
+{
+ "szenario": "neustart-b",
+ "beimStart": {
+  "llm": 3,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 1
+  },
+  "zuege": {},
+  "erzeugt": 0,
+  "lebend": []
+ },
+ "listeKalt": {
+  "ok": true,
+  "r": "[{\"id\":\"4bdfe6bd\",\"agentAvailable\":false},{\"id\":\"09323951\",\"agentAvailable\":false}]",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 0,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 0,
+   "lebend": []
+  }
+ },
+ "promptOhneLaden": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-1794509323951\" is not live",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 0,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 0,
+   "lebend": []
+  }
+ },
+ "laden": {
+  "ok": true,
+  "r": "09323951",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 0,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 1,
+   "lebend": [
+    "09323951"
+   ]
+  }
+ },
+ "zielNachLaden": "{\"id\":\"goal-6898f54b-8264-47aa-9f24-980635ca46e3\",\"revision\":1,\"objective\":\"Eltern-Ziel: arbeite weiter [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":100,\"roundsStarted\":1,\"createdAt\":1794509326529,\"updatedAt\":1794509326529,\"activation\":\"disarmed\"}",
+ "elternEreignisseNachLaden": [
+  "request/context",
+  "assistant/message",
+  "step/end",
+  "turn/end",
+  "goal/change",
+  "agent/inbox/spliced",
+  "turn/start",
+  "agent/inbox/spliced",
+  "step/start",
+  "user/message",
+  "request/header",
+  "step/end",
+  "turn/end",
+  "session/end-seed"
+ ],
+ "torNachLaden": {
+  "ok": true,
+  "r": "{\"messageId\":\"8f53d9a8-de7a-4a44-a654-bcab8eabe051\"}",
+  "vor": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {},
+   "erzeugt": 1,
+   "lebend": [
+    "09323951"
+   ]
+  },
+  "nach": {
+   "llm": 3,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 1
+   },
+   "zuege": {
+    "4bdfe6bd": 1
+   },
+   "erzeugt": 2,
+   "lebend": [
+    "09323951",
+    "4bdfe6bd"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 5,
+  "llmJe": {
+   "eltern": 3,
+   "kind": 2
+  },
+  "zuege": {
+   "4bdfe6bd": 1,
+   "09323951": 1
+  },
+  "erzeugt": 2,
+  "lebend": [
+   "09323951"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1284,
+   "id": "09323951",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1288,
+   "id": "09323951",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6339,
+   "id": "4bdfe6bd",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6342,
+   "id": "4bdfe6bd",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6837,
+   "id": "4bdfe6bd",
+   "agentAvailable": false
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": -20499,
+   "sitzung": "4bdfe6bd",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -20021,
+   "sitzung": "09323951",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -18002,
+   "sitzung": "09323951",
+   "text": "<goal_round>\nObjective: \"Eltern-Ziel: arbeite weiter [[LONG]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6409,
+   "sitzung": "4bdfe6bd",
+   "text": "Nach Neustart und Laden [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6877,
+   "sitzung": "09323951",
+   "text": "<goal_round>\nObjective: \"Eltern-Ziel: arbeite weiter [[LONG]",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1244,
+   "art": "session-list-kalt",
+   "ok": true
+  },
+  {
+   "ms": 1247,
+   "art": "prompt-kalter-eltern",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 1287,
+   "art": "agent/created",
+   "id": "09323951",
+   "source": "resume"
+  },
+  {
+   "ms": 1289,
+   "art": "eltern-laden",
+   "ok": true
+  },
+  {
+   "ms": 2294,
+   "art": "ziel-verlauf",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 3297,
+   "art": "ziel-verlauf",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 4300,
+   "art": "ziel-verlauf",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 5304,
+   "art": "ziel-verlauf",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 6306,
+   "art": "ziel-verlauf",
+   "phase": "active",
+   "akt": "disarmed",
+   "runden": 1,
+   "status": "idle",
+   "llmEltern": 0
+  },
+  {
+   "ms": 6341,
+   "art": "agent/created",
+   "id": "4bdfe6bd",
+   "source": "resume"
+  },
+  {
+   "ms": 6355,
+   "art": "tor-prompt-nach-laden",
+   "ok": true
+  },
+  {
+   "ms": 6836,
+   "art": "agent/disposed",
+   "id": "4bdfe6bd"
+  }
+ ]
+}

@@ -1,0 +1,433 @@
+{
+ "szenario": "kette",
+ "lebendVorTest": {
+  "gp": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "nachStart": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "zuege": {
+   "16ff8cba": 1,
+   "97ac481c": 1,
+   "09629421": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "09629421"
+  ]
+ },
+ "mitteKopf": null,
+ "promptEnkelOhneLaden": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"1b9ed5fb-b09c-459e-8373-0d8316ff8cba\" is not live",
+  "ursache": "[]",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09629421"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09629421"
+   ]
+  }
+ },
+ "mitteUeberLookup": {
+  "ok": false,
+  "code": "session/agent-busy",
+  "fehler": "session \"1b9ed5fb-b09c-459e-8373-0d8316ff8cba\" is owned by subagent routing",
+  "ursache": "[]",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09629421"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09629421"
+   ]
+  }
+ },
+ "mitteLebtNachLookup": false,
+ "mitteDirekt": {
+  "ok": true,
+  "r": "{\"id\":\"16ff8cba\",\"eigentuemerGp\":true}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09629421"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09629421",
+    "16ff8cba"
+   ]
+  }
+ },
+ "promptEnkelNachDirekt": {
+  "ok": true,
+  "r": "{\"messageId\":\"b78e9582-ddbf-464c-aba2-491a336b7077\"}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 1,
+    "09629421": 1
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09629421",
+    "16ff8cba"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "16ff8cba": 1,
+    "97ac481c": 2,
+    "09629421": 1
+   },
+   "erzeugt": 5,
+   "lebend": [
+    "09629421",
+    "16ff8cba",
+    "97ac481c"
+   ]
+  }
+ },
+ "gpTorMitte": {
+  "ok": false,
+  "code": "subagent/not-resumable",
+  "fehler": "subagent cannot be resumed",
+  "ursache": "[\"subagent \\\"1b9ed5fb-b09c-459e-8373-0d8316ff8cba\\\" is unavailable\",\"session \\\"1b9ed5fb-b09c-459e-8373-0d8316ff8cba\\\" is already owned by an active write handle\"]",
+  "vor": {
+   "llm": 6,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 3,
+    "enkel": 2
+   },
+   "zuege": {
+    "16ff8cba": 2,
+    "97ac481c": 2,
+    "09629421": 1
+   },
+   "erzeugt": 5,
+   "lebend": [
+    "09629421",
+    "16ff8cba"
+   ]
+  },
+  "nach": {
+   "llm": 6,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 3,
+    "enkel": 2
+   },
+   "zuege": {
+    "16ff8cba": 2,
+    "97ac481c": 2,
+    "09629421": 1
+   },
+   "erzeugt": 5,
+   "lebend": [
+    "09629421",
+    "16ff8cba"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 6,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 3,
+   "enkel": 2
+  },
+  "zuege": {
+   "16ff8cba": 2,
+   "97ac481c": 2,
+   "09629421": 1
+  },
+  "erzeugt": 5,
+  "lebend": [
+   "09629421",
+   "16ff8cba"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1227,
+   "id": "09629421",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1236,
+   "id": "09629421",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1280,
+   "id": "16ff8cba",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1282,
+   "id": "16ff8cba",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1829,
+   "id": "97ac481c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1831,
+   "id": "97ac481c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 2308,
+   "id": "97ac481c",
+   "agentAvailable": false
+  },
+  {
+   "ms": 7393,
+   "id": "16ff8cba",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9890,
+   "id": "16ff8cba",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9891,
+   "id": "16ff8cba",
+   "agentAvailable": true
+  },
+  {
+   "ms": 11421,
+   "id": "97ac481c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 11423,
+   "id": "97ac481c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 11876,
+   "id": "97ac481c",
+   "agentAvailable": false
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1340,
+   "sitzung": "16ff8cba",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1880,
+   "sitzung": "97ac481c",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 4373,
+   "sitzung": "16ff8cba",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7434,
+   "sitzung": "09629421",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 11456,
+   "sitzung": "97ac481c",
+   "text": "Mensch an Enkel 2 [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 11917,
+   "sitzung": "16ff8cba",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1236,
+   "art": "agent/created",
+   "id": "09629421",
+   "source": "startup"
+  },
+  {
+   "ms": 1236,
+   "art": "eltern-angelegt",
+   "id": "09629421"
+  },
+  {
+   "ms": 1281,
+   "art": "agent/created",
+   "id": "16ff8cba",
+   "source": "startup"
+  },
+  {
+   "ms": 1831,
+   "art": "agent/created",
+   "id": "97ac481c",
+   "source": "startup"
+  },
+  {
+   "ms": 2307,
+   "art": "agent/disposed",
+   "id": "97ac481c"
+  },
+  {
+   "ms": 7392,
+   "art": "agent/disposed",
+   "id": "16ff8cba"
+  },
+  {
+   "ms": 9847,
+   "art": "prompt-enkel-mitte-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 9878,
+   "art": "mitte-ueber-lookup",
+   "ok": false,
+   "code": "session/agent-busy"
+  },
+  {
+   "ms": 9891,
+   "art": "agent/created",
+   "id": "16ff8cba",
+   "source": "resume"
+  },
+  {
+   "ms": 9891,
+   "art": "mitte-direkt-mit-gp-als-eigentuemer",
+   "ok": true
+  },
+  {
+   "ms": 11423,
+   "art": "agent/created",
+   "id": "97ac481c",
+   "source": "resume"
+  },
+  {
+   "ms": 11430,
+   "art": "prompt-enkel-nach-direkt-laden",
+   "ok": true
+  },
+  {
+   "ms": 11875,
+   "art": "agent/disposed",
+   "id": "97ac481c"
+  },
+  {
+   "ms": 13936,
+   "art": "gp-schreibt-mitte-an",
+   "ok": false,
+   "code": "subagent/not-resumable"
+  }
+ ]
+}

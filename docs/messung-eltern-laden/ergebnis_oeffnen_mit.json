@@ -1,0 +1,206 @@
+{
+ "szenario": "oeffnen",
+ "modus": "mit",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "seite": {
+  "ok": true,
+  "r": "{\"records\":0,\"dauerMs\":39}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "sofortNachPage": {
+  "elternLebt": false
+ },
+ "nachEinerSekunde": {
+  "elternLebt": true,
+  "ereignisse": [
+   {
+    "ms": 5847,
+    "id": "17654774",
+    "agentAvailable": true
+   },
+   {
+    "ms": 5850,
+    "id": "17654774",
+    "agentAvailable": true
+   }
+  ]
+ },
+ "listeDanach": {
+  "ok": true,
+  "r": "[{\"id\":\"a93eff91\",\"agentAvailable\":false},{\"id\":\"17654774\",\"agentAvailable\":true}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17654774"
+   ]
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "17654774"
+   ]
+  }
+ },
+ "llmNachOeffnen": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "17654774"
+  ]
+ },
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "17654774"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1330,
+   "sitzung": "a93eff91",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1817,
+   "sitzung": "17654774",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1229,
+   "id": "17654774",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1237,
+   "id": "17654774",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1274,
+   "id": "a93eff91",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1276,
+   "id": "a93eff91",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1772,
+   "id": "a93eff91",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5292,
+   "id": "17654774",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5847,
+   "id": "17654774",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5850,
+   "id": "17654774",
+   "agentAvailable": true
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=oeffnen-page eltern=eltern-1794517654774",
+  "geladen eltern=eltern-1794517654774 ms=48"
+ ],
+ "protokoll": [
+  {
+   "ms": 1237,
+   "art": "agent/created",
+   "id": "17654774",
+   "source": "startup"
+  },
+  {
+   "ms": 1276,
+   "art": "agent/created",
+   "id": "a93eff91",
+   "source": "startup"
+  },
+  {
+   "ms": 5833,
+   "art": "page",
+   "ok": true
+  },
+  {
+   "ms": 5850,
+   "art": "agent/created",
+   "id": "17654774",
+   "source": "resume"
+  },
+  {
+   "ms": 6846,
+   "art": "session-list-danach",
+   "ok": true
+  }
+ ]
+}

@@ -1,0 +1,244 @@
+{
+ "szenario": "tor",
+ "modus": "mit",
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "listeKalt": {
+  "ok": true,
+  "r": "[{\"id\":\"7e7d3547\",\"agentAvailable\":false},{\"id\":\"17615723\",\"agentAvailable\":false}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "torKalt": {
+  "ok": true,
+  "r": "{\"messageId\":\"7cfa75e0-2351-4fdf-82af-a163bc501549\"}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 2
+   },
+   "lebend": [
+    "17615723",
+    "7e7d3547"
+   ]
+  }
+ },
+ "elternLebtDanach": true,
+ "listeDanach": {
+  "ok": true,
+  "r": "[{\"id\":\"7e7d3547\",\"agentAvailable\":false},{\"id\":\"17615723\",\"agentAvailable\":true}]",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "zuegeJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "lebend": [
+    "17615723"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "zuegeJe": {
+    "eltern": 2,
+    "kind": 2
+   },
+   "lebend": [
+    "17615723"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "zuegeJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "lebend": [
+   "17615723"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1326,
+   "sitzung": "7e7d3547",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1807,
+   "sitzung": "17615723",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5885,
+   "sitzung": "7e7d3547",
+   "text": "Tor [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6353,
+   "sitzung": "17615723",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1230,
+   "id": "17615723",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1237,
+   "id": "17615723",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1272,
+   "id": "7e7d3547",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1273,
+   "id": "7e7d3547",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1760,
+   "id": "7e7d3547",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5285,
+   "id": "17615723",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5844,
+   "id": "17615723",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5846,
+   "id": "17615723",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5863,
+   "id": "7e7d3547",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5864,
+   "id": "7e7d3547",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6308,
+   "id": "7e7d3547",
+   "agentAvailable": false
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_umbau/probe_eltern_bau_home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=eltern-1794517615723",
+  "geladen eltern=eltern-1794517615723 ms=29"
+ ],
+ "protokoll": [
+  {
+   "ms": 1237,
+   "art": "agent/created",
+   "id": "17615723",
+   "source": "startup"
+  },
+  {
+   "ms": 1273,
+   "art": "agent/created",
+   "id": "7e7d3547",
+   "source": "startup"
+  },
+  {
+   "ms": 5814,
+   "art": "session-list-kalt",
+   "ok": true
+  },
+  {
+   "ms": 5846,
+   "art": "agent/created",
+   "id": "17615723",
+   "source": "resume"
+  },
+  {
+   "ms": 5864,
+   "art": "agent/created",
+   "id": "7e7d3547",
+   "source": "resume"
+  },
+  {
+   "ms": 5867,
+   "art": "tor-prompt-kalt",
+   "ok": true
+  },
+  {
+   "ms": 8375,
+   "art": "session-list-danach",
+   "ok": true
+  }
+ ]
+}

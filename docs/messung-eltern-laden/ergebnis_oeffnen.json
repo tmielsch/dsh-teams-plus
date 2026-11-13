@@ -1,0 +1,323 @@
+{
+ "szenario": "oeffnen",
+ "seiteOhneHaken": {
+  "ok": true,
+  "r": "{\"records\":0}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  }
+ },
+ "elternLebtNachSeiteOhneHaken": false,
+ "seiteMitHaken": {
+  "ok": true,
+  "r": "{\"records\":0}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 2,
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09801888"
+   ]
+  }
+ },
+ "elternLebtNachSeiteMitHaken": true,
+ "ereignisseNachOeffnen": [
+  {
+   "ms": 5841,
+   "id": "09801888",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5843,
+   "id": "09801888",
+   "agentAvailable": true
+  }
+ ],
+ "listeNachOeffnen": {
+  "ok": true,
+  "r": "[{\"id\":\"5f120f86\",\"agentAvailable\":false},{\"id\":\"09801888\",\"agentAvailable\":true}]",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09801888"
+   ]
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09801888"
+   ]
+  }
+ },
+ "promptDanachOhneHakenAmPrompt": {
+  "ok": true,
+  "r": "{\"messageId\":\"8df690ab-b6fe-4fbd-b860-25f53640ef36\"}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 1,
+    "09801888": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09801888"
+   ]
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuege": {
+    "5f120f86": 2,
+    "09801888": 1
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09801888",
+    "5f120f86"
+   ]
+  }
+ },
+ "ende": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "zuege": {
+   "5f120f86": 2,
+   "09801888": 2
+  },
+  "erzeugt": 4,
+  "lebend": [
+   "09801888"
+  ]
+ },
+ "haken": [
+  {
+   "ms": 5825,
+   "art": "haken-laedt-beim-oeffnen",
+   "eltern": "09801888"
+  },
+  {
+   "art": "haken-geladen",
+   "lebt": true
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1226,
+   "id": "09801888",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1230,
+   "id": "09801888",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1270,
+   "id": "5f120f86",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1271,
+   "id": "5f120f86",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1757,
+   "id": "5f120f86",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5285,
+   "id": "09801888",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5841,
+   "id": "09801888",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5843,
+   "id": "09801888",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6679,
+   "id": "5f120f86",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6681,
+   "id": "5f120f86",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7126,
+   "id": "5f120f86",
+   "agentAvailable": false
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1329,
+   "sitzung": "5f120f86",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1796,
+   "sitzung": "09801888",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6704,
+   "sitzung": "5f120f86",
+   "text": "Nach Öffnen [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7168,
+   "sitzung": "09801888",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1230,
+   "art": "agent/created",
+   "id": "09801888",
+   "source": "startup"
+  },
+  {
+   "ms": 1230,
+   "art": "eltern-angelegt",
+   "id": "09801888"
+  },
+  {
+   "ms": 1271,
+   "art": "agent/created",
+   "id": "5f120f86",
+   "source": "startup"
+  },
+  {
+   "ms": 1757,
+   "art": "agent/disposed",
+   "id": "5f120f86"
+  },
+  {
+   "ms": 5285,
+   "art": "agent/disposed",
+   "id": "09801888"
+  },
+  {
+   "ms": 5824,
+   "art": "page-ohne-haken",
+   "ok": true
+  },
+  {
+   "ms": 5843,
+   "art": "agent/created",
+   "id": "09801888",
+   "source": "resume"
+  },
+  {
+   "ms": 5845,
+   "art": "page-mit-haken",
+   "ok": true
+  },
+  {
+   "ms": 6658,
+   "art": "session-list-nach-oeffnen",
+   "ok": true
+  },
+  {
+   "ms": 6681,
+   "art": "agent/created",
+   "id": "5f120f86",
+   "source": "resume"
+  },
+  {
+   "ms": 6683,
+   "art": "prompt-danach",
+   "ok": true
+  },
+  {
+   "ms": 7126,
+   "art": "agent/disposed",
+   "id": "5f120f86"
+  }
+ ]
+}

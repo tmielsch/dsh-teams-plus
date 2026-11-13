@@ -1,0 +1,230 @@
+{
+ "szenario": "kette-kontrolle",
+ "lebendVorTest": {
+  "gp": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "nachStart": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "zuege": {
+   "0234572b": 1,
+   "8960400d": 1,
+   "09501363": 1
+  },
+  "erzeugt": 3,
+  "lebend": [
+   "09501363"
+  ]
+ },
+ "mitteKopf": null,
+ "gpTorMitteKontrolle": {
+  "ok": true,
+  "r": "{\"messageId\":\"ecd51f65-ed30-4aa9-b3ac-2d91979b65df\"}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "0234572b": 1,
+    "8960400d": 1,
+    "09501363": 1
+   },
+   "erzeugt": 3,
+   "lebend": [
+    "09501363"
+   ]
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuege": {
+    "0234572b": 2,
+    "8960400d": 1,
+    "09501363": 1
+   },
+   "erzeugt": 4,
+   "lebend": [
+    "09501363",
+    "0234572b"
+   ]
+  }
+ },
+ "mitteLebtNachLookup": false,
+ "ende": {
+  "llm": 6,
+  "llmJe": {
+   "eltern": 2,
+   "mitte": 3,
+   "enkel": 1
+  },
+  "zuege": {
+   "0234572b": 2,
+   "8960400d": 1,
+   "09501363": 2
+  },
+  "erzeugt": 4,
+  "lebend": [
+   "09501363"
+  ]
+ },
+ "haken": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1225,
+   "id": "09501363",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1233,
+   "id": "09501363",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1277,
+   "id": "0234572b",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1279,
+   "id": "0234572b",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1822,
+   "id": "8960400d",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1824,
+   "id": "8960400d",
+   "agentAvailable": true
+  },
+  {
+   "ms": 2298,
+   "id": "8960400d",
+   "agentAvailable": false
+  },
+  {
+   "ms": 7394,
+   "id": "0234572b",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9881,
+   "id": "0234572b",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9882,
+   "id": "0234572b",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10338,
+   "id": "0234572b",
+   "agentAvailable": false
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": 1339,
+   "sitzung": "0234572b",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1874,
+   "sitzung": "8960400d",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 4374,
+   "sitzung": "0234572b",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7436,
+   "sitzung": "09501363",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 9919,
+   "sitzung": "0234572b",
+   "text": "Mensch an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 10370,
+   "sitzung": "09501363",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1232,
+   "art": "agent/created",
+   "id": "09501363",
+   "source": "startup"
+  },
+  {
+   "ms": 1234,
+   "art": "eltern-angelegt",
+   "id": "09501363"
+  },
+  {
+   "ms": 1278,
+   "art": "agent/created",
+   "id": "0234572b",
+   "source": "startup"
+  },
+  {
+   "ms": 1823,
+   "art": "agent/created",
+   "id": "8960400d",
+   "source": "startup"
+  },
+  {
+   "ms": 2296,
+   "art": "agent/disposed",
+   "id": "8960400d"
+  },
+  {
+   "ms": 7393,
+   "art": "agent/disposed",
+   "id": "0234572b"
+  },
+  {
+   "ms": 9882,
+   "art": "agent/created",
+   "id": "0234572b",
+   "source": "resume"
+  },
+  {
+   "ms": 9888,
+   "art": "gp-schreibt-mitte-an-ohne-vorheriges-laden",
+   "ok": true
+  },
+  {
+   "ms": 10337,
+   "art": "agent/disposed",
+   "id": "0234572b"
+  }
+ ]
+}
