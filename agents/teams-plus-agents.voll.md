@@ -176,7 +176,9 @@ Der Mensch kann den Lead forken, um zu diskutieren. Der Fork behält den Kontext
 
 `team_stand` liest den Stand der Mitglieder, ohne jemanden zu wecken: je Mitglied das Ziel (Phase, Aktivierung, Runden, der Wortlaut gekürzt), ob ein Bericht vorliegt und die Zeit des letzten Ereignisses. Der Lead nutzt es statt Nachfragen und statt Schleifen mit `list_agents`.
 
+`team_stand` zeigt außerdem die Unteragenten (`delegate_task`) gruppiert je Mitarbeiter: unter jedem Mitglied seine Kinder mit Tiefe, Elternkennung und Zustand, dazu eine Gruppe `eigeneUnteragenten` für die des Leads selbst. Bei einem abgebauten Kind steht die Aktivierung auf „unbekannt“, weil sie nicht in der Datei steht; das Ziel eines Kindes kann `team_stand` nur lesen, wenn es im Speicher oder gespeichert lesbar ist. Die ganze Abfrage ist auf 120 Sekunden und 60 Kinder begrenzt; was nicht mehr hineinpasst, steht als Zeile „Zeitgrenze erreicht“ oder als Restzeile da. Das Werkzeug schreibt nichts und weckt niemanden. Diese Anzeige gilt auch außerhalb des Team-Modus.
+
 ### 6. Was Teams Plus nicht ändert
 
-Außerhalb des Team-Modus ändert Teams Plus nichts. Rollen (`rolle` bei `delegate_task`), Specs, Ziele und Abnahmen laufen wie zuvor. Dieser Abschnitt regelt nur
+Außerhalb des Team-Modus ändert Teams Plus nichts, mit zwei Ausnahmen, die ausdrücklich beschlossen sind (Issue DSH-Verwaltung 143 und 175): die Unteragenten-Anzeige von `team_stand` (Abschnitt 10) und das Laden der Eltern-Sitzung. Schreibt der Mensch einer Unteragenten-Sitzung oder öffnet er sie, und die Eltern-Sitzung ist nicht im Speicher, lädt Teams Plus sie, damit die Nachricht ankommt und das Eingabefeld frei ist. Abschalten ohne Neustart: `~/.dsh/.tm/teams-plus/eltern-laden.json` mit `{"aus": true}`. Ist die Eltern-Sitzung selbst ein Kind, wird sie nicht geladen (Issue DSH-Verwaltung 177). Rollen (`rolle` bei `delegate_task`), Specs, Ziele und Abnahmen laufen wie zuvor. Dieser Abschnitt regelt nur
 Namen, Titelzeile, die Einordnung in Spalten und den Umgang mit gemeinsamen Aufgaben.
