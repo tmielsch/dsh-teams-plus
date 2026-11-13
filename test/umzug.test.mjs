@@ -7,7 +7,7 @@
  *      Fassung (SHA256_ABWEICHEND), eine entsteht in diesem Paket und hat einen eigenen Anker
  *      (SHA256_EIGEN), zwei entstehen hier ohne Anker gegen projectOS (send-to-session,
  *      team-board, dazu team-anruf, team-modus und eltern-laden); die Listen sind die Zaehlung, nicht diese Zeile,
- *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die zehn B-Patches,
+ *   2. package.json exportiert patches/*, und cordis.patch.yml nennt genau die elf B-Patches,
  *   3. jede der 18 A-Dateien antwortet auf --status, ohne die DSH-Installation anzufassen,
  *   4. bin/teams-plus.mjs ist ausfuehrbar und `status` listet die A-Patches,
  *   5. `link` haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus (geprueft in einem
@@ -228,7 +228,7 @@ const A_DATEIEN = [
  *  sha256-Anker gegen projectOS. `team-bremse` traegt einen eigenen Anker
  *  (SHA256_EIGEN, siehe unten), damit die erste ausgelieferte Fassung
  *  festgehalten ist. */
-const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs', 'team-board.mjs', 'team-bremse.mjs', 'team-anruf.mjs', 'team-modus.mjs']
+const B_PATCHES = ['delegate-send.mjs', 'teammate-model.mjs', 'goal-await.mjs', 'stille-nachrichten.mjs', 'rolle-titel.mjs', 'send-to-session.mjs', 'team-board.mjs', 'team-bremse.mjs', 'team-anruf.mjs', 'team-modus.mjs', 'eltern-laden.mjs']
 
 /** Die Werkzeuge mit eigener Bedienung (--status, --revert). */
 const WERKZEUGE = A_DATEIEN.filter((name) => name.startsWith('allow-'))
@@ -419,7 +419,7 @@ test('die zwei zurueckgezogenen Rollen bleiben im Paket, werden aber nicht ausge
 	}
 })
 
-test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die zehn B-Patches', () => {
+test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die elf B-Patches', () => {
 	const paket = JSON.parse(readFileSync(join(PAKET, 'package.json'), 'utf8'))
 	assert.equal(paket.exports['./patches/*'], './patches/*', 'Wildcard-Export "./patches/*" fehlt')
 	assert.equal(paket.exports['./rollen/*'], './rollen/*', 'Wildcard-Export "./rollen/*" fehlt')
@@ -427,7 +427,7 @@ test('package.json exportiert patches/*, und cordis.patch.yml nennt genau die ze
 
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const genannt = [...yml.matchAll(/@tmielsch\/dsh-teams-plus\/patches\/([\w.-]+\.mjs)/gu)].map((treffer) => treffer[1])
-	assert.deepEqual(genannt.sort(), [...B_PATCHES].sort(), 'cordis.patch.yml nennt andere Dateien als die neun B-Patches')
+	assert.deepEqual(genannt.sort(), [...B_PATCHES].sort(), 'cordis.patch.yml nennt andere Dateien als die elf B-Patches')
 	for (const name of genannt) assert.ok(existsSync(join(PATCHES, name)), `patches/${name} fehlt`)
 })
 

@@ -146,19 +146,20 @@ test('lib/client.js traegt den Lader-Kopf mit Paketnamen und factory', () => {
 	}
 })
 
-test('cordis.patch.yml nennt das Paket selbst zuerst und danach die zehn Patch-Module', () => {
+test('cordis.patch.yml nennt das Paket selbst zuerst und danach die elf Patch-Module', () => {
 	const yml = readFileSync(join(PAKET, 'cordis.patch.yml'), 'utf8')
 	const eintraege = [...yml.matchAll(/-\s*id:\s*([\w.-]+)/gu)].map((treffer) => treffer[1])
 	assert.equal(eintraege[0], 'teams-plus', `der Paket-Eintrag steht nicht zuerst: ${eintraege.join(', ')}`)
 	assert.ok(yml.includes("name: '@tmielsch/dsh-teams-plus'"), 'der Paketname fehlt im cordis-Eintrag')
 	const patches = eintraege.slice(1)
-	// Zehn statt neun: `team-modus` faellt die finished-Meldungen weg, haelt ein Ziel bei
+	// Elf statt zehn: `eltern-laden` laedt beim Schreiben an eine Unteragenten-Sitzung oder beim Oeffnen
+	// die kalte Eltern-Sitzung (Issue DSH-Verwaltung 175, 181). Davor Zehn statt neun: `team-modus` faellt die finished-Meldungen weg, haelt ein Ziel bei
 	// einer Menschen-Nachricht an und laesst ein Ziel nur mit Bericht abschliessen (Konzept
 	// docs/KONZEPT-GESPRAECHSMODUS.md, Issue DSH-Verwaltung 121). Die Zahl ist
 	// Buchhaltung ueber die Registrierung, keine Aussage ueber das Verhalten der
 	// anderen neun.
-	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse', 'team-anruf', 'team-modus'])
-	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse', 'team-anruf', 'team-modus']) {
+	assert.deepEqual(patches, ['delegate-send', 'teammate-modell', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse', 'team-anruf', 'team-modus', 'eltern-laden'])
+	for (const name of ['delegate-send', 'teammate-model', 'goal-await', 'stille-nachrichten', 'rolle-titel', 'send-to-session', 'team-board', 'team-bremse', 'team-anruf', 'team-modus', 'eltern-laden']) {
 		assert.ok(yml.includes(`@tmielsch/dsh-teams-plus/patches/${name}.mjs`), `patches/${name}.mjs fehlt in cordis.patch.yml`)
 	}
 })

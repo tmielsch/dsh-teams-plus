@@ -55,3 +55,9 @@
     # ~/.dsh/.tm/teams-plus/team-modus.json mit {"aus": true}, ohne Neustart.
     - id: team-modus
       name: '@tmielsch/dsh-teams-plus/patches/team-modus.mjs'
+    # Eltern-Sitzung laden (Issue DSH-Verwaltung 175, 181): schreibt der Mensch einer
+    # Unteragenten-Sitzung oder oeffnet er sie, wird die Eltern-Sitzung geladen, wenn sie
+    # nicht im Speicher ist. Gilt auch ausserhalb des Team-Modus. Notschalter:
+    # ~/.dsh/.tm/teams-plus/eltern-laden.json mit {"aus": true}, ohne Neustart.
+    - id: eltern-laden
+      name: '@tmielsch/dsh-teams-plus/patches/eltern-laden.mjs'
