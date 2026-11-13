@@ -1,0 +1,238 @@
+{
+ "szenario": "team2-A-page",
+ "modus": "ohne",
+ "lage": "A",
+ "phase": 2,
+ "nachrichtId": "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49",
+ "plattePhase2Start": {
+  "dateien": 1,
+  "queued": [
+   "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+  ],
+  "delivered": [],
+  "quellen": []
+ },
+ "beimStart": {
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "vorAusloeser": {
+  "ms": 1217,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "ausloeser": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "dauerMs": 40
+ },
+ "direktDanach": {
+  "ms": 1257,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach400ms": {
+  "ms": 1658,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach5s": {
+  "ms": 6260,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "patchProtokollNachAusloeser": [],
+ "zusatzExplizitesLaden": {
+  "ok": true,
+  "r": "91290545"
+ },
+ "zusatzDirektDanach": {
+  "ms": 6286,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "running",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+   ],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "team/message/queued",
+   "session/end-seed",
+   "agent/inbox/spliced",
+   "turn/start",
+   "agent/inbox/spliced"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach400ms": {
+  "ms": 6688,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 3,
+  "llmLead": 2,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+   ],
+   "delivered": [
+    "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+   ]
+  },
+  "leadEreignisse": [
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header",
+   "team/message/delivered",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach5s": {
+  "ms": 11289,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 3,
+  "llmLead": 2,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+   ],
+   "delivered": [
+    "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+   ]
+  },
+  "leadEreignisse": [
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header",
+   "team/message/delivered",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "platteEnde": {
+  "dateien": 1,
+  "queued": [
+   "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+  ],
+  "delivered": [
+   "team-message-2e719faa-a24a-490f-90c3-59654bb6bc49"
+  ],
+  "quellen": [
+   "team-message-2e719faa-a24a-490f-90c3-59654bb6bc"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": -4157,
+   "sitzung": "d489fda8",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3720,
+   "sitzung": "91290545",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6328,
+   "sitzung": "91290545",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 6282,
+   "id": "91290545",
+   "status": "running"
+  },
+  {
+   "ms": 6332,
+   "id": "91290545",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 6281,
+   "id": "91290545",
+   "source": "resume"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1257,
+   "art": "ausloeser-page",
+   "ok": true
+  },
+  {
+   "ms": 6286,
+   "art": "zusatz-explizit-laden",
+   "ok": true
+  }
+ ]
+}

@@ -1,0 +1,204 @@
+{
+ "szenario": "team2-C-prompt",
+ "modus": "ohne",
+ "lage": "C",
+ "phase": 2,
+ "plattePhase2Start": {
+  "dateien": 1,
+  "queued": [],
+  "delivered": [],
+  "quellen": []
+ },
+ "beimStart": {
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "vorAusloeser": {
+  "ms": 1221,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "ausloeser": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"lead181-C-1794591378667\" is not live",
+  "dauerMs": 7
+ },
+ "direktDanach": {
+  "ms": 1229,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach400ms": {
+  "ms": 1631,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach5s": {
+  "ms": 6232,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "patchProtokollNachAusloeser": [],
+ "zusatzExplizitesLaden": {
+  "ok": true,
+  "r": "91378667"
+ },
+ "zusatzDirektDanach": {
+  "ms": 6303,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "session/end-seed"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach400ms": {
+  "ms": 6706,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "session/end-seed"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach5s": {
+  "ms": 11308,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "session/end-seed"
+  ],
+  "expEreignisse": null
+ },
+ "platteEnde": {
+  "dateien": 1,
+  "queued": [],
+  "delivered": [],
+  "quellen": []
+ },
+ "llmLog": [
+  {
+   "zeit": -4140,
+   "sitzung": "ce8a9a76",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3691,
+   "sitzung": "91378667",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "statusVerlauf": [],
+ "erzeugt": [
+  {
+   "ms": 6302,
+   "id": "91378667",
+   "source": "resume"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1229,
+   "art": "ausloeser-prompt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 6303,
+   "art": "zusatz-explizit-laden",
+   "ok": true
+  }
+ ]
+}

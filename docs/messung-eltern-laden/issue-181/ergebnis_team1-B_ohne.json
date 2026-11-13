@@ -1,0 +1,83 @@
+{
+ "szenario": "team1-B",
+ "modus": "ohne",
+ "lage": "B",
+ "phase": 1,
+ "nachStart": {
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:subagent-settled",
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "nachricht": {
+  "id": "team-message-65182941-c115-4ad2-86f3-642c225da42a",
+  "ziel": "exp"
+ },
+ "vorHartemEnde": {
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-65182941-c115-4ad2-86f3-642c225da42a"
+   ],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:runtime-context",
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "team/message/queued"
+  ],
+  "expEreignisse": null
+ },
+ "platte": {
+  "dateien": 1,
+  "queued": [
+   "team-message-65182941-c115-4ad2-86f3-642c225da42a"
+  ],
+  "delivered": [],
+  "quellen": []
+ },
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1361,
+   "art": "team-angelegt",
+   "lead": "91343272",
+   "exp": "e0693a38"
+  },
+  {
+   "ms": 4872,
+   "art": "nachricht-gebucht-nicht-zugestellt",
+   "id": "team-message-65182941-c115-4ad2-86f3-642c225da42a",
+   "ziel": "exp"
+  }
+ ]
+}

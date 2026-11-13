@@ -1,0 +1,266 @@
+{
+ "szenario": "team2-B-page",
+ "modus": "ohne",
+ "lage": "B",
+ "phase": 2,
+ "nachrichtId": "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3",
+ "plattePhase2Start": {
+  "dateien": 1,
+  "queued": [
+   "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+  ],
+  "delivered": [],
+  "quellen": []
+ },
+ "beimStart": {
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "vorAusloeser": {
+  "ms": 1225,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "ausloeser": {
+  "ok": true,
+  "r": "{\"records\":[],\"hasMore\":false}",
+  "dauerMs": 38
+ },
+ "direktDanach": {
+  "ms": 1263,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach400ms": {
+  "ms": 1664,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "nach5s": {
+  "ms": 6267,
+  "leadLebt": false,
+  "expLebt": false,
+  "leadStatus": null,
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": null,
+  "leadEreignisse": null,
+  "expEreignisse": null
+ },
+ "patchProtokollNachAusloeser": [],
+ "zusatzExplizitesLaden": {
+  "ok": true,
+  "r": "91325671"
+ },
+ "zusatzDirektDanach": {
+  "ms": 6314,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 2,
+  "llmLead": 1,
+  "llmExp": 1,
+  "projektion": {
+   "queued": [
+    "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+   ],
+   "delivered": []
+  },
+  "leadEreignisse": [
+   "user/message:skill-catalog",
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "team/message/queued",
+   "session/end-seed"
+  ],
+  "expEreignisse": null
+ },
+ "zusatzNach400ms": {
+  "ms": 6716,
+  "leadLebt": true,
+  "expLebt": true,
+  "leadStatus": "idle",
+  "expStatus": "running",
+  "llmGesamt": 3,
+  "llmLead": 1,
+  "llmExp": 2,
+  "projektion": {
+   "queued": [
+    "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+   ],
+   "delivered": [
+    "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+   ]
+  },
+  "leadEreignisse": [
+   "request/header",
+   "request/context",
+   "assistant/message",
+   "step/end",
+   "turn/end",
+   "team/message/queued",
+   "session/end-seed",
+   "team/message/delivered"
+  ],
+  "expEreignisse": [
+   "turn/end",
+   "session/end-seed",
+   "agent/inbox/spliced",
+   "turn/start",
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:team-message",
+   "request/header"
+  ]
+ },
+ "zusatzNach5s": {
+  "ms": 11318,
+  "leadLebt": true,
+  "expLebt": false,
+  "leadStatus": "idle",
+  "expStatus": null,
+  "llmGesamt": 4,
+  "llmLead": 2,
+  "llmExp": 2,
+  "projektion": {
+   "queued": [
+    "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+   ],
+   "delivered": [
+    "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+   ]
+  },
+  "leadEreignisse": [
+   "turn/start",
+   "agent/inbox/spliced",
+   "step/start",
+   "user/message:subagent-settled",
+   "request/header",
+   "assistant/message",
+   "step/end",
+   "turn/end"
+  ],
+  "expEreignisse": null
+ },
+ "platteEnde": {
+  "dateien": 1,
+  "queued": [
+   "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+  ],
+  "delivered": [
+   "team-message-0d306c8c-4cb1-4640-a7cb-d6639e71c7c3"
+  ],
+  "quellen": []
+ },
+ "llmLog": [
+  {
+   "zeit": -4137,
+   "sitzung": "9bfb8690",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3664,
+   "sitzung": "91325671",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6403,
+   "sitzung": "9bfb8690",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6847,
+   "sitzung": "91325671",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 6339,
+   "id": "9bfb8690",
+   "status": "running"
+  },
+  {
+   "ms": 6807,
+   "id": "9bfb8690",
+   "status": "idle"
+  },
+  {
+   "ms": 6822,
+   "id": "91325671",
+   "status": "running"
+  },
+  {
+   "ms": 6848,
+   "id": "91325671",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 6313,
+   "id": "91325671",
+   "source": "resume"
+  },
+  {
+   "ms": 6337,
+   "id": "9bfb8690",
+   "source": "resume"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1263,
+   "art": "ausloeser-page",
+   "ok": true
+  },
+  {
+   "ms": 6314,
+   "art": "zusatz-explizit-laden",
+   "ok": true
+  }
+ ]
+}
