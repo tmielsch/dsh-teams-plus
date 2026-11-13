@@ -1,0 +1,77 @@
+{
+ "szenario": "k1-t",
+ "modus": "ohne",
+ "typ": "t",
+ "phase": 1,
+ "lebendNachAbschluss": {
+  "lead": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "vorEnde": {
+  "ms": 10908,
+  "llmGesamt": 4,
+  "lebend": [
+   "97513405"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 1
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1905,
+   "art": "kette-angelegt",
+   "lead": "97513405",
+   "mitte": "319d8a5b",
+   "enkel": "4ff1175c"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1307,
+   "id": "319d8a5b",
+   "status": "running"
+  },
+  {
+   "ms": 1900,
+   "id": "4ff1175c",
+   "status": "running"
+  },
+  {
+   "ms": 2351,
+   "id": "4ff1175c",
+   "status": "idle"
+  },
+  {
+   "ms": 7401,
+   "id": "319d8a5b",
+   "status": "idle"
+  },
+  {
+   "ms": 7418,
+   "id": "97513405",
+   "status": "running"
+  },
+  {
+   "ms": 7461,
+   "id": "97513405",
+   "status": "idle"
+  }
+ ]
+}

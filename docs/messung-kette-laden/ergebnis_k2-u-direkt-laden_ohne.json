@@ -1,0 +1,486 @@
+{
+ "szenario": "k2-u-direkt-laden",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "direkt-laden",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1204,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 76,
+  "r": "97465236"
+ },
+ "direktNachLeadLaden": {
+  "ms": 1281,
+  "llmGesamt": 4,
+  "lebend": [
+   "97465236"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeMitteDirekt": {
+  "ok": true,
+  "dauerMs": 13,
+  "r": "d1064ce9"
+ },
+ "direktNachMitteLaden": {
+  "ms": 1295,
+  "llmGesamt": 4,
+  "lebend": [
+   "97465236",
+   "d1064ce9"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "einSekundeNachMitteLaden": {
+  "ms": 2297,
+  "llmGesamt": 4,
+  "lebend": [
+   "97465236",
+   "d1064ce9"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": true,
+  "dauerMs": 42,
+  "r": "{\"messageId\":\"38f46bf2-2f88-43d0-a034-e7295b58f957\"}"
+ },
+ "direktNachPromptEnkel": {
+  "ms": 2340,
+  "llmGesamt": 4,
+  "lebend": [
+   "97465236",
+   "d1064ce9",
+   "6f0d8b85"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 1,
+   "zuege": 1,
+   "eigentuemerLead": false
+  }
+ },
+ "nach400ms": {
+  "ms": 2742,
+  "llmGesamt": 5,
+  "lebend": [
+   "97465236",
+   "d1064ce9",
+   "6f0d8b85"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1,
+   "eigentuemerLead": false
+  }
+ },
+ "nach5s": {
+  "ms": 7346,
+  "llmGesamt": 6,
+  "lebend": [
+   "97465236",
+   "d1064ce9"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 3,
+   "zuege": 1,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "leadSchreibtMitteLebend": {
+  "ok": false,
+  "dauerMs": 4,
+  "code": "subagent/not-resumable",
+  "fehler": "subagent cannot be resumed"
+ },
+ "nachLeadAnMitteLebend": {
+  "ms": 7360,
+  "llmGesamt": 6,
+  "lebend": [
+   "97465236",
+   "d1064ce9"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 3,
+   "zuege": 1,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachMitteDispose": {
+  "ms": 7667,
+  "llmGesamt": 6,
+  "lebend": [
+   "97465236"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "leadSchreibtMitteNachDispose": {
+  "ok": true,
+  "dauerMs": 33,
+  "r": "{\"messageId\":\"03d9ee2a-c318-4bda-837c-1d2da5b02a78\"}"
+ },
+ "nachDisposeNach400ms": {
+  "ms": 8103,
+  "llmGesamt": 7,
+  "lebend": [
+   "97465236",
+   "d1064ce9"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "running",
+   "llm": 4,
+   "zuege": 2,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachDisposeNach5s": {
+  "ms": 12704,
+  "llmGesamt": 8,
+  "lebend": [
+   "97465236"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 4,
+   "zuege": 2
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10321,
+   "sitzung": "d1064ce9",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9786,
+   "sitzung": "6f0d8b85",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7287,
+   "sitzung": "d1064ce9",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4218,
+   "sitzung": "97465236",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 2399,
+   "sitzung": "6f0d8b85",
+   "text": "Mensch an Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 2871,
+   "sitzung": "d1064ce9",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7723,
+   "sitzung": "d1064ce9",
+   "text": "Mensch an Mitte, zweiter Versuch [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 8204,
+   "sitzung": "97465236",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97465236",
+  "mitte": "d1064ce9",
+  "enkel": "6f0d8b85"
+ },
+ "statusVerlauf": [
+  {
+   "ms": 2331,
+   "id": "6f0d8b85",
+   "status": "running"
+  },
+  {
+   "ms": 2814,
+   "id": "6f0d8b85",
+   "status": "idle"
+  },
+  {
+   "ms": 2837,
+   "id": "d1064ce9",
+   "status": "running"
+  },
+  {
+   "ms": 5877,
+   "id": "d1064ce9",
+   "status": "idle"
+  },
+  {
+   "ms": 7697,
+   "id": "d1064ce9",
+   "status": "running"
+  },
+  {
+   "ms": 8132,
+   "id": "d1064ce9",
+   "status": "idle"
+  },
+  {
+   "ms": 8154,
+   "id": "97465236",
+   "status": "running"
+  },
+  {
+   "ms": 8206,
+   "id": "97465236",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1280,
+   "id": "97465236",
+   "source": "resume"
+  },
+  {
+   "ms": 1294,
+   "id": "d1064ce9",
+   "source": "resume"
+  },
+  {
+   "ms": 2326,
+   "id": "6f0d8b85",
+   "source": "resume"
+  },
+  {
+   "ms": 7694,
+   "id": "d1064ce9",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 2832,
+   "id": "6f0d8b85"
+  },
+  {
+   "ms": 7363,
+   "id": "d1064ce9"
+  },
+  {
+   "ms": 8152,
+   "id": "d1064ce9"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1281,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 1295,
+   "art": "mitte-direkt-laden",
+   "ok": true
+  },
+  {
+   "ms": 2340,
+   "art": "prompt-mitte-an-enkel",
+   "ok": true
+  },
+  {
+   "ms": 7360,
+   "art": "prompt-lead-an-mitte-solange-mitte-direkt-lebt",
+   "ok": false,
+   "code": "subagent/not-resumable"
+  },
+  {
+   "ms": 7701,
+   "art": "prompt-lead-an-mitte-nach-dispose",
+   "ok": true
+  }
+ ]
+}

@@ -1,0 +1,183 @@
+{
+ "szenario": "k2-t-nur-lead",
+ "modus": "ohne",
+ "typ": "t",
+ "variante": "nur-lead",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1204,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 80,
+  "r": "97513405"
+ },
+ "direktNachLeadLaden": {
+  "ms": 1285,
+  "llmGesamt": 4,
+  "lebend": [
+   "97513405"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach400ms": {
+  "ms": 1689,
+  "llmGesamt": 4,
+  "lebend": [
+   "97513405"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach5s": {
+  "ms": 6293,
+  "llmGesamt": 4,
+  "lebend": [
+   "97513405"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach9s": {
+  "ms": 10297,
+  "llmGesamt": 4,
+  "lebend": [
+   "97513405"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10254,
+   "sitzung": "319d8a5b",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9674,
+   "sitzung": "4ff1175c",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7221,
+   "sitzung": "319d8a5b",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4155,
+   "sitzung": "97513405",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97513405",
+  "mitte": "319d8a5b",
+  "enkel": "4ff1175c"
+ },
+ "statusVerlauf": [],
+ "erzeugt": [
+  {
+   "ms": 1284,
+   "id": "97513405",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1285,
+   "art": "lead-laden",
+   "ok": true
+  }
+ ]
+}

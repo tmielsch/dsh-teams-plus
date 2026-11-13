@@ -1,0 +1,420 @@
+{
+ "szenario": "k2-u-materialisieren-halt",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "materialisieren-halt",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1204,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 55,
+  "r": "97758107"
+ },
+ "direktNachLeadLaden": {
+  "ms": 1261,
+  "llmGesamt": 4,
+  "lebend": [
+   "97758107"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "zugang": {
+  "continuations": "object",
+  "activations": "object",
+  "materialize": "function"
+ },
+ "descriptor": "{\"version\":3,\"mode\":\"continuable\",\"provider\":\"spawn\",\"label\":\"Mitte\",\"agentProvider\":\"probe\",\"agentModel\":\"m\"}",
+ "materialisiereMitte": {
+  "ok": true,
+  "dauerMs": 25,
+  "r": "6429d04e"
+ },
+ "direktNachMaterialisieren": {
+  "ms": 1286,
+  "llmGesamt": 4,
+  "lebend": [
+   "97758107",
+   "6429d04e"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "lebensdauerMitte100ms": "000000000000000000000000000000",
+ "nachHalt": {
+  "ms": 4320,
+  "llmGesamt": 4,
+  "lebend": [
+   "97758107"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": false,
+  "dauerMs": 3,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"a811ee45-dd02-43fa-91ea-c5336429d04e\" is not live"
+ },
+ "direktNachPromptEnkel": {
+  "ms": 4324,
+  "llmGesamt": 4,
+  "lebend": [
+   "97758107"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach400ms": {
+  "ms": 4726,
+  "llmGesamt": 4,
+  "lebend": [
+   "97758107"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach5s": {
+  "ms": 9328,
+  "llmGesamt": 4,
+  "lebend": [
+   "97758107"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "leadSchreibtMitte": {
+  "ok": true,
+  "dauerMs": 38,
+  "r": "{\"messageId\":\"6fe356df-fe4b-4f9d-97d0-77502473fdcd\"}"
+ },
+ "nachLeadAnMitte400ms": {
+  "ms": 9766,
+  "llmGesamt": 5,
+  "lebend": [
+   "97758107",
+   "6429d04e"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "running",
+   "llm": 3,
+   "zuege": 1,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nachLeadAnMitte5s": {
+  "ms": 14369,
+  "llmGesamt": 6,
+  "lebend": [
+   "97758107"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10375,
+   "sitzung": "6429d04e",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9851,
+   "sitzung": "2e8e006d",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7342,
+   "sitzung": "6429d04e",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4279,
+   "sitzung": "97758107",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 9426,
+   "sitzung": "6429d04e",
+   "text": "Mensch an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 9901,
+   "sitzung": "97758107",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97758107",
+  "mitte": "6429d04e",
+  "enkel": "2e8e006d"
+ },
+ "verfuegbar": [
+  {
+   "ms": 1255,
+   "id": "97758107",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1260,
+   "id": "97758107",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1285,
+   "id": "6429d04e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1286,
+   "id": "6429d04e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1289,
+   "id": "6429d04e",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9352,
+   "id": "6429d04e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9356,
+   "id": "6429d04e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9854,
+   "id": "6429d04e",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 9359,
+   "id": "6429d04e",
+   "status": "running"
+  },
+  {
+   "ms": 9839,
+   "id": "6429d04e",
+   "status": "idle"
+  },
+  {
+   "ms": 9858,
+   "id": "97758107",
+   "status": "running"
+  },
+  {
+   "ms": 9904,
+   "id": "97758107",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1260,
+   "id": "97758107",
+   "source": "resume"
+  },
+  {
+   "ms": 1285,
+   "id": "6429d04e",
+   "source": "resume"
+  },
+  {
+   "ms": 9355,
+   "id": "6429d04e",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1288,
+   "id": "6429d04e"
+  },
+  {
+   "ms": 9853,
+   "id": "6429d04e"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1261,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 1286,
+   "art": "mitte-materialisieren-ohne-nachricht",
+   "ok": true
+  },
+  {
+   "ms": 4324,
+   "art": "prompt-mitte-an-enkel",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 9366,
+   "art": "prompt-lead-an-mitte",
+   "ok": true
+  }
+ ]
+}

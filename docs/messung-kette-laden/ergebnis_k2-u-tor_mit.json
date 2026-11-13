@@ -1,0 +1,222 @@
+{
+ "szenario": "k2-u-tor",
+ "modus": "mit",
+ "typ": "u",
+ "variante": "tor",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1202,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "torEnkel": {
+  "ok": false,
+  "dauerMs": 46,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"7e1d2b1c-7ad6-4598-8145-8b44e12828b2\" is not live — Teams Plus (eltern-laden): Die Eltern-Sitzung ist selbst ein Unteragent und kann nicht automatisch geladen werden. Das ist eine bekannte Grenze (Issue DSH-Verwaltung 177); die Eltern-Sitzung muss zuerst von ihrem Vorgesetzten angeschrieben werden."
+ },
+ "nachTorEnkel": {
+  "ms": 1250,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "torMitte": {
+  "ok": true,
+  "dauerMs": 54,
+  "r": "{\"messageId\":\"2388156e-047e-4415-a9aa-3a416702cec2\"}"
+ },
+ "nach400ms": {
+  "ms": 1704,
+  "llmGesamt": 5,
+  "lebend": [
+   "97349329",
+   "e12828b2"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "running",
+   "llm": 3,
+   "zuege": 1,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach5s": {
+  "ms": 6309,
+  "llmGesamt": 6,
+  "lebend": [
+   "97349329"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10326,
+   "sitzung": "e12828b2",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9795,
+   "sitzung": "536182b8",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7288,
+   "sitzung": "e12828b2",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4225,
+   "sitzung": "97349329",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1339,
+   "sitzung": "e12828b2",
+   "text": "Mensch an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1812,
+   "sitzung": "97349329",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97349329",
+  "mitte": "e12828b2",
+  "enkel": "536182b8"
+ },
+ "statusVerlauf": [
+  {
+   "ms": 1301,
+   "id": "e12828b2",
+   "status": "running"
+  },
+  {
+   "ms": 1751,
+   "id": "e12828b2",
+   "status": "idle"
+  },
+  {
+   "ms": 1773,
+   "id": "97349329",
+   "status": "running"
+  },
+  {
+   "ms": 1815,
+   "id": "97349329",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1278,
+   "id": "97349329",
+   "source": "resume"
+  },
+  {
+   "ms": 1299,
+   "id": "e12828b2",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1768,
+   "id": "e12828b2"
+  }
+ ],
+ "patchProtokoll": [
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_kette/home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "geladen (Haken A aktiv); Notschalter /tmp/teams_plus_kette/home/.tm/teams-plus/eltern-laden.json",
+  "Haken B (Oeffnen) aktiv: page und follow umwickelt; selbsttest ok",
+  "laedt art=anschreiben eltern=7e1d2b1c-7ad6-4598-8145-8b44e12828b2",
+  "eltern-ist-kind eltern=7e1d2b1c-7ad6-4598-8145-8b44e12828b2 code=session/agent-busy: Eltern-Sitzung ist selbst ein Kind, wird nicht geladen (bekannte Grenze, Issue 177)",
+  "laedt art=anschreiben eltern=kette-lead-u-1794597349329",
+  "geladen eltern=kette-lead-u-1794597349329 ms=28"
+ ],
+ "protokoll": [
+  {
+   "ms": 1250,
+   "art": "tor-enkel-alles-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 1305,
+   "art": "tor-mitte-alles-kalt",
+   "ok": true
+  }
+ ]
+}

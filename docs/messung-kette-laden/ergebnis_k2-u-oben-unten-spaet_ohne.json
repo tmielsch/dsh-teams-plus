@@ -1,0 +1,350 @@
+{
+ "szenario": "k2-u-oben-unten-spaet",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "oben-unten-spaet",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1204,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 71,
+  "r": "97406761"
+ },
+ "direktNachLeadLaden": {
+  "ms": 1276,
+  "llmGesamt": 4,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "einSekundeNachLeadLaden": {
+  "ms": 2280,
+  "llmGesamt": 4,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptMitte": {
+  "ok": true,
+  "dauerMs": 46,
+  "r": "{\"messageId\":\"dd5dfd28-af8f-4dde-9299-f099f7c4b5de\"}"
+ },
+ "direktNachPromptMitte": {
+  "ms": 2327,
+  "llmGesamt": 4,
+  "lebend": [
+   "97406761",
+   "e36c8320"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "vorPromptEnkel": {
+  "ms": 8329,
+  "llmGesamt": 6,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": false,
+  "dauerMs": 1,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"f8ab73a7-ee84-42e5-82ea-928ce36c8320\" is not live"
+ },
+ "direktNachPromptEnkel": {
+  "ms": 8331,
+  "llmGesamt": 6,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach400ms": {
+  "ms": 8733,
+  "llmGesamt": 6,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach5s": {
+  "ms": 13337,
+  "llmGesamt": 6,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach11s": {
+  "ms": 19337,
+  "llmGesamt": 6,
+  "lebend": [
+   "97406761"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10265,
+   "sitzung": "e36c8320",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9725,
+   "sitzung": "aa76a298",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7233,
+   "sitzung": "e36c8320",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4163,
+   "sitzung": "97406761",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 2379,
+   "sitzung": "e36c8320",
+   "text": "Weckruf an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 2856,
+   "sitzung": "97406761",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97406761",
+  "mitte": "e36c8320",
+  "enkel": "aa76a298"
+ },
+ "statusVerlauf": [
+  {
+   "ms": 2318,
+   "id": "e36c8320",
+   "status": "running"
+  },
+  {
+   "ms": 2792,
+   "id": "e36c8320",
+   "status": "idle"
+  },
+  {
+   "ms": 2815,
+   "id": "97406761",
+   "status": "running"
+  },
+  {
+   "ms": 2859,
+   "id": "97406761",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1275,
+   "id": "97406761",
+   "source": "resume"
+  },
+  {
+   "ms": 2314,
+   "id": "e36c8320",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 2810,
+   "id": "e36c8320"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1276,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 2327,
+   "art": "prompt-lead-an-mitte",
+   "ok": true
+  },
+  {
+   "ms": 8331,
+   "art": "prompt-mitte-an-enkel",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}

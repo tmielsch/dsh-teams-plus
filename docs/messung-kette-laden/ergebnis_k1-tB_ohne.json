@@ -1,0 +1,81 @@
+{
+ "szenario": "k1-tB",
+ "modus": "ohne",
+ "typ": "tB",
+ "phase": 1,
+ "lebendNachAbschluss": {
+  "lead": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "nachricht": {
+  "id": "team-message-ff8223bc-d49a-40b7-9512-3964d1b6b042",
+  "ziel": "mitte"
+ },
+ "vorEnde": {
+  "ms": 10929,
+  "llmGesamt": 4,
+  "lebend": [
+   "97490491"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 1
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1912,
+   "art": "kette-angelegt",
+   "lead": "97490491",
+   "mitte": "f1a3c680",
+   "enkel": "7d83daa8"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1305,
+   "id": "f1a3c680",
+   "status": "running"
+  },
+  {
+   "ms": 1906,
+   "id": "7d83daa8",
+   "status": "running"
+  },
+  {
+   "ms": 2361,
+   "id": "7d83daa8",
+   "status": "idle"
+  },
+  {
+   "ms": 7408,
+   "id": "f1a3c680",
+   "status": "idle"
+  },
+  {
+   "ms": 7430,
+   "id": "97490491",
+   "status": "running"
+  },
+  {
+   "ms": 7478,
+   "id": "97490491",
+   "status": "idle"
+  }
+ ]
+}

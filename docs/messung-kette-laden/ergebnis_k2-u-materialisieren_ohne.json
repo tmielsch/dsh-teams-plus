@@ -1,0 +1,377 @@
+{
+ "szenario": "k2-u-materialisieren",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "materialisieren",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 69,
+  "r": "97570648"
+ },
+ "direktNachLeadLaden": {
+  "ms": 1273,
+  "llmGesamt": 4,
+  "lebend": [
+   "97570648"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "zugang": {
+  "continuations": "object",
+  "activations": "object",
+  "materialize": "function"
+ },
+ "descriptor": "{\"version\":3,\"mode\":\"continuable\",\"provider\":\"spawn\",\"label\":\"Mitte\",\"agentProvider\":\"probe\",\"agentModel\":\"m\"}",
+ "materialisiereMitte": {
+  "ok": true,
+  "dauerMs": 24,
+  "r": "41af7fb7"
+ },
+ "direktNachMaterialisieren": {
+  "ms": 1297,
+  "llmGesamt": 4,
+  "lebend": [
+   "97570648",
+   "41af7fb7"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "einSekundeNachMaterialisieren": {
+  "ms": 2300,
+  "llmGesamt": 4,
+  "lebend": [
+   "97570648"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": false,
+  "dauerMs": 2,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"40b009f0-ad05-43c8-b7fd-51a341af7fb7\" is not live"
+ },
+ "direktNachPromptEnkel": {
+  "ms": 2303,
+  "llmGesamt": 4,
+  "lebend": [
+   "97570648"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach400ms": {
+  "ms": 2706,
+  "llmGesamt": 4,
+  "lebend": [
+   "97570648"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach5s": {
+  "ms": 7309,
+  "llmGesamt": 4,
+  "lebend": [
+   "97570648"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "leadSchreibtMitte": {
+  "ok": true,
+  "dauerMs": 38,
+  "r": "{\"messageId\":\"1fdbf961-b214-4e60-b073-30841abfd049\"}"
+ },
+ "nachLeadAnMitte400ms": {
+  "ms": 7751,
+  "llmGesamt": 5,
+  "lebend": [
+   "97570648",
+   "41af7fb7"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "running",
+   "llm": 3,
+   "zuege": 1,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nachLeadAnMitte5s": {
+  "ms": 12352,
+  "llmGesamt": 6,
+  "lebend": [
+   "97570648"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10308,
+   "sitzung": "41af7fb7",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9766,
+   "sitzung": "cf78225d",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7269,
+   "sitzung": "41af7fb7",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4208,
+   "sitzung": "97570648",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7407,
+   "sitzung": "41af7fb7",
+   "text": "Mensch an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7875,
+   "sitzung": "97570648",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97570648",
+  "mitte": "41af7fb7",
+  "enkel": "cf78225d"
+ },
+ "statusVerlauf": [
+  {
+   "ms": 7339,
+   "id": "41af7fb7",
+   "status": "running"
+  },
+  {
+   "ms": 7818,
+   "id": "41af7fb7",
+   "status": "idle"
+  },
+  {
+   "ms": 7835,
+   "id": "97570648",
+   "status": "running"
+  },
+  {
+   "ms": 7879,
+   "id": "97570648",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1272,
+   "id": "97570648",
+   "source": "resume"
+  },
+  {
+   "ms": 1295,
+   "id": "41af7fb7",
+   "source": "resume"
+  },
+  {
+   "ms": 7334,
+   "id": "41af7fb7",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1298,
+   "id": "41af7fb7"
+  },
+  {
+   "ms": 7830,
+   "id": "41af7fb7"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1273,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 1297,
+   "art": "mitte-materialisieren-ohne-nachricht",
+   "ok": true
+  },
+  {
+   "ms": 2303,
+   "art": "prompt-mitte-an-enkel",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 7348,
+   "art": "prompt-lead-an-mitte",
+   "ok": true
+  }
+ ]
+}
