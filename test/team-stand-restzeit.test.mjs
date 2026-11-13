@@ -107,16 +107,21 @@ test('M-K. Kindlesung wird durch die Restzeit begrenzt (Fund 2)', async () => {
 // ---------------------------------------------------------------------------------------------------
 
 test('M27. das Abbruchsignal wird bei Fristablauf ausgelöst (beobachte bekommt ein abortiertes Signal)', async () => {
-	let signalAusgeloest = false
+	// Deterministisch: der Test wartet auf das EREIGNIS „abort“, nicht auf den Zeitpunkt der Rückkehr.
+	// Zwei Zeitgeber mit derselben Frist sind nicht geordnet (Messung 2026-11-13): die Rückkehr von execute
+	// kann das Signal überholen. Darum prüft der Test das Ereignis, nicht das Datum danach.
+	let abbruchAusgeloest
+	const abbruchAbgewartet = new Promise((r) => { abbruchAusgeloest = r })
 	const observe = (_id, { signal }) => new Promise((_, ablehnen) => {
-		signal.addEventListener('abort', () => { signalAusgeloest = true; ablehnen(new Error('abgebrochen')) })
+		signal.addEventListener('abort', () => { abbruchAusgeloest(true); ablehnen(new Error('abgebrochen')) })
 	})
 	const kinderListe = async (id) => (id === 'lead' ? [{ id: 'kind', label: 'Kind', createdAt: '2026-11-12T00:00:00Z', mode: 'continuable' }] : [])
 	const ctx = baueKontext({ mitglieder: [lead], kinderListe, observe })
 	const { werkzeug, abbau } = await ladeTeamStand(ctx, 0.3)
 	await werkzeug.execute({}, { agent: { id: 'lead' } })
+	const ausgeloest = await Promise.race([abbruchAbgewartet, new Promise((r) => setTimeout(() => r(false), 2000))])
 	abbau?.()
-	assert.equal(signalAusgeloest, true, 'die Speicherschicht erhält das Abbruchsignal bei Fristablauf')
+	assert.equal(ausgeloest, true, 'die Speicherschicht erhält das Abbruchsignal bei Fristablauf (Ereignis abort, mit Obergrenze 2 s)')
 })
 
 // ---------------------------------------------------------------------------------------------------
