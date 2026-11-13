@@ -1,0 +1,240 @@
+{
+ "szenario": "stand2",
+ "kinder": {
+  "idKurz": "4367e2",
+  "idOhne": "476cb3",
+  "idLang": "12d165",
+  "idEnkel": "8e16a8"
+ },
+ "extra": {
+  "fenster": {
+   "baum": {
+    "neueAgenten": 0,
+    "neueKinderZuege": 0,
+    "lebtNeu": [],
+    "lebtWeg": []
+   },
+   "direkt": {
+    "neueAgenten": 0,
+    "neueKinderZuege": 0,
+    "lebtNeu": [],
+    "lebtWeg": []
+   },
+   "lebendFenster": {
+    "neueAgenten": 0,
+    "neueKinderZuege": 0,
+    "lebtNeu": [],
+    "lebtWeg": []
+   },
+   "totFenster": {
+    "neueAgenten": 0,
+    "neueKinderZuege": 0,
+    "lebtNeu": [],
+    "lebtWeg": []
+   }
+  },
+  "baum": [
+   {
+    "id": "4367e2",
+    "kind": "child",
+    "depth": 1,
+    "parent": "281147",
+    "mode": "continuable",
+    "activity": "running",
+    "label": "Stand2 kindKurz"
+   },
+   {
+    "id": "476cb3",
+    "kind": "child",
+    "depth": 1,
+    "parent": "281147",
+    "mode": "continuable",
+    "activity": "inactive",
+    "label": "Stand2 kindOhne"
+   },
+   {
+    "id": "12d165",
+    "kind": "child",
+    "depth": 1,
+    "parent": "281147",
+    "mode": "continuable",
+    "activity": "running",
+    "label": "Stand2 kindLang"
+   },
+   {
+    "id": "8e16a8",
+    "kind": "child",
+    "depth": 2,
+    "parent": "12d165",
+    "mode": "continuable",
+    "activity": "inactive",
+    "label": "Stand2 Enkel"
+   }
+  ],
+  "direktKinderVonKindLang": [
+   {
+    "id": "8e16a8",
+    "mode": "continuable",
+    "label": "Stand2 Enkel"
+   }
+  ],
+  "kindLang": {
+   "vorL": {
+    "neu": 4,
+    "zuegeKinder": 8,
+    "zuegeLead": 1,
+    "lebt": [
+     "281147",
+     "4367e2",
+     "12d165"
+    ]
+   },
+   "lLang": {
+    "lebtAgent": true,
+    "status": "running",
+    "zielAusRegistry": {
+     "phase": "active",
+     "aktivierung": "armed",
+     "runden": 2
+    },
+    "projektionRoh": "{\"goal\":{\"id\":\"goal-b8f9dc35-d0bc-44a5-843b-065ac510b2cb\",\"revision\":1,\"objective\":\"Probe-Ziel lange Runden [[LONG]]\",\"phase\":\"active\",\"maxGoalRounds\":60},\"roundsStarted\":2,\"createdAt\":1794332281386,\"updatedAt\":179433228",
+    "projektionGoal": {
+     "phase": "active",
+     "runden": 2,
+     "wortlaut": "Probe-Ziel lange Runden [[LONG]]"
+    },
+    "letzteEreignisZeit": 1794332286891,
+    "dauerMs": 1,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueKinderZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   "nachL": {
+    "neu": 4,
+    "zuegeKinder": 8,
+    "zuegeLead": 1,
+    "lebt": [
+     "281147",
+     "4367e2",
+     "12d165"
+    ]
+   }
+  },
+  "tot": {
+   "vorK": {
+    "neu": 4,
+    "zuegeKinder": 12,
+    "zuegeLead": 2,
+    "lebt": [
+     "281147",
+     "12d165"
+    ]
+   },
+   "lKurz": {
+    "lebtAgent": false,
+    "status": "TOT",
+    "zielAusRegistry": null,
+    "projektionRoh": "{\"goal\":{\"id\":\"goal-45842d2a-f986-4b97-8fc1-f719a5328407\",\"revision\":2,\"objective\":\"Probe-Ziel kurz [[LONG]]\",\"phase\":\"blocked\",\"blockedReason\":{\"code\":\"round-limit\",\"message\":\"Goal reached its configured limit of 2 roun",
+    "projektionGoal": {
+     "phase": "blocked",
+     "runden": 2,
+     "wortlaut": "Probe-Ziel kurz [[LONG]]"
+    },
+    "letzteEreignisZeit": 1794332287880,
+    "dauerMs": 14,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueKinderZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   "lOhne": {
+    "lebtAgent": false,
+    "status": "TOT",
+    "zielAusRegistry": null,
+    "projektionRoh": "null",
+    "projektionGoal": null,
+    "letzteEreignisZeit": 1794332281781,
+    "dauerMs": 3,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueKinderZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   "lEnkel": {
+    "lebtAgent": false,
+    "status": "TOT",
+    "zielAusRegistry": null,
+    "projektionRoh": "null",
+    "projektionGoal": null,
+    "letzteEreignisZeit": 1794332286876,
+    "dauerMs": 1,
+    "febler": null,
+    "fenster": {
+     "neueAgenten": 0,
+     "neueKinderZuege": 0,
+     "lebtNeu": [],
+     "lebtWeg": []
+    }
+   },
+   "nachK": {
+    "neu": 4,
+    "zuegeKinder": 12,
+    "zuegeLead": 2,
+    "lebt": [
+     "281147",
+     "12d165"
+    ]
+   }
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1600,
+   "art": "agent-created",
+   "id": "4367e2"
+  },
+  {
+   "ms": 1608,
+   "art": "ziel-kurz",
+   "id": "goal-45842d2a-f986-4b97-8fc1-f719a5328407",
+   "phase": "active"
+  },
+  {
+   "ms": 1692,
+   "art": "agent-created",
+   "id": "476cb3"
+  },
+  {
+   "ms": 1739,
+   "art": "agent-created",
+   "id": "12d165"
+  },
+  {
+   "ms": 1741,
+   "art": "ziel-lang",
+   "id": "goal-b8f9dc35-d0bc-44a5-843b-065ac510b2cb",
+   "phase": "active"
+  },
+  {
+   "ms": 6772,
+   "art": "agent-created",
+   "id": "8e16a8"
+  },
+  {
+   "ms": 6780,
+   "art": "enkel-ok"
+  }
+ ],
+ "laeuftSumme": 12,
+ "zuegeLead": 2
+}

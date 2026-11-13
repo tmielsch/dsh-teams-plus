@@ -81,7 +81,15 @@ function baueSzene(optionen = {}) {
 		ziel: (agent) => ziele.get(agent),
 		beobachte: async () => optionen.beobachtung
 	}
-	umgebung.leseMitglied = (zeile, o) => M.leseMitglied(zeile, umgebung, o)
+	umgebung.leseMitglied = (zeile, o, liste, restZeit) => M.leseMitglied(zeile, umgebung, o, liste, restZeit ?? (() => 120_000))
+	// Dieselbe Fristfunktion wie in apply(): begrenzt einen Schritt auf die Restzeit.
+	umgebung.mitFrist = (promise, restMs) => {
+		if (typeof restMs !== 'number' || Number.isNaN(restMs)) throw new TypeError('mitFrist braucht eine Restzeit in ms')
+		if (restMs <= 0) return Promise.resolve(M.FRIST_ABGELAUFEN)
+		let uhr
+		const frist = new Promise((fertig) => { uhr = setTimeout(() => fertig(M.FRIST_ABGELAUFEN), restMs) })
+		return Promise.race([promise, frist]).finally(() => clearTimeout(uhr))
+	}
 	const neu = (id, eltern, istWurzel = false) => {
 		const agent = new AttrappenAgent(id, eltern)
 		agenten.set(id, agent)

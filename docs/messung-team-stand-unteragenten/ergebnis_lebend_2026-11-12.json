@@ -1,0 +1,47 @@
+{
+ "szenario": "lebend-2026-11-12",
+ "kindId": "788331",
+ "expId": "2adcdd",
+ "lesung": {
+  "kindLebtVorLesung": true,
+  "kindStatus": "running",
+  "zielPhase": "active"
+ },
+ "fenster": {
+  "neueAgenten": [],
+  "zuegeJeKennung": []
+ },
+ "protokoll": [
+  {
+   "ms": 1382,
+   "art": "exp",
+   "id": "2adcdd"
+  },
+  {
+   "ms": 1383,
+   "art": "exp-lebt-vor-kind",
+   "lebt": true
+  },
+  {
+   "ms": 2412,
+   "art": "kind-lebt",
+   "lebt": true,
+   "status": "running"
+  },
+  {
+   "ms": 2414,
+   "art": "ziel-kind-gesetzt"
+  },
+  {
+   "ms": 2415,
+   "art": "lesung-fenster",
+   "kindLebtVorLesung": true,
+   "kindStatus": "running",
+   "zielPhase": "active",
+   "fenster": {
+    "neueAgenten": [],
+    "zuegeJeKennung": []
+   }
+  }
+ ]
+}

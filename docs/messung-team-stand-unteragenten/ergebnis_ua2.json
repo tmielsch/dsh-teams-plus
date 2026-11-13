@@ -1,0 +1,63 @@
+{
+ "szenario": "ua2-2026-11-10",
+ "kindIdKurz": "2e54fe",
+ "wartezeitAufRunningMs": 0,
+ "pauseVorherStatus": "running",
+ "vorPauseLesung": {
+  "phase": "active",
+  "runden": 0,
+  "aktivierung": "armed"
+ },
+ "pauseErgebnis": {
+  "aufrufOhneWurf": true
+ },
+ "totGetroffenNachMs": 1866,
+ "letzteLiveVorTot": {
+  "phase": "paused",
+  "runden": 0,
+  "msWaelrendDieserLesung": 4654,
+  "status": "running",
+  "aktivierung": "disarmed"
+ },
+ "letzterZeitstrichNurAenderungen": [
+  {
+   "ms": 2829,
+   "status": "running",
+   "phase": "paused",
+   "runden": 0,
+   "aktivierung": "disarmed"
+  }
+ ],
+ "dateiNachTot": {
+  "phaseAusDerInnerenObjekt": "paused",
+  "keysDesInneren": [
+   "id",
+   "revision",
+   "objective",
+   "phase",
+   "maxGoalRounds"
+  ],
+  "keysDerProjektionsEbene": [
+   "goal",
+   "roundsStarted",
+   "createdAt",
+   "updatedAt"
+  ],
+  "roundsStartedObereEbene": 0,
+  "revisionInnneWort": 2
+ },
+ "dateiFehler": null,
+ "gleichePhaseWieVorTot": true,
+ "dauerMsDateilesen": 17,
+ "fensterUmDasDateilesen": {
+  "neueAgenten": [],
+  "zugenommeneZuegeProKennung": []
+ },
+ "protokoll": [
+  {
+   "ms": 2824,
+   "art": "ziel-angelegt",
+   "id": "goal-8bd0eb90-0d68-4f51-bc58-6922184b718b"
+  }
+ ]
+}

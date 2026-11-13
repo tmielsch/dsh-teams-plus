@@ -1,0 +1,179 @@
+{
+ "szenario": "ua-2026-11-10",
+ "leadIdKurz": "40606136",
+ "p1IdKurz": "43c30f",
+ "kinderVonP1Ids": [
+  "fb09b1",
+  "7eceac"
+ ],
+ "kind3IdKurz": "afd6a9",
+ "vorDerPauseLesung": {
+  "agentLebtVorPause": true,
+  "phaseAusRegistryVorPause": "active",
+  "aktivierungAusRegistryVorPause": "armed",
+  "pauseAufriefOhneWurf": true
+ },
+ "statusKind3WartenAufAbbaut": {
+  "totNachMs": 0
+ },
+ "statusP1NachWartenTot": {
+  "totNachMs": 5430
+ },
+ "kinderStatusListe": [
+  {
+   "kind": "fb09b1",
+   "totNachMs": 1
+  },
+  {
+   "kind": "7eceac",
+   "totNachMs": 0
+  }
+ ],
+ "UaKatalogToterZwischeneltern": {
+  "dauerMs": 21,
+  "keysDerErstenZeileP1": [
+   "mode",
+   "label",
+   "id",
+   "createdAt"
+  ],
+  "kinderAnzahl": 2,
+  "kinder": [
+   {
+    "mode": "continuable",
+    "label": "UA p1 kindA",
+    "id": "fb09b1",
+    "createdAt": 1794340606251
+   },
+   {
+    "mode": "continuable",
+    "label": "UA p1 kindB",
+    "id": "7eceac",
+    "createdAt": 1794340606314
+   }
+  ],
+  "fensterVorherNachher": {
+   "neueAgentenImFenster": [],
+   "zugenommeneZuegeProKennung": []
+  }
+ },
+ "UaBaumUnterTotenEltern": {
+  "dauerMs": 14,
+  "keysErsteZeileBaum": [
+   "mode",
+   "label",
+   "id",
+   "kind",
+   "parentId",
+   "depth",
+   "activity",
+   "hasChildren"
+  ],
+  "baumEintragZeilen": [
+   {
+    "id": "43c30f",
+    "kind": "child",
+    "depth": 1,
+    "elternFeldname": "ja",
+    "parentWert": "606136",
+    "mode": "continuable",
+    "activity": "inactive"
+   },
+   {
+    "id": "fb09b1",
+    "kind": "child",
+    "depth": 2,
+    "elternFeldname": "ja",
+    "parentWert": "43c30f",
+    "mode": "continuable",
+    "activity": "inactive"
+   },
+   {
+    "id": "7eceac",
+    "kind": "child",
+    "depth": 2,
+    "elternFeldname": "ja",
+    "parentWert": "43c30f",
+    "mode": "continuable",
+    "activity": "inactive"
+   },
+   {
+    "id": "afd6a9",
+    "kind": "child",
+    "depth": 1,
+    "elternFeldname": "ja",
+    "parentWert": "606136",
+    "mode": "continuable",
+    "activity": "inactive"
+   }
+  ],
+  "fensterVorherNachher": {
+   "neueAgentenImFenster": [],
+   "zugenommeneZuegeProKennung": []
+  }
+ },
+ "Befund5PausiertVergleich": {
+  "dauerMsZielDateiLesen": 0,
+  "kind3AusDerDateiNachTot": {
+   "lebtAgentGeradeBeiDerLesung": false,
+   "keysAufDerProjektionEbene1": [
+    "goal",
+    "roundsStarted",
+    "createdAt",
+    "updatedAt"
+   ],
+   "phaseInDerInnerenZielObjekt": "paused",
+   "aktivierungImInnerenVorhanden": false,
+   "keysDesInnerenZielObjekts": [
+    "id",
+    "revision",
+    "objective",
+    "phase",
+    "maxGoalRounds"
+   ],
+   "roundsStartedObereEbene": "0",
+   "roundsStartedImInneren": null
+  },
+  "fensterVorherNachherZielDateiLesen": {
+   "neueAgentenImFenster": [],
+   "zugenommeneZuegeProKennung": []
+  }
+ },
+ "statusGanzAmEnde": [
+  {
+   "id": "43c30f",
+   "statusJetzt": "TOT"
+  },
+  {
+   "id": "fb09b1",
+   "statusJetzt": "TOT"
+  },
+  {
+   "id": "7eceac",
+   "statusJetzt": "TOT"
+  },
+  {
+   "id": "afd6a9",
+   "statusJetzt": "TOT"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1615,
+   "art": "p1-angelegt",
+   "id": "43c30f",
+   "statusDirektDanach": "running"
+  },
+  {
+   "ms": 10914,
+   "art": "p1-status-tot",
+   "id": "43c30f",
+   "totNachMs": 5430
+  },
+  {
+   "ms": 10915,
+   "art": "kind3-status-tot",
+   "totNachMs": 0
+  }
+ ]
+}

@@ -1,0 +1,237 @@
+{
+ "uebernahmen": [
+  {
+   "id": "d498043a-9e0f-4c7b-a060-bf0bb59a28e3",
+   "name": "exp1",
+   "zielId": "g-test-a",
+   "seit": "2026-11-12T22:08:29.663Z",
+   "pauseOffen": false
+  },
+  {
+   "id": "9d20b207-b631-4cb6-9caf-d912b5cc9a5e",
+   "name": "Abnahme fachB ohne Ziel",
+   "zielId": "g-test-b",
+   "seit": "2026-11-12T22:07:59.663Z",
+   "pauseOffen": true
+  }
+ ],
+ "szenario": "abnahme-nachbau-2026-11-12-v3",
+ "kennungen": {
+  "lead": "369282",
+  "exp1": "9a28e3",
+  "exp2": "edcdf6",
+  "fachA": "a49468",
+  "fachB": "cc9a5e",
+  "blocked": "3d0e2f",
+  "enkel": "2c4e1f",
+  "eigen": "cad916",
+  "kaputtId": "cad916",
+  "zielId": "ed59a9"
+ },
+ "kinderVonExp1": [
+  {
+   "id": "a49468",
+   "createdAt": 1794521369439,
+   "mode": "continuable",
+   "label": "Abnahme fachA"
+  },
+  {
+   "id": "cc9a5e",
+   "createdAt": 1794521369456,
+   "mode": "continuable",
+   "label": "Abnahme fachB ohne Ziel"
+  },
+  {
+   "id": "3d0e2f",
+   "createdAt": 1794521369528,
+   "mode": "continuable",
+   "label": "Abnahme blockedKind"
+  }
+ ],
+ "kinderVonLead": [
+  {
+   "id": "9a28e3",
+   "createdAt": 1794521369358,
+   "mode": "continuable",
+   "label": "Abnahme-Experte mit Kindern"
+  },
+  {
+   "id": "edcdf6",
+   "createdAt": 1794521369579,
+   "mode": "continuable",
+   "label": "Abnahme-Experte ohne Kinder"
+  },
+  {
+   "id": "cad916",
+   "createdAt": 1794521369647,
+   "mode": "continuable",
+   "label": "Abnahme eigenesLeadKind"
+  }
+ ],
+ "baumVonLead": [
+  {
+   "id": "9a28e3",
+   "kind": "child",
+   "depth": 1,
+   "parent": "369282",
+   "activity": "inactive",
+   "label": "Abnahme-Experte mit Kindern"
+  },
+  {
+   "id": "a49468",
+   "kind": "child",
+   "depth": 2,
+   "parent": "9a28e3",
+   "activity": "inactive",
+   "label": "Abnahme fachA"
+  },
+  {
+   "id": "2c4e1f",
+   "kind": "child",
+   "depth": 3,
+   "parent": "a49468",
+   "activity": "inactive",
+   "label": "Abnahme Enkel"
+  },
+  {
+   "id": "cc9a5e",
+   "kind": "child",
+   "depth": 2,
+   "parent": "9a28e3",
+   "activity": "inactive",
+   "label": "Abnahme fachB ohne Ziel"
+  },
+  {
+   "id": "3d0e2f",
+   "kind": "child",
+   "depth": 2,
+   "parent": "9a28e3",
+   "activity": "inactive",
+   "label": "Abnahme blockedKind"
+  },
+  {
+   "id": "edcdf6",
+   "kind": "child",
+   "depth": 1,
+   "parent": "369282",
+   "activity": "inactive",
+   "label": "Abnahme-Experte ohne Kinder"
+  },
+  {
+   "id": "cad916",
+   "kind": "diagnostic",
+   "depth": 1,
+   "parent": "369282"
+  }
+ ],
+ "standNeu": [
+  [
+   {
+    "type": "text",
+    "text": "{\"teamModus\":false,\"notschalter\":true,\"mitglieder\":[{\"name\":\"exp1\",\"id\":\"d498043a-9e0f-4c7b-a060-bf0bb59a28e3\",\"status\":\"inactive\",\"angehaltenSeit\":\"2026-11-12T22:08:29.663Z\",\"gelesenAus\":\"gespeicherte Sitzung\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"bericht\":false,\"zeitLetztesEreignis\":\"2026-11-12T22:09:41.660Z\"},{\"name\":\"exp2\",\"id\":\"04e90eac-cbf1-4b27-97ec-d096d4edcdf6\",\"status\":\"inactive\",\"angehaltenSeit\":null,\"gelesenAus\":\"gespeicherte Sitzung\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"bericht\":false,\"zeitLetztesEreignis\":\"2026-11-12T22:09:32.644Z\"}],\"untergruppen\":[{\"gruppe\":\"mitglied\",\"id\":\"d498043a-9e0f-4c7b-a060-bf0bb59a28e3\",\"unteragenten\":[{\"id\":\"f20fd92d-8826-4775-ac1b-228ccba49468\",\"label\":\"Abnahme fachA\",\"createdAt\":1794521369439,\"depth\":1,\"parentId\":\"d498043a-9e0f-4c7b-a060-bf0bb59a28e3\",\"zustand\":\"abgebaut\",\"ziel\":{\"phase\":\"paused\",\"runden\":0,\"maxRunden\":60,\"wortlaut\":\"Abnahme Kind-Ziel pausiert [[LONG]]\"},\"aktivierung\":\"unbekannt (sitzt nicht in der Datei)\",\"zeitLetztesEreignis\":\"2026-11-12T22:09:35.610Z\",\"angehaltenSeit\":null,\"bericht\":true,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"9d20b207-b631-4cb6-9caf-d912b5cc9a5e\",\"label\":\"Abnahme fachB ohne Ziel\",\"createdAt\":1794521369456,\"depth\":1,\"parentId\":\"d498043a-9e0f-4c7b-a060-bf0bb59a28e3\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":\"2026-11-12T22:09:32.524Z\",\"angehaltenSeit\":\"2026-11-12T22:07:59.663Z\",\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"826f0848-435d-4cc5-8e54-6c367d2c4e1f\",\"label\":\"Abnahme Enkel\",\"createdAt\":1794521369494,\"depth\":2,\"parentId\":\"f20fd92d-8826-4775-ac1b-228ccba49468\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":\"2026-11-12T22:09:32.561Z\",\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"},{\"id\":\"7bed6638-3909-424a-b069-0601f33d0e2f\",\"label\":\"Abnahme blockedKind\",\"createdAt\":1794521369528,\"depth\":1,\"parentId\":\"d498043a-9e0f-4c7b-a060-bf0bb59a28e3\",\"zustand\":\"abgebaut\",\"ziel\":{\"phase\":\"blocked\",\"runden\":1,\"maxRunden\":1,\"wortlaut\":\"Ziel bis Rundenlimit [[SLOW]]\"},\"aktivierung\":\"unbekannt (sitzt nicht in der Datei)\",\"zeitLetztesEreignis\":\"2026-11-12T22:09:33.050Z\",\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"gespeicherte Sitzung\"}]},{\"gruppe\":\"mitglied\",\"id\":\"04e90eac-cbf1-4b27-97ec-d096d4edcdf6\",\"unteragenten\":[]},{\"gruppe\":\"eigeneUnteragenten\",\"id\":\"lead-abnahme-1794521369282\",\"unteragenten\":[{\"id\":\"4a6c6d06-f1fa-4c2c-b4ee-a592b9cad916\",\"label\":\"Abnahme eigenesLeadKind\",\"createdAt\":1794521369647,\"depth\":1,\"parentId\":\"lead-abnahme-1794521369282\",\"zustand\":\"abgebaut\",\"ziel\":null,\"aktivierung\":null,\"zeitLetztesEreignis\":null,\"angehaltenSeit\":null,\"bericht\":false,\"gelesenAus\":\"nicht lesbar\",\"katalogFehler\":\"Katalog nicht lesbar\"}]}],\"hinweis\":\"One row per teammate ('mitglieder'); 'ziel' is null when the member has no goal; 'zeitLetztesEreignis' is the last session event; 'gelesenAus' says live agent or stored session. 'untergruppen' groups subagents per employee: one 'mitglied' group headed by that member's session id holding its own descendants (depth and parentId relative to the group head), then 'eigeneUnteragenten' for the caller's own subagents who belong to no member. A teammate is never listed twice; deduplication is by session id. For a torn-down ('abgebaut') child the goal stays readable but whether it runs on is not — 'aktivierung' then says 'unbekannt (sitzt nicht in der Datei)'.\"}"
+   }
+  ]
+ ],
+ "fensterKatalog": {
+  "neueAgentenImFenster": [],
+  "zugenommeneZuegeProKennung": []
+ },
+ "fensterStand": {
+  "neueAgentenImFenster": [],
+  "zugenommeneZuegeProKennung": []
+ },
+ "protokoll": [
+  {
+   "ms": 1658,
+   "art": "mitglied-exp1",
+   "id": "9a28e3"
+  },
+  {
+   "ms": 1658,
+   "art": "exp1-lebt-fuer-kinder",
+   "lebt": true
+  },
+  {
+   "ms": 1712,
+   "art": "ziel-fachA",
+   "id": "ed59a9",
+   "phase": "active"
+  },
+  {
+   "ms": 1713,
+   "art": "pause-fachA"
+  },
+  {
+   "ms": 1713,
+   "art": "bericht-fachA",
+   "pfad": "/tmp/teams_plus_umbau/probe_stand_home/.tm/teams-plus/state/berichte/ed59a9.json"
+  },
+  {
+   "ms": 1747,
+   "art": "enkel-unter-fachA",
+   "anlage": true,
+   "id": "2c4e1f"
+  },
+  {
+   "ms": 1790,
+   "art": "ziel-blockedKind",
+   "id": "85ee3b",
+   "maxRunden": 1
+  },
+  {
+   "ms": 1867,
+   "art": "mitglied-exp2",
+   "id": "edcdf6"
+  },
+  {
+   "ms": 1883,
+   "art": "uebernahmen-datei",
+   "anzahl": 2
+  },
+  {
+   "ms": 13916,
+   "art": "abbau-9a28e3",
+   "tot": true
+  },
+  {
+   "ms": 13917,
+   "art": "abbau-edcdf6",
+   "tot": true
+  },
+  {
+   "ms": 13917,
+   "art": "abbau-a49468",
+   "tot": true
+  },
+  {
+   "ms": 13917,
+   "art": "abbau-cc9a5e",
+   "tot": true
+  },
+  {
+   "ms": 13917,
+   "art": "abbau-3d0e2f",
+   "tot": true
+  },
+  {
+   "ms": 13917,
+   "art": "abbau-2c4e1f",
+   "tot": true
+  },
+  {
+   "ms": 13917,
+   "art": "abbau-cad916",
+   "tot": true
+  },
+  {
+   "ms": 13922,
+   "art": "sitzung-zerstoert",
+   "pfad": "/tmp/teams_plus_umbau/probe_stand_home/sessions/--tmp-teams_plus_umbau-probe_stand--/4a6c6d06-f1fa-4c2c-b4ee-a592b9cad916"
+  },
+  {
+   "ms": 19173,
+   "art": "stand-ueber-sitzung",
+   "ereignisse": 1
+  }
+ ]
+}

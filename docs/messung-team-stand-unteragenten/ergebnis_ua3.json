@@ -1,0 +1,139 @@
+{
+ "szenario": "ua3-2026-11-10",
+ "leadIdKurz": "45588372",
+ "expIdKurz": "c22314",
+ "kinderVonExpIds": [
+  "b897b9",
+  "8f1acd"
+ ],
+ "statusExpNachWartenTot": {
+  "totNachMs": 6639
+ },
+ "kinderStatusListe": [
+  {
+   "kind": "b897b9",
+   "totNachMs": 0
+  },
+  {
+   "kind": "8f1acd",
+   "totNachMs": 0
+  }
+ ],
+ "Ua3KatalogToterZwischenelternAusSpawnTeammate": {
+  "dauerMs": 41,
+  "keysDerErstenZeileExp": [
+   "mode",
+   "label",
+   "id",
+   "createdAt"
+  ],
+  "kinderAnzahl": 2,
+  "kinder": [
+   {
+    "mode": "continuable",
+    "label": "UA3 exp kindA",
+    "id": "b897b9",
+    "createdAt": 1794345588547
+   },
+   {
+    "mode": "continuable",
+    "label": "UA3 exp kindB",
+    "id": "8f1acd",
+    "createdAt": 1794345588565
+   }
+  ],
+  "fensterVorherNachher": {
+   "neueAgentenImFenster": [],
+   "zugenommeneZuegeProKennung": []
+  }
+ },
+ "Ua3BaumUnterTotemMitglied": {
+  "dauerMs": 14,
+  "keysErsteZeileBaum": [
+   "mode",
+   "label",
+   "id",
+   "kind",
+   "parentId",
+   "depth",
+   "activity",
+   "hasChildren"
+  ],
+  "baumEintragZeilen": [
+   {
+    "id": "c22314",
+    "kind": "child",
+    "depth": 1,
+    "elternFeldname": "ja",
+    "parentWert": "588372",
+    "mode": "continuable",
+    "activity": "inactive"
+   },
+   {
+    "id": "b897b9",
+    "kind": "child",
+    "depth": 2,
+    "elternFeldname": "ja",
+    "parentWert": "c22314",
+    "mode": "continuable",
+    "activity": "inactive"
+   },
+   {
+    "id": "8f1acd",
+    "kind": "child",
+    "depth": 2,
+    "elternFeldname": "ja",
+    "parentWert": "c22314",
+    "mode": "continuable",
+    "activity": "inactive"
+   }
+  ],
+  "fensterVorherNachher": {
+   "neueAgentenImFenster": [],
+   "zugenommeneZuegeProKennung": []
+  }
+ },
+ "Ua3ZielTotesMitgliedAusDerDatei": {
+  "dauerMsZielDateiLesen": 1,
+  "zielExpAusDerDateiNachTot": {
+   "fehler": "Cannot convert undefined or null to object"
+  },
+  "fensterVorherNachher": {
+   "neueAgentenImFenster": [],
+   "zugenommeneZuegeProKennung": []
+  }
+ },
+ "statusGanzAmEnde": [
+  {
+   "id": "c22314",
+   "statusJetzt": "TOT"
+  },
+  {
+   "id": "b897b9",
+   "statusJetzt": "TOT"
+  },
+  {
+   "id": "8f1acd",
+   "statusJetzt": "TOT"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1674,
+   "art": "teammitglied",
+   "id": "c22314",
+   "status": "running"
+  },
+  {
+   "ms": 1675,
+   "art": "exp-lebendig-fuer-kinder",
+   "lebt": true
+  },
+  {
+   "ms": 8371,
+   "art": "exp-status-tot",
+   "id": "c22314",
+   "totNachMs": 6639
+  }
+ ]
+}

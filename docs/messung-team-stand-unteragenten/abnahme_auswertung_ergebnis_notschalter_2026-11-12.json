@@ -1,0 +1,56 @@
+[
+  {
+    "nr": 1,
+    "status": "PASS",
+    "etikett": "MESSUNG",
+    "detail": "Gruppen mitglied=2, eigene=1; fachA depth 1; Enkel depth 2 parentId a49468; exp2 Kinder 0"
+  },
+  {
+    "nr": 2,
+    "status": "PASS",
+    "etikett": "MESSUNG",
+    "detail": "fachA paused=paused; blockedKind=blocked (zwei Lagen je Phase)"
+  },
+  {
+    "nr": 3,
+    "status": "PASS",
+    "etikett": "MESSUNG",
+    "detail": "fachB ziel=null gelesenAus=gespeicherte Sitzung; eigenesLeadKind gelesenAus=nicht lesbar"
+  },
+  {
+    "nr": 4,
+    "status": "PASS",
+    "etikett": "MESSUNG (eingeschraenkt: abgebaute Kinder)",
+    "detail": "Fenster Stand: neue=[] Zuege=[]; Fenster Katalog: neue=[] Zuege=[]"
+  },
+  {
+    "nr": 5,
+    "status": "PASS",
+    "etikett": "MESSUNG",
+    "detail": "Teammitglieder als Kinderzeile: false; eigenesLeadKind in eigener Gruppe: true"
+  },
+  {
+    "nr": 6,
+    "status": "PASS",
+    "etikett": "MESSUNG (Gegenprobe Node-Test 9)",
+    "detail": "Mitglieder-Gruppen 2; Gruppen mit Kindern 2; Leadkind in eigener Gruppe: true. Der Vergleich mit dem Git-Stand steht im Node-Test."
+  },
+  {
+    "nr": 7,
+    "status": "PASS",
+    "etikett": "MESSUNG (nur abgebaut)",
+    "detail": "fachA bericht=true; lebende Variante ungemessen (siehe Messblatt)"
+  },
+  {
+    "nr": 8,
+    "status": "PASS",
+    "etikett": "MESSUNG",
+    "detail": "fachA aktivierung=\"unbekannt (sitzt nicht in der Datei)\" zustand=abgebaut"
+  },
+  {
+    "nr": 9,
+    "status": "PASS",
+    "etikett": "MESSUNG",
+    "detail": "exp1 angehaltenSeit=2026-11-12T22:08:29.663Z gleich Eintrag=2026-11-12T22:08:29.663Z; fachB=2026-11-12T22:07:59.663Z gleich Eintrag=2026-11-12T22:07:59.663Z; eigenes Kind ohne Eintrag=null"
+  }
+]

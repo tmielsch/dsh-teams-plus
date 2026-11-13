@@ -103,6 +103,26 @@ const MAX_TIEFE = 16;
 /** Wie lange `team_stand` auf das Lesen einer abgebauten Sitzung wartet. */
 const LESE_FRIST_MS = 5000;
 
+/** Wie viele Sitzungen `team_stand` je Aufruf höchstens anfässt (Menschenentscheidung O3, 2026-11-10: 60). */
+export const KIND_GRENZE = 60;
+
+/** Restzeit in ms aus einer Restzeit-Funktion, nie negativ, ohne Infinity-Fehler. */
+export function restZeitMs(restZeit) {
+	const wert = typeof restZeit === "function" ? restZeit() : Infinity;
+	return Number.isFinite(wert) ? wert : Number.MAX_SAFE_INTEGER;
+}
+
+/** Sentinel: der Abfrageschritt lief in die Gesamtfrist. Wird als Zeile „Zeitgrenze erreicht“ gemeldet. */
+export const FRIST_ABGELAUFEN = Symbol("frist-abgelaufen");
+
+/** Gesamtzeitgrenze eines `team_stand`-Aufrufs in Sekunden (Menschenentscheidung O3, 2026-11-10: 120). */
+export const STAND_FRIST_S = 120;
+
+/** Frist-Wert für `execute`. Standard ist STAND_FRIST_S; eine Test-Umgebung darf ihn über `fristSekundenOverride` kürzen. */
+export function fristSekunden(overrideSekunden) {
+	return typeof overrideSekunden === "number" && overrideSekunden >= 0 ? overrideSekunden : STAND_FRIST_S;
+}
+
 /** Der volle Satz der Kernmeldung bei normalem Ende — alles andere bleibt laut. */
 const SATZ_FERTIG = /^Background subagent \S+ finished and will do no further work unless you send it more\.$/;
 
@@ -382,8 +402,96 @@ const BESCHREIBUNG_BERICHT = [
 const BESCHREIBUNG_STAND = [
 	"Read-only overview of the Team: for every member its goal (phase, rounds used, objective shortened), whether a closing report exists, and the time of its last session event. It wakes nobody and costs no model call of the members.",
 	"",
+	"Below the members, the answer carries `untergruppen`: one group per employee (`gruppe: 'mitglied'`, headed by that member's session id) holding that member's own subagents and their descendants (each row with `depth` and `parentId`), plus a final group (`gruppe: 'eigeneUnteragenten'`) holding the caller's own subagents who belong to no member. A teammate is never listed twice; deduplication runs by session id, never by name.",
+	"",
 	"Use it instead of asking members for status. A member that ended a turn without completing its goal is NOT reported to you any more in Team mode (the plain 'finished' notice is dropped); this overview is how you see it."
 ].join("\n");
+
+/** Der Satz für eine Gruppe, in der mangels Dienst gar keine Kinder gelesen wurden (Plan Schritt 2). */
+export const UNTERAGENTEN_DIENST_FEHLT = "Unteragenten nicht gelesen: Dienst fehlt";
+
+/** Der Aktivierungs-Text für ein Kind, das nicht mehr im Speicher liegt (Menschenentscheidung O1). */
+export const UNBEKANNT_AKTIVIERUNG = "unbekannt (sitzt nicht in der Datei)";
+
+/**
+ * Liest eine Kinder-Gruppe breadth-first unter einem Gruppenkopf: je Sitzung ihr eigener Katalog via
+ * `umgebung.kinderListe`, jede gefundene Zeile materialisiert über {@link leseSitzungsKern}. Das
+ * Lesebudget (O3: {@link KIND_GRENZE} Sitzungen und {@link STAND_FRIST_S} Sekunden Gesamtfrist) wird
+ * je Gruppe nach der Reihe geprüft. Die Tiefenstufe zählt relativ zum Gruppenkopf: ein direktes Kind
+ * steht bei `depth: 1`, sein Kind (der Enkel des Kopfes) bei `depth: 2`; die Elternkennung kommt aus
+ * dem Katalog-Element, sonst aus der Ebene, die es gelesen hat (`listChildren` selbst liefert kein
+ * `parentId` — gemessen in `ergebnis_stand4.json`, dort schrieb nur der Treiber `parent`).
+ * Doppelung über die Sitzungskennung: ein Eintrag in `besprochen` (alle Team-Mitglieder, später
+ * jedes behandelte Kind) erscheint nie als Kinderzeile; sein Unterlauf wird dort nicht noch einmal
+ * betreten — er bekommt seine eigene Gruppe.
+ */
+export async function leseKinderGruppe(gruppe, kopfId, umgebung, ordner, uebernahmenListe, budget, zeitVorbei, dienstFehlt, besprochen, restZeit) {
+	if (typeof restZeit !== "function") throw new TypeError("leseKinderGruppe braucht eine Restzeit-Funktion");
+	if (gruppe !== "mitglied" && gruppe !== "eigeneUnteragenten") throw new Error(`leseKinderGruppe: unbekannter gruppe-Wert "${gruppe}"`);
+	const ergebnis = { gruppe, id: kopfId, unteragenten: [] };
+	if (dienstFehlt) { ergebnis.fehler = UNTERAGENTEN_DIENST_FEHLT; return ergebnis; }
+	let katalog;
+	try { katalog = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.kinderListe(String(kopfId)), restZeit()); }
+	catch (fehler) { katalog = { fehler: kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120) }; }
+	if (katalog === FRIST_ABGELAUFEN) { ergebnis.fehler = "Zeitgrenze erreicht: Katalog des Gruppenkopfs nicht gelesen"; return ergebnis; }
+	if (katalog === null) { ergebnis.fehler = UNTERAGENTEN_DIENST_FEHLT; return ergebnis; } // Dienst fehlt (Plan Schritt 2).
+	if (!Array.isArray(katalog)) { ergebnis.fehler = `Katalog nicht lesbar: ${String(katalog?.fehler ?? "unbekannt")}`; return ergebnis; }
+	budget.gezaehlt += 1; // Der Gruppenkopf ist eine gelesene Sitzung.
+	const warteschlange = katalog.map((z) => ({ row: z, tiefe: 1, elternId: String(kopfId) }));
+	let abgeschnittenGrund = null;
+	while (warteschlange.length > 0) {
+		if (zeitVorbei()) { abgeschnittenGrund = "zeit"; break; }
+		if (budget.gezaehlt >= KIND_GRENZE) { abgeschnittenGrund = "anzahl"; break; }
+		const { row, tiefe, elternId } = warteschlange.shift();
+		budget.gezaehlt += 1;
+		const id = String(row.id);
+		if (besprochen?.has(id)) continue; // Team-Mitglied in einer fremden Gruppe: nie nochmal.
+		besprochen?.add(id);
+		const kern = await leseSitzungsKern(id, umgebung, ordner, uebernahmenListe, restZeit);
+		ergebnis.unteragenten.push({
+			id, label: row.label ?? "", createdAt: row.createdAt ?? null, depth: tiefe, parentId: row.parentId ?? elternId,
+			zustand: kern.zustand, ziel: kern.ziel, aktivierung: kern.aktivierung,
+			zeitLetztesEreignis: kern.zeitLetztesEreignis, angehaltenSeit: kern.angehaltenSeit, bericht: kern.bericht, gelesenAus: kern.gelesenAus
+		});
+		let kinder;
+		try { kinder = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.kinderListe(id), restZeit()); }
+		catch (fehler) { kinder = { fehler: kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120) }; }
+		if (kinder === FRIST_ABGELAUFEN) { abgeschnittenGrund = "zeit"; continue; }
+		if (!Array.isArray(kinder)) {
+			// Katalogfehler am Kind: sichtbar machen, sonst hielte der Lead es fuer kinderlos.
+			ergebnis.unteragenten[ergebnis.unteragenten.length - 1].katalogFehler = kinder?.fehler ?? "Katalog nicht lesbar";
+			continue;
+		}
+		for (const kind of kinder) warteschlange.push({ row: kind, tiefe: tiefe + 1, elternId: id });
+	}
+	if (abgeschnittenGrund !== null && warteschlange.length > 0) {
+		const anzahl = warteschlange.length;
+		const text = abgeschnittenGrund === "zeit" ? `Zeitgrenze erreicht: ${anzahl} Kinder nicht gelesen` : `Grenze erreicht: ${anzahl} Kind-Sitzungen nicht gelesen`;
+		if (ergebnis.unteragenten.length === 0) { ergebnis.fehler = text; } // Vollständig ungelesene Gruppe: Meldung an den Gruppenkopf.
+		else {
+			for (const { row, tiefe, elternId } of warteschlange) {
+				if (besprochen?.has(String(row.id))) continue; // Team-Mitglied: gehoert zu seiner eigenen Gruppe, nie als Kind.
+				ergebnis.unteragenten.push({
+				id: String(row.id), label: row.label ?? "", createdAt: row.createdAt ?? null, depth: tiefe, parentId: row.parentId ?? elternId,
+				zustand: null, ziel: null, aktivierung: null, zeitLetztesEreignis: null, angehaltenSeit: null, bericht: false, gelesenAus: "nicht gelesen"
+				});
+			}
+			ergebnis.unteragenten.push({ marke: "grenze", text });
+		}
+		budget.gezaehlt += ergebnis.unteragenten.filter((z) => z.gelesenAus === "nicht gelesen").length; // Nur tatsaechlich eingetragene Restzeilen verbrauchen das Budget.
+	}
+	// Sortierung nach Anlegezeit aufsteigend, ohne createdAt ans Ende; eine Markerzeile bleibt letzte.
+	const markeZeilen = ergebnis.unteragenten.filter((z) => z.marke === "grenze");
+	const normale = ergebnis.unteragenten.filter((z) => z.marke !== "grenze");
+	normale.sort((a, b) => {
+		if (a.createdAt == null && b.createdAt == null) return 0;
+		if (a.createdAt == null) return 1;
+		if (b.createdAt == null) return -1;
+		return a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0;
+	});
+	ergebnis.unteragenten = markeZeilen.length > 0 ? [...normale, ...markeZeilen] : normale;
+	return ergebnis;
+}
 
 /** Kürzt einen Text auf eine Zeile mit Obergrenze. */
 function kuerze(text, grenze) {
@@ -435,6 +543,7 @@ export function baueStandWerkzeug({ defineTool, umgebung, ordner = berichtOrdner
 				teamModus: { type: "boolean", required: true },
 				notschalter: { type: "boolean", required: true },
 				mitglieder: { type: "array", required: true, items: { type: "object", additionalProperties: true } },
+				untergruppen: { type: "array", required: true, items: { type: "object", additionalProperties: true } },
 				hinweis: { type: "string", required: true }
 			} },
 			render: (_args, wert) => [{ type: "text", text: JSON.stringify(wert) }]
@@ -450,36 +559,69 @@ export function baueStandWerkzeug({ defineTool, umgebung, ordner = berichtOrdner
 			const dienst = umgebung.teams();
 			const zeilen = dienst === undefined ? [] : dienst.listMembers(wurzel);
 			const mitglieder = [];
+			/** Die Sitzungskennungen aller Team-Mitglieder — ihre Unterbäume gehören in ihre eigene Gruppe (A4). */
+			const mitgliedsIds = new Set();
 			for (const zeile of zeilen) {
 				if (zeile.role !== "teammate") continue;
-				mitglieder.push(await umgebung.leseMitglied(zeile, ordner));
+				mitgliedsIds.add(String(zeile.id));
 			}
+			const uebernahmenListe = typeof umgebung.uebernahmenListe === "function" ? umgebung.uebernahmenListe() : leseUebernahmen();
+			const startMs = Date.now();
+			const fristBis = startMs + fristSekunden(umgebung.fristSekunden) * 1000;
+			const budget = { gezaehlt: 0 };
+			const zeitVorbei = () => Date.now() >= fristBis;
+			const restZeit = () => fristBis - Date.now();
+			/** Kinder-Erhebung nur, wenn es sie gibt; bei fehlendem Dienst wird sie übersprungen (Plan Schritt 2). */
+			const dienstFehlt = typeof umgebung.kinderListe !== "function";
+
+			let mitgliederAbgebrochen = 0;
+			for (const zeile of zeilen) {
+				if (zeile.role !== "teammate") continue;
+				const erg = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.leseMitglied(zeile, ordner, uebernahmenListe, restZeit), restZeit());
+				if (erg === FRIST_ABGELAUFEN) { mitgliederAbgebrochen += 1; mitglieder.push({ name: zeile.name, id: zeile.id, status: zeile.status, gelesenAus: "Zeitgrenze erreicht", zustand: null, ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null, angehaltenSeit: null }); }
+				else mitglieder.push(erg);
+			}
+
+			// Kinder-Gruppen: je Teammitglied seine eigene Gruppe (in der Reihenfolge von listMembers),
+			// dann die Gruppe der Kinder des Aufrufers selbst. Doppelung über die Sitzungskennung, nie über Namen.
+			const besprochen = new Set(mitgliedsIds);
+			const gruppen = [];
+			for (const zeile of zeilen) {
+				if (zeile.role !== "teammate") continue;
+				gruppen.push(await leseKinderGruppe("mitglied", String(zeile.id), umgebung, ordner, uebernahmenListe, budget, zeitVorbei, dienstFehlt, besprochen, restZeit));
+			}
+			gruppen.push(await leseKinderGruppe("eigeneUnteragenten", String(agent.id), umgebung, ordner, uebernahmenListe, budget, zeitVorbei, dienstFehlt, besprochen, restZeit));
+
 			return {
 				teamModus: istTeamModus(agent, umgebung),
 				notschalter,
 				mitglieder,
-				hinweis: "One row per teammate. 'ziel' is null when the member has no goal. 'zeitLetztesEreignis' is the time of the last session event; 'gelesenAus' says whether the live agent or the stored session was read."
+				untergruppen: gruppen,
+				hinweis: "One row per teammate ('mitglieder'); 'ziel' is null when the member has no goal; 'zeitLetztesEreignis' is the last session event; 'gelesenAus' says live agent or stored session. 'untergruppen' groups subagents per employee: one 'mitglied' group headed by that member's session id holding its own descendants (depth and parentId relative to the group head), then 'eigeneUnteragenten' for the caller's own subagents who belong to no member. A teammate is never listed twice; deduplication is by session id. For a torn-down ('abgebaut') child the goal stays readable but whether it runs on is not — 'aktivierung' then says 'unbekannt (sitzt nicht in der Datei)'."
 			};
 		}
 	});
 }
 
 /**
- * Liest Ziel und Zeit eines Mitglieds: lebend aus dem Agenten, sonst aus der gespeicherten Sitzung.
- * Die Abfrage der gespeicherten Sitzung bekommt eine Frist, damit eine sehr große Sitzung die Übersicht nicht
- * aufhält (nicht gemessen, wie lange das bei den größten Sitzungen dauert — siehe Konzept, offene Punkte).
+ * Gemeinsamer Lesekern: Ziel, Berichtflag, Zeit des letzten Ereignisses und Angehaltenseit für eine
+ * Sitzungskennung — bei einem lebenden Agenten aus Registry und Agentenobjekt, sonst aus der
+ * gespeicherten Sitzung mit Frist. Der Zustand („läuft“ / „ruht“ / „abgebaut“) kommt mit, damit die
+ * Kinderzeilen ihn nicht gesondert bestimmen müssen. Dieser Kern wirft nie: eine fehlgeschlagene
+ * Lesung steht lesbar in `gelesenAus`, und `ziel: null` (kein Ziel) bleibt von „nicht lesbar“ unterscheidbar.
  */
-export async function leseMitglied(zeile, umgebung, ordner = berichtOrdner()) {
-	const basis = { name: zeile.name, id: zeile.id, status: zeile.status, ziel: null, bericht: false, zeitLetztesEreignis: null, gelesenAus: "nichts" };
-	const formen = (ziel, aktivierung) => ({
-		phase: ziel.phase,
+export async function leseSitzungsKern(id, umgebung, ordner = berichtOrdner(), uebernahmen, restZeit) {
+	if (typeof restZeit !== "function") throw new TypeError("leseSitzungsKern braucht eine Restzeit-Funktion");
+	const formen = (z, aktivierung) => ({
+		phase: z.phase,
 		...(aktivierung === undefined ? {} : { aktivierung }),
-		runden: ziel.roundsStarted ?? null,
-		maxRunden: ziel.maxGoalRounds ?? null,
-		wortlaut: kuerze(ziel.objective, 200)
+		runden: z.roundsStarted ?? null,
+		maxRunden: z.maxGoalRounds ?? null,
+		wortlaut: kuerze(z.objective, 200)
 	});
+	const basis = { angehaltenSeit: angehaltenSeitAus(uebernahmen ?? leseUebernahmen(), id) };
 	try {
-		const lebend = umgebung.agenten.get(zeile.id);
+		const lebend = umgebung.agenten.get(id);
 		if (lebend !== undefined) {
 			const ziel = umgebung.ziel(lebend);
 			let zeit = null;
@@ -487,19 +629,37 @@ export async function leseMitglied(zeile, umgebung, ordner = berichtOrdner()) {
 				const ereignisse = lebend.session.snapshotEvents(Math.max(0, lebend.session.seq - 1));
 				zeit = ereignisse.at(-1)?.time ?? null;
 			} catch { /* Zeit ist Beiwerk */ }
-			return { ...basis, gelesenAus: "lebender Agent", ziel: ziel === undefined ? null : formen(ziel, ziel.activation), bericht: ziel === undefined ? false : hatBericht(ziel.id, ordner), zeitLetztesEreignis: zeit === null ? null : new Date(zeit).toISOString() };
+			return { ...basis, gelesenAus: "lebender Agent", zustand: lebend.status === "running" ? "läuft" : "ruht",
+				ziel: ziel === undefined ? null : formen(ziel, ziel.activation),
+				aktivierung: ziel === undefined ? null : (ziel.activation ?? null),
+				bericht: ziel === undefined ? false : hatBericht(ziel.id, ordner),
+				zeitLetztesEreignis: zeit === null ? null : new Date(zeit).toISOString() };
 		}
-		const beobachtung = await umgebung.beobachte(zeile.id, LESE_FRIST_MS);
-		if (beobachtung === undefined) return { ...basis, gelesenAus: "nicht lesbar" };
+		const beobachtung = restZeit() <= 0 ? FRIST_ABGELAUFEN : await umgebung.mitFrist(umgebung.beobachte(id, Math.min(LESE_FRIST_MS, restZeit())), restZeit());
+		if (beobachtung === FRIST_ABGELAUFEN) return { ...basis, gelesenAus: "Zeitgrenze erreicht", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
+		if (beobachtung === undefined) return { ...basis, gelesenAus: "nicht lesbar", zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 		try {
 			const projektion = beobachtung.projections?.values?.goal;
 			const ziel = projektion?.goal;
 			const zeit = beobachtung.events?.at?.(-1)?.time;
-			return { ...basis, gelesenAus: "gespeicherte Sitzung", ziel: ziel === undefined ? null : { ...formen({ ...ziel, roundsStarted: projektion.roundsStarted }, undefined) }, bericht: ziel === undefined ? false : hatBericht(ziel.id, ordner), zeitLetztesEreignis: typeof zeit === "number" ? new Date(zeit).toISOString() : null };
+			return { ...basis, gelesenAus: "gespeicherte Sitzung", zustand: "abgebaut",
+				ziel: ziel === undefined ? null : { ...formen({ ...ziel, roundsStarted: projektion.roundsStarted }, undefined) },
+				aktivierung: ziel === undefined ? null : UNBEKANNT_AKTIVIERUNG,
+				bericht: ziel === undefined ? false : hatBericht(ziel.id, ordner),
+				zeitLetztesEreignis: typeof zeit === "number" ? new Date(zeit).toISOString() : null };
 		} finally { beobachtung[Symbol.dispose]?.(); }
 	} catch (fehler) {
-		return { ...basis, gelesenAus: `Fehler: ${kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120)}` };
+		return { ...basis, gelesenAus: `Fehler: ${kuerze(fehler instanceof Error ? fehler.message : String(fehler), 120)}`, zustand: "abgebaut", ziel: null, aktivierung: null, bericht: false, zeitLetztesEreignis: null };
 	}
+}
+
+/**
+ * Liest Ziel und Zeit eines Mitglieds: lebend aus dem Agenten, sonst aus der gespeicherten Sitzung.
+ * Die Abfrage der gespeicherten Sitzung bekommt eine Frist, damit eine sehr große Sitzung die Übersicht nicht
+ * aufhält (nicht gemessen, wie lange das bei den größten Sitzungen dauert — siehe Konzept, offene Punkte).
+ */
+export async function leseMitglied(zeile, umgebung, ordner = berichtOrdner(), uebernahmen, restZeit) {
+	return { name: zeile.name, id: zeile.id, status: zeile.status, ...await leseSitzungsKern(zeile.id, umgebung, ordner, uebernahmen, restZeit) };
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -541,6 +701,32 @@ export function leseUebernahmen(pfad = uebernahmenPfad()) {
 		const roh = JSON.parse(readFileSync(pfad, "utf8"));
 		return Array.isArray(roh) ? roh : [];
 	} catch { return []; }
+}
+
+/**
+ * Die Zeit, seit der Mensch diesen Agenten durch eine Nachricht übernommen (angehalten) hat —
+ * oder `null`, wenn die Liste keinen Eintrag für diese Sitzungskennung enthält.
+ *
+ * Der Wert kommt aus dem Eintrag selbst, unabhängig von `pauseOffen`: `seit` ist die Zeit der
+ * Übernahme, und `uebernehmeGespraech` schreibt einen Eintrag genau dann, wenn der Mensch einem
+ * Agenten mit laufendem Ziel schreibt (Zeile "kein laufendes Ziel" lehnt sonst ab). Der Nachbar-
+ * zustand innerhalb einer bestehenden Übernahme — "die Runde läuft noch zu Ende" (`pauseOffen: true`)
+ * gegenüber "sofort pausiert" — ändert an der Zeit nichts. Kein Eintrag heißt "nie angehalten" und
+ * ist `null`, ausdrücklich nicht "unbekannt": "unbekannt (sitzt nicht in der Datei)" bleibt das Feld
+ * Aktivierung aus O1 vorbehalten.
+ */
+export function angehaltenSeitAus(eintraege, sitzungsId) {
+	if (!Array.isArray(eintraege)) return null;
+	const gesuchte = String(sitzungsId ?? "");
+	return eintraege.find((e) => e?.id === gesuchte)?.seit ?? null;
+}
+
+/**
+ * Liest die Angehaltenseit-Zeit aus der Übernahme-Datei. `eintraege` (wetterfeste Liste aus dem
+ * Speicher oder einer Datei) kann vorbegeben werden, um die Datei nicht mehrfach zu lesen.
+ */
+export function angehaltenSeit(sitzungsId, eintraege) {
+	return angehaltenSeitAus(eintraege ?? leseUebernahmen(), sitzungsId);
 }
 
 /** Schreibt die Liste der Übernahmen. Ein fehlendes Recht verhindert nie eine Entscheidung. */
@@ -775,6 +961,8 @@ export function apply(ctx, optionen = {}) {
 	const hole = (dienst) => { try { return ctx.get(dienst); } catch { return undefined; } };
 
 	const umgebung = {
+		/** Frist in Sekunden; im Betrieb STAND_FRIST_S, im Test über `optionen.fristSekunden` kürzbar. */
+		fristSekunden: optionen.fristSekunden,
 		agenten: ctx.agents,
 		teams: () => hole("agentTeams"),
 		notschalter: () => notschalterGedrueckt((text) => melden("warn", text)),
@@ -787,10 +975,36 @@ export function apply(ctx, optionen = {}) {
 			try { return await abfrage.observeSession(sitzungsId, { signal: abbruch.signal }); } catch { return undefined; } finally { clearTimeout(uhr); }
 		}
 	};
-	umgebung.leseMitglied = (zeile, o) => leseMitglied(zeile, umgebung, o);
+	umgebung.leseMitglied = (zeile, o, uebernahmenListe, restZeit) => leseMitglied(zeile, umgebung, o, uebernahmenListe, restZeit);
+	// Kinder-Erhebung über den öffentlichen Unteragenten-Dienst (`subagents`), Fassade wie bei `teams`,
+	// damit ein fehlendes Kernpaket das Modul nicht ganz scheitern lässt (Plan Schritt 2).
+	umgebung.unteragenten = () => hole("subagents");
+	/** Der Kinderkatalog einer Sitzung; `null`, wenn der Unteragenten-Dienst selbst fehlt. */
+	umgebung.kinderListe = async (sitzungsId) => {
+		const dienst = hole("subagents");
+		if (dienst === undefined || typeof dienst.listChildren !== "function") return null;
+		return await dienst.listChildren(sitzungsId);
+	};
 	/** Übernahmen (Mensch spricht mit dem Mitglied): Kennung → Eintrag. Beim Start aus der Datei gelesen. */
 	const uebernahmen = new Map(leseUebernahmen().map((e) => [e.id, e]));
 	const sichereUebernahmen = () => schreibeUebernahmen([...uebernahmen.values()]);
+	/** Die Live-Liste für die Stand-Übersicht: dasselbe Gedächtnis, nicht nochmal aus der Datei. */
+	// Der Stand liest die Übernahme-Liste direkt aus der Datei (Plan Schritt 3), damit sie auch für eine
+	// Probe und für einen Menschenkontakt ohne laufenden Speicher-Modulzustand gilt. Die Map darunter ist
+	// nur für das schnelle Prüfen in `uebernommen()` und für Freigabe-Löschungen aktuell.
+	umgebung.uebernahmenListe = () => leseUebernahmen();
+	/** Begrenzt einen Abfrageschritt auf eine Frist; FRIST_ABGELAUFEN bei Treffer. Für Tests ueber `fristMs` steuerbar. */
+	umgebung.mitFrist = (promise, restMs) => {
+		if (typeof restMs !== "number" || Number.isNaN(restMs)) throw new TypeError("mitFrist braucht eine Restzeit in ms");
+		// Eine unendliche Frist ist keine Frist: setTimeout(Infinity) liefe nach 1 ms ab. Dann gilt das Versprechen unverändert.
+		if (restMs === Infinity) return promise;
+		// Die Abfrage läuft schon (oder nicht): ihre spätere Ablehnung wird abgefangen, sonst beendet der Host den Prozess.
+		const abgefangen = Promise.resolve(promise).catch(() => undefined);
+		if (restMs <= 0) { abgefangen.catch(() => undefined); return Promise.resolve(FRIST_ABGELAUFEN); }
+		let uhr;
+		const frist = new Promise((fertig) => { uhr = setTimeout(() => fertig(FRIST_ABGELAUFEN), restMs); });
+		return Promise.race([abgefangen, frist]).finally(() => clearTimeout(uhr));
+	};
 	umgebung.uebernommen = (id) => uebernahmen.has(id);
 	umgebung.erzeugeZiel = (agent, anfrage) => ctx.goals.create(agent, anfrage);
 	umgebung.wecke = async (absender, zeile, signal) => {
