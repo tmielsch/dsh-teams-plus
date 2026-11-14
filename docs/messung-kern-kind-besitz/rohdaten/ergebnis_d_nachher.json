@@ -1,0 +1,343 @@
+{
+ "szenario": "d",
+ "modus": "nachher",
+ "nachrichtenIds": {
+  "anLead": "4a2852",
+  "anExp": "23b5ae"
+ },
+ "platteVor": {
+  "queued": [
+   "4a2852",
+   "23b5ae"
+  ],
+  "delivered": [],
+  "settled": 1
+ },
+ "vor": {
+  "leadLebt": false,
+  "expLebt": false,
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "exp": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "exp": 1
+  },
+  "lebend": []
+ },
+ "prompt": {
+  "ok": true,
+  "r": "{\"messageId\":\"4f76c623-ea33-4b49-a9d4-befdd5da48b6\"}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "exp": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "exp": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "exp": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "exp": 2
+   },
+   "lebend": [
+    "f19f5b28"
+   ]
+  }
+ },
+ "expTeamZugehoerigkeit": "undefined",
+ "direktDanach": {
+  "leadLebt": false,
+  "expLebt": true,
+  "expStatus": "running",
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "exp": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "exp": 2
+  },
+  "lebend": [
+   "f19f5b28"
+  ]
+ },
+ "nach400ms": {
+  "leadLebt": false,
+  "expLebt": true,
+  "expStatus": "running",
+  "llm": 3,
+  "llmJe": {
+   "eltern": 1,
+   "exp": 2
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "exp": 2
+  },
+  "lebend": [
+   "f19f5b28"
+  ]
+ },
+ "nach5s": {
+  "leadLebt": false,
+  "expLebt": false,
+  "expStatus": null,
+  "llm": 3,
+  "llmJe": {
+   "eltern": 1,
+   "exp": 2
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "exp": 2
+  },
+  "lebend": []
+ },
+ "platteNach": {
+  "queued": [
+   "4a2852",
+   "23b5ae"
+  ],
+  "delivered": [],
+  "settled": 2
+ },
+ "neuErzeugt": [
+  {
+   "ms": 5732,
+   "id": "f19f5b28",
+   "source": "resume"
+  }
+ ],
+ "expEreignisse": "exp lebt nicht mehr",
+ "listeNach": [
+  {
+   "id": "f19f5b28",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "34813054",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "leadGeladenDirekt": {
+  "leadStatus": "running",
+  "llmLead": 0,
+  "llmExp": 0,
+  "expLebt": false,
+  "leadVerlauf": [
+   "user/message:subagent-settled"
+  ]
+ },
+ "leadGeladenNach400ms": {
+  "leadStatus": "idle",
+  "llmLead": 1,
+  "llmExp": 1,
+  "expLebt": true,
+  "leadVerlauf": [
+   "user/message:subagent-settled",
+   "user/message:team-message",
+   "user/message:subagent-settled"
+  ]
+ },
+ "leadGeladenNach5s": {
+  "leadStatus": "idle",
+  "llmLead": 2,
+  "llmExp": 1,
+  "expLebt": false,
+  "leadVerlauf": [
+   "user/message:subagent-settled",
+   "user/message:team-message",
+   "user/message:subagent-settled",
+   "user/message:subagent-settled"
+  ]
+ },
+ "platteNachLeadLaden": {
+  "queued": [
+   "4a2852",
+   "23b5ae"
+  ],
+  "delivered": [
+   "4a2852",
+   "23b5ae"
+  ],
+  "settled": 3
+ },
+ "ende": {
+  "llm": 6,
+  "llmJe": {
+   "eltern": 3,
+   "exp": 3
+  },
+  "zuegeJe": {
+   "eltern": 3,
+   "exp": 3
+  },
+  "lebend": [
+   "34813054"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1354,
+   "sitzung": "f19f5b28",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1816,
+   "sitzung": "34813054",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5754,
+   "sitzung": "f19f5b28",
+   "text": "Mensch an Experte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 10852,
+   "sitzung": "34813054",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 10868,
+   "sitzung": "f19f5b28",
+   "text": "Mensch an Experte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 11316,
+   "sitzung": "34813054",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "warnungen": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1229,
+   "id": "34813054",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1234,
+   "id": "34813054",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1297,
+   "id": "f19f5b28",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1299,
+   "id": "f19f5b28",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1786,
+   "id": "f19f5b28",
+   "agentAvailable": false
+  },
+  {
+   "ms": 4882,
+   "id": "34813054",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5732,
+   "id": "f19f5b28",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5732,
+   "id": "f19f5b28",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6176,
+   "id": "f19f5b28",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10785,
+   "id": "34813054",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10788,
+   "id": "34813054",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10832,
+   "id": "f19f5b28",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10835,
+   "id": "f19f5b28",
+   "agentAvailable": true
+  },
+  {
+   "ms": 11288,
+   "id": "f19f5b28",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1234,
+   "art": "agent/created",
+   "id": "34813054",
+   "source": "startup"
+  },
+  {
+   "ms": 1299,
+   "art": "agent/created",
+   "id": "f19f5b28",
+   "source": "startup"
+  },
+  {
+   "ms": 5732,
+   "art": "agent/created",
+   "id": "f19f5b28",
+   "source": "resume"
+  },
+  {
+   "ms": 5735,
+   "art": "mensch-an-exp",
+   "ok": true
+  },
+  {
+   "ms": 10789,
+   "art": "agent/created",
+   "id": "34813054",
+   "source": "resume"
+  },
+  {
+   "ms": 10835,
+   "art": "agent/created",
+   "id": "f19f5b28",
+   "source": "resume"
+  }
+ ]
+}

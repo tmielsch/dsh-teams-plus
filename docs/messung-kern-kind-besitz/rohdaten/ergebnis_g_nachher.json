@@ -1,0 +1,155 @@
+{
+ "szenario": "g",
+ "modus": "nachher",
+ "settledVor": 1,
+ "prompt": {
+  "ok": true,
+  "r": "{\"messageId\":\"ce2b8db5-1082-4c97-8d11-3b57cd276528\"}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": [
+    "34836513"
+   ]
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 2
+   },
+   "lebend": [
+    "34836513",
+    "b65e6055"
+   ]
+  }
+ },
+ "settledNach": 2,
+ "elternLebt": true,
+ "neuErzeugt": [
+  {
+   "ms": 5331,
+   "id": "b65e6055",
+   "source": "resume"
+  }
+ ],
+ "ende": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "zuegeJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "lebend": [
+   "34836513"
+  ]
+ },
+ "llmLog": [
+  {
+   "zeit": 1326,
+   "sitzung": "b65e6055",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1797,
+   "sitzung": "34836513",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5366,
+   "sitzung": "b65e6055",
+   "text": "Mensch an Kind [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5812,
+   "sitzung": "34836513",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "warnungen": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1224,
+   "id": "34836513",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1231,
+   "id": "34836513",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1267,
+   "id": "b65e6055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1268,
+   "id": "b65e6055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1757,
+   "id": "b65e6055",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5329,
+   "id": "b65e6055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5331,
+   "id": "b65e6055",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5785,
+   "id": "b65e6055",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1231,
+   "art": "agent/created",
+   "id": "34836513",
+   "source": "startup"
+  },
+  {
+   "ms": 1268,
+   "art": "agent/created",
+   "id": "b65e6055",
+   "source": "startup"
+  },
+  {
+   "ms": 5331,
+   "art": "agent/created",
+   "id": "b65e6055",
+   "source": "resume"
+  },
+  {
+   "ms": 5334,
+   "art": "mensch-an-kind-eltern-lebt",
+   "ok": true
+  }
+ ]
+}

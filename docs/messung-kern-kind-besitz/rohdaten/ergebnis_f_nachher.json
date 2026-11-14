@@ -1,0 +1,114 @@
+{
+ "szenario": "f",
+ "modus": "nachher",
+ "prompt": {
+  "ok": false,
+  "code": "subagent/unauthorized",
+  "fehler": "subagent does not belong to this parent",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "kindLebt": false,
+ "neuErzeugt": [],
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1330,
+   "sitzung": "cb4795ed",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1802,
+   "sitzung": "34829521",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "warnungen": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1224,
+   "id": "34829521",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1231,
+   "id": "34829521",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1265,
+   "id": "cb4795ed",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1266,
+   "id": "cb4795ed",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1771,
+   "id": "cb4795ed",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5282,
+   "id": "34829521",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1231,
+   "art": "agent/created",
+   "id": "34829521",
+   "source": "startup"
+  },
+  {
+   "ms": 1266,
+   "art": "agent/created",
+   "id": "cb4795ed",
+   "source": "startup"
+  },
+  {
+   "ms": 5816,
+   "art": "fremder-eltern",
+   "ok": false,
+   "code": "subagent/unauthorized"
+  }
+ ]
+}

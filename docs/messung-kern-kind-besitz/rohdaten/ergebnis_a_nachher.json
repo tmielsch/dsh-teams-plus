@@ -5,12 +5,12 @@
  "vorAbbau": {
   "listeKindRuhe": [
    {
-    "id": "e66f11d6",
+    "id": "f0cab1fc",
     "agentAvailable": false,
     "running": false
    },
    {
-    "id": "34319994",
+    "id": "34778001",
     "agentAvailable": true,
     "running": false
    }
@@ -25,7 +25,7 @@
    "kind": 1
   },
   "lebend": [
-   "34319994"
+   "34778001"
   ]
  },
  "nachAbbau": {
@@ -44,33 +44,33 @@
  },
  "listeKalt": [
   {
-   "id": "e66f11d6",
+   "id": "f0cab1fc",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "34319994",
+   "id": "34778001",
    "agentAvailable": false,
    "running": false
   }
  ],
  "dateienElternVor": [
   {
-   "datei": "94/session.v4.jsonl.zstd",
-   "bytes": 11613,
-   "mtimeMs": 1794634320542
+   "datei": "01/session.v4.jsonl.zstd",
+   "bytes": 11609,
+   "mtimeMs": 1794634778608
   }
  ],
  "dateienKindVor": [
   {
-   "datei": "d6/session.v4.jsonl.zstd",
-   "bytes": 9542,
-   "mtimeMs": 1794634320505
+   "datei": "fc/session.v4.jsonl.zstd",
+   "bytes": 9547,
+   "mtimeMs": 1794634778557
   }
  ],
  "prompt": {
   "ok": true,
-  "r": "{\"messageId\":\"3bfd4b3c-09cd-418c-b845-42109c450bb9\"}",
+  "r": "{\"messageId\":\"cacc6dfa-0e60-44e1-822b-213551fc6c61\"}",
   "vor": {
    "llm": 2,
    "llmJe": {
@@ -94,18 +94,18 @@
     "kind": 2
    },
    "lebend": [
-    "e66f11d6"
+    "f0cab1fc"
    ]
   }
  },
  "listeLaufend": [
   {
-   "id": "e66f11d6",
+   "id": "f0cab1fc",
    "agentAvailable": true,
    "running": true
   },
   {
-   "id": "34319994",
+   "id": "34778001",
    "agentAvailable": false,
    "running": false
   }
@@ -121,17 +121,17 @@
    "kind": 2
   },
   "lebend": [
-   "e66f11d6"
+   "f0cab1fc"
   ]
  },
  "listeNachAbschluss": [
   {
-   "id": "e66f11d6",
+   "id": "f0cab1fc",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "34319994",
+   "id": "34778001",
    "agentAvailable": false,
    "running": false
   }
@@ -152,23 +152,23 @@
  },
  "neuErzeugt": [
   {
-   "ms": 5806,
-   "id": "e66f11d6",
+   "ms": 5850,
+   "id": "f0cab1fc",
    "source": "resume"
   }
  ],
  "dateienElternNach": [
   {
-   "datei": "94/session.v4.jsonl.zstd",
-   "bytes": 11963,
-   "mtimeMs": 1794634327638
+   "datei": "01/session.v4.jsonl.zstd",
+   "bytes": 11958,
+   "mtimeMs": 1794634785707
   }
  ],
  "dateienKindNach": [
   {
-   "datei": "d6/session.v4.jsonl.zstd",
-   "bytes": 15715,
-   "mtimeMs": 1794634327625
+   "datei": "fc/session.v4.jsonl.zstd",
+   "bytes": 15727,
+   "mtimeMs": 1794634785684
   }
  ],
  "elternVerlaufNachLaden": [
@@ -223,126 +223,127 @@
  },
  "llmLog": [
   {
-   "zeit": 1308,
-   "sitzung": "e66f11d6",
+   "zeit": 1336,
+   "sitzung": "f0cab1fc",
    "text": "Start [[SLOW]]",
    "letzteRolle": "user"
   },
   {
-   "zeit": 1746,
-   "sitzung": "34319994",
+   "zeit": 1808,
+   "sitzung": "34778001",
    "text": "",
    "letzteRolle": "user"
   },
   {
-   "zeit": 5827,
-   "sitzung": "e66f11d6",
+   "zeit": 5872,
+   "sitzung": "f0cab1fc",
    "text": "Mensch an Kind [[LONG]]",
    "letzteRolle": "user"
   },
   {
-   "zeit": 13853,
-   "sitzung": "34319994",
+   "zeit": 13929,
+   "sitzung": "34778001",
    "text": "",
    "letzteRolle": "user"
   },
   {
-   "zeit": 13884,
-   "sitzung": "34319994",
+   "zeit": 13961,
+   "sitzung": "34778001",
    "text": "Mensch an Elternteil [[SLOW]]",
    "letzteRolle": "user"
   }
  ],
+ "warnungen": [],
  "verfuegbarEreignisse": [
   {
-   "ms": 1211,
-   "id": "34319994",
+   "ms": 1227,
+   "id": "34778001",
    "agentAvailable": true
   },
   {
-   "ms": 1214,
-   "id": "34319994",
+   "ms": 1231,
+   "id": "34778001",
    "agentAvailable": true
   },
   {
-   "ms": 1254,
-   "id": "e66f11d6",
+   "ms": 1278,
+   "id": "f0cab1fc",
    "agentAvailable": true
   },
   {
-   "ms": 1255,
-   "id": "e66f11d6",
+   "ms": 1279,
+   "id": "f0cab1fc",
    "agentAvailable": true
   },
   {
-   "ms": 1720,
-   "id": "e66f11d6",
+   "ms": 1769,
+   "id": "f0cab1fc",
    "agentAvailable": false
   },
   {
-   "ms": 5277,
-   "id": "34319994",
+   "ms": 5310,
+   "id": "34778001",
    "agentAvailable": false
   },
   {
-   "ms": 5806,
-   "id": "e66f11d6",
+   "ms": 5850,
+   "id": "f0cab1fc",
    "agentAvailable": true
   },
   {
-   "ms": 5806,
-   "id": "e66f11d6",
+   "ms": 5850,
+   "id": "f0cab1fc",
    "agentAvailable": true
   },
   {
-   "ms": 8839,
-   "id": "e66f11d6",
+   "ms": 8899,
+   "id": "f0cab1fc",
    "agentAvailable": false
   },
   {
-   "ms": 11328,
-   "id": "34319994",
+   "ms": 11386,
+   "id": "34778001",
    "agentAvailable": true
   },
   {
-   "ms": 11331,
-   "id": "34319994",
+   "ms": 11390,
+   "id": "34778001",
    "agentAvailable": true
   },
   {
-   "ms": 16838,
-   "id": "34319994",
+   "ms": 16909,
+   "id": "34778001",
    "agentAvailable": false
   }
  ],
  "protokoll": [
   {
-   "ms": 1215,
+   "ms": 1231,
    "art": "agent/created",
-   "id": "34319994",
+   "id": "34778001",
    "source": "startup"
   },
   {
-   "ms": 1255,
+   "ms": 1279,
    "art": "agent/created",
-   "id": "e66f11d6",
+   "id": "f0cab1fc",
    "source": "startup"
   },
   {
-   "ms": 5806,
+   "ms": 5850,
    "art": "agent/created",
-   "id": "e66f11d6",
+   "id": "f0cab1fc",
    "source": "resume"
   },
   {
-   "ms": 5809,
+   "ms": 5853,
    "art": "mensch-an-kind",
    "ok": true
   },
   {
-   "ms": 11331,
+   "ms": 11390,
    "art": "agent/created",
-   "id": "34319994",
+   "id": "34778001",
    "source": "resume"
   }
  ]

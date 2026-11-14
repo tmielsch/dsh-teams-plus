@@ -316,9 +316,13 @@ test('alle 29 .mjs-Dateien in patches/ liegen im Paket: 19 byte-gleich, vier mit
 	// umgezogenen Patches: sie entstehen hier und haben deshalb keinen sha256-Anker gegen projectOS.
 	// `team-bremse.mjs` entsteht hier ebenfalls; fuer sie steht der Anker in SHA256_EIGEN.
 	// `eltern-laden.mjs` ist eigen, ohne sha256-Anker (Issue DSH-Verwaltung 175, Plan docs/PLAN-ELTERN-LADEN.md).
+	// `kind-eigner.mjs` und `allow-kind-eigner.mjs` sind eigen und ohne sha256-Anker gegen projectOS: der Kern-Patch
+	// "der Mensch als zusaetzlicher Eigentuemer eines Kindes" (Issue DSH-Verwaltung 175, 2026-11-14), getestet in
+	// test/kind-eigner.test.mjs. Er steht bewusst NICHT in bin/teams-plus.mjs (A_PATCHES): `teams-plus apply` spielt ihn
+	// nicht von selbst ein, der Mensch ruft allow-kind-eigner.mjs ausdruecklich auf.
 	// `team-modus.mjs` ist ebenfalls eigen und ohne sha256-Anker; seit 2026-11-09 steht es als
 	// zehnter Eintrag in cordis.patch.yml (Issue DSH-Verwaltung 121).
-	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs', 'team-anruf.mjs', 'team-modus.mjs', 'eltern-laden.mjs'].sort()
+	const erwartet = [...Object.keys(alle), ...Object.keys(SHA256_EIGEN), 'package.json', 'send-to-session.mjs', 'team-board.mjs', 'team-anruf.mjs', 'team-modus.mjs', 'eltern-laden.mjs', 'kind-eigner.mjs', 'allow-kind-eigner.mjs'].sort()
 	assert.deepEqual(readdirSync(PATCHES).sort(), erwartet, 'im Ordner patches/ liegt eine andere Dateiliste als erwartet')
 })
 
@@ -483,9 +487,9 @@ test('link haengt patches/ und rollen/ nach ~/.dsh/.tm/teams-plus, nicht nach ~/
 		assert.ok(!existsSync(join(heim, 'patches')), 'es wurde ein Ordner ~/.dsh/patches angelegt')
 		// 23 umgezogene Patch-Dateien, dazu team-bremse.mjs als neue eigene Datei dieses
 		// Auftrags sowie send-to-session.mjs und team-board.mjs als eigene Werkzeuge dieses
-		// Pakets sowie team-modus.mjs (Entwurf) und eltern-laden.mjs (Issue DSH-Verwaltung 175); patches/package.json ist die Paketgrenze fuer den
+		// Pakets sowie team-modus.mjs (Entwurf) und eltern-laden.mjs (Issue DSH-Verwaltung 175) sowie kind-eigner.mjs und allow-kind-eigner.mjs (Kern-Patch, Issue DSH-Verwaltung 175); patches/package.json ist die Paketgrenze fuer den
 		// Client-Modul-Regler und zaehlt nicht mit (.mjs-Filter).
-		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 29)
+		assert.equal(readdirSync(join(ziel, 'patches')).filter((n) => n.endsWith('.mjs')).length, 31)
 		// Der Verweis muss jede Rollendatei erreichbar machen — Namen, nicht nur die Anzahl.
 		assert.deepEqual(readdirSync(join(ziel, 'rollen')).sort(), [...ROLLEN].sort(), 'der Verweis auf rollen/ erreicht nicht jede Rollendatei')
 		assert.ok(readFileSync(join(ziel, 'patches', 'delegate-send.mjs')).equals(readFileSync(join(PATCHES, 'delegate-send.mjs'))))

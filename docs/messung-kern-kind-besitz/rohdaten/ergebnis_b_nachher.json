@@ -20,24 +20,24 @@
  },
  "listeKalt": [
   {
-   "id": "376d3dff",
+   "id": "4b5db07e",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "9f2e8077",
+   "id": "67ab0e40",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "34252266",
+   "id": "34795849",
    "agentAvailable": false,
    "running": false
   }
  ],
  "prompt": {
   "ok": true,
-  "r": "{\"messageId\":\"16a21fcb-234a-45d9-9601-5bc9ac8a9b91\"}",
+  "r": "{\"messageId\":\"4f377bc6-907a-4cd3-8840-9e31042f7d99\"}",
   "vor": {
    "llm": 4,
    "llmJe": {
@@ -65,23 +65,23 @@
     "enkel": 2
    },
    "lebend": [
-    "376d3dff"
+    "4b5db07e"
    ]
   }
  },
  "listeLaufend": [
   {
-   "id": "376d3dff",
+   "id": "4b5db07e",
    "agentAvailable": true,
    "running": true
   },
   {
-   "id": "9f2e8077",
+   "id": "67ab0e40",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "34252266",
+   "id": "34795849",
    "agentAvailable": false,
    "running": false
   }
@@ -105,25 +105,25 @@
  },
  "listeNachAbschluss": [
   {
-   "id": "376d3dff",
+   "id": "4b5db07e",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "9f2e8077",
+   "id": "67ab0e40",
    "agentAvailable": false,
    "running": false
   },
   {
-   "id": "34252266",
+   "id": "34795849",
    "agentAvailable": false,
    "running": false
   }
  ],
  "neuErzeugt": [
   {
-   "ms": 10642,
-   "id": "376d3dff",
+   "ms": 10665,
+   "id": "4b5db07e",
    "source": "resume"
   }
  ],
@@ -143,125 +143,126 @@
  },
  "llmLog": [
   {
-   "zeit": 1311,
-   "sitzung": "9f2e8077",
+   "zeit": 1310,
+   "sitzung": "67ab0e40",
    "text": "Mitte [[LONG]]",
    "letzteRolle": "user"
   },
   {
-   "zeit": 1823,
-   "sitzung": "376d3dff",
+   "zeit": 1830,
+   "sitzung": "4b5db07e",
    "text": "Enkel [[SLOW]]",
    "letzteRolle": "user"
   },
   {
-   "zeit": 4337,
-   "sitzung": "9f2e8077",
+   "zeit": 4341,
+   "sitzung": "67ab0e40",
    "text": "Mitte [[LONG]]",
    "letzteRolle": "user"
   },
   {
-   "zeit": 7383,
-   "sitzung": "34252266",
+   "zeit": 7398,
+   "sitzung": "34795849",
    "text": "",
    "letzteRolle": "user"
   },
   {
-   "zeit": 10666,
-   "sitzung": "376d3dff",
+   "zeit": 10694,
+   "sitzung": "4b5db07e",
    "text": "Mensch an Enkel [[LONG]]",
    "letzteRolle": "user"
   }
  ],
+ "warnungen": [],
  "verfuegbarEreignisse": [
   {
+   "ms": 1213,
+   "id": "34795849",
+   "agentAvailable": true
+  },
+  {
    "ms": 1217,
-   "id": "34252266",
-   "agentAvailable": true
-  },
-  {
-   "ms": 1222,
-   "id": "34252266",
-   "agentAvailable": true
-  },
-  {
-   "ms": 1252,
-   "id": "9f2e8077",
+   "id": "34795849",
    "agentAvailable": true
   },
   {
    "ms": 1253,
-   "id": "9f2e8077",
+   "id": "67ab0e40",
    "agentAvailable": true
   },
   {
-   "ms": 1785,
-   "id": "376d3dff",
+   "ms": 1255,
+   "id": "67ab0e40",
    "agentAvailable": true
   },
   {
-   "ms": 1786,
-   "id": "376d3dff",
+   "ms": 1794,
+   "id": "4b5db07e",
    "agentAvailable": true
   },
   {
-   "ms": 2241,
-   "id": "376d3dff",
+   "ms": 1797,
+   "id": "4b5db07e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 2257,
+   "id": "4b5db07e",
    "agentAvailable": false
   },
   {
-   "ms": 7351,
-   "id": "9f2e8077",
+   "ms": 7359,
+   "id": "67ab0e40",
    "agentAvailable": false
   },
   {
-   "ms": 9797,
-   "id": "34252266",
+   "ms": 9813,
+   "id": "34795849",
    "agentAvailable": false
   },
   {
-   "ms": 10641,
-   "id": "376d3dff",
+   "ms": 10664,
+   "id": "4b5db07e",
    "agentAvailable": true
   },
   {
-   "ms": 10642,
-   "id": "376d3dff",
+   "ms": 10665,
+   "id": "4b5db07e",
    "agentAvailable": true
   },
   {
-   "ms": 13685,
-   "id": "376d3dff",
+   "ms": 13714,
+   "id": "4b5db07e",
    "agentAvailable": false
   }
  ],
  "protokoll": [
   {
-   "ms": 1222,
+   "ms": 1217,
    "art": "agent/created",
-   "id": "34252266",
+   "id": "34795849",
    "source": "startup"
   },
   {
-   "ms": 1253,
+   "ms": 1255,
    "art": "agent/created",
-   "id": "9f2e8077",
+   "id": "67ab0e40",
    "source": "startup"
   },
   {
-   "ms": 1786,
+   "ms": 1797,
    "art": "agent/created",
-   "id": "376d3dff",
+   "id": "4b5db07e",
    "source": "startup"
   },
   {
-   "ms": 10642,
+   "ms": 10665,
    "art": "agent/created",
-   "id": "376d3dff",
+   "id": "4b5db07e",
    "source": "resume"
   },
   {
-   "ms": 10646,
+   "ms": 10669,
    "art": "mensch-an-enkel",
    "ok": true
   }

@@ -8,6 +8,9 @@
  *   b  Enkel (Kind eines Kindes), Grosseltern und Mitte kalt: Mensch schreibt dem Enkel (Abnahme b)
  *   d  Issue 181: Lead mit ZWEI unzugestellten Team-Nachrichten im Journal (eine an den Lead, eine an das Mitglied exp), Lead kalt;
  *      Mensch schreibt dem Mitglied exp (kalter Lead). Frage: wird zugestellt, startet eine Runde beim Lead, ist exp im Team?
+ *   f  falsche Elternadresse: Mensch schreibt dem Kind mit der Kennung eines FREMDEN Elternteils (muss subagent/unauthorized bleiben)
+ *   g  Elternteil LEBT (Normalweg unveraendert): Mensch schreibt dem Kind mit lebendem Elternteil; Abschlussmeldung kommt beim lebenden Elternteil an
+ *   h  Sperre: ein anderer haelt die Schreibsperre auf der Datei des kalten Elternteils, waehrend das Kind fertig wird (Warnung, kein Absturz, nichts verloren)
  *   e  Zusammenfassung des Kindes im Ruhezustand und im laufenden Zustand (Feld agentAvailable des Kindes und des Elternteils)
  * Zahlen: Modellaufrufe je Sitzung aus llm-aufrufe.log (Attrappe fake-llm.mjs), Zuege je Sitzung aus agent/status running.
  */
@@ -34,6 +37,8 @@ export function apply(ctx) {
 	const protokoll = [];
 	const log = (art, d = {}) => { protokoll.push({ ms: Date.now() - t0, art, ...d }); if (process.env.PROBE_STDERR) console.error("[probe]", art, JSON.stringify(d).slice(0, 200)); };
 	const k8 = (id) => String(id).slice(-8);
+	const warnungen = [];
+	try { const logger = ctx.logger; const alt = logger.warn?.bind(logger); if (alt) logger.warn = (...a) => { warnungen.push(kurz(a.map(String).join(" "), 400)); return alt(...a); }; } catch { /* Warnungen sind Beigabe */ }
 	const zuege = new Map();
 	const erzeugt = [];
 	const verfuegbar = [];
@@ -135,6 +140,38 @@ export function apply(ctx) {
 				ergebnis.platteNachLeadLaden = platte();
 				await h3.agent.whenIdle().catch(() => void 0);
 			}
+			if (SZENARIO === "f" || SZENARIO === "g" || SZENARIO === "h") {
+				const kindId = await kindStarten(handle.agent, "Start [[SLOW]]"); ids.kind = kindId;
+				await warte(4000);
+				if (SZENARIO === "g") {
+					const erzeugtVor = erzeugt.length;
+					ergebnis.settledVor = ereignisse(handle.agent).filter((x) => x.includes("subagent-settled")).length;
+					ergebnis.prompt = await versuche("mensch-an-kind-eltern-lebt", () => tor(elternId, kindId, "Mensch an Kind [[SLOW]]"), ids);
+					await warte(3000);
+					ergebnis.settledNach = ereignisse(handle.agent).filter((x) => x.includes("subagent-settled")).length;
+					ergebnis.elternLebt = ctx.agents.get(elternId) !== undefined;
+					ergebnis.neuErzeugt = erzeugt.slice(erzeugtVor);
+				} else {
+					await handle.dispose(); await warte(500);
+					const erzeugtVor = erzeugt.length;
+					if (SZENARIO === "f") {
+						ergebnis.prompt = await versuche("fremder-eltern", () => tor("fremder-eltern-gibt-es-nicht", kindId, "Fremd [[SLOW]]"), ids);
+						await warte(500);
+						ergebnis.kindLebt = ctx.agents.get(kindId) !== undefined;
+					} else {
+						const persistence = ctx.get("sessionPersistence");
+						const fremd = await persistence.open(elternId, "write");
+						ergebnis.sperreGehalten = true;
+						ergebnis.prompt = await versuche("mensch-an-kind-sperre", () => tor(elternId, kindId, "Mensch an Kind [[SLOW]]"), ids);
+						await warte(3500);
+						ergebnis.dateienElternWaehrendSperre = dateiStand(elternId);
+						ergebnis.elternSettledZeilenWaehrendSperre = (() => { try { return execFileSync("zstd", ["-dc", `${HEIM}/sessions/${readdirSync(`${HEIM}/sessions`, { recursive: true }).map(String).find((p) => p.includes(elternId) && p.endsWith(".zstd"))}`]).toString("utf8").split("\n").filter((z) => z.includes("subagent-settled")).length; } catch (e) { return kurz(e?.message ?? e, 100); } })();
+						await fremd.close();
+						ergebnis.lebendNachSperre = zustand(ids);
+					}
+					ergebnis.neuErzeugt = erzeugt.slice(erzeugtVor);
+				}
+			}
 			if (SZENARIO === "b") {
 				const mitteId = await kindStarten(handle.agent, "Mitte [[LONG]]", "Mitte"); ids.mitte = mitteId;
 				await warte(500);
@@ -156,6 +193,7 @@ export function apply(ctx) {
 			ergebnis.ende = zustand(ids);
 			ergebnis.llmLog = llmZeilen().map((z) => ({ ...z, zeit: z.zeit - t0, sitzung: z.sitzung.slice(-8) }));
 		} catch (fehler) { ergebnis.fehler = String(fehler?.stack ?? fehler).slice(0, 1500); }
+		ergebnis.warnungen = warnungen;
 		ergebnis.verfuegbarEreignisse = verfuegbar;
 		ergebnis.protokoll = protokoll;
 		writeFileSync(AUSGABE, JSON.stringify(ergebnis, null, 1));

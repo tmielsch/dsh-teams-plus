@@ -241,16 +241,16 @@ export const ERSETZUNGEN = [
 			z(2, "const parentId = activation.parentSession;"),
 			z(2, "const message = createSettlementMessage(activation.childId, terminal);"),
 			z(2, "return this.locks.run(\"settlement-to:\" + parentId, async () => {"),
-			z(3, "const live = this.ctx.agents.get(parentId);"),
-			z(3, "if (live !== void 0) {"),
-			z(4, 'this.sendWaking(live, message, live.status === "idle" ? "queue" : "steer");'),
-			z(4, "return;"),
-			z(3, "}"),
-			z(3, 'const persistence = this.ctx.get("sessionPersistence");'),
+			z(3, "const persistence = this.ctx.get(\"sessionPersistence\");"),
 			z(3, "let handle;"),
 			z(3, "try {"),
 			z(4, "if (persistence === void 0) throw new Error(\"no session persistence\");"),
-			z(4, 'handle = await persistence.open(parentId, "write");'),
+			z(4, "// The parent may wake or be loading right now: then its write handle is held and the ordinary path (sendWaking) applies."),
+			z(4, "for (let attempt = 0; handle === void 0; attempt++) {"),
+			z(5, "const live = this.ctx.agents.get(parentId);"),
+			z(5, 'if (live !== void 0) { this.sendWaking(live, message, live.status === "idle" ? "queue" : "steer"); return; }'),
+			z(5, "try { handle = await persistence.open(parentId, \"write\"); } catch (error) { if (error?.name !== \"SessionAlreadyOwnedError\" || attempt >= 10) throw error; await new Promise((resolve) => setTimeout(resolve, 200)); }"),
+			z(4, "}"),
 			z(4, "const { events } = await handle.read(0);"),
 			z(4, 'const pending = { "next-turn": 0, "next-step": 0 };'),
 			z(4, 'for (const event of events) if (event.type === "agent/inbox/spliced") pending[event.data.target] += event.data.inserted.length - (event.data.removedCount ?? 0);'),
@@ -432,9 +432,12 @@ if (process.argv.includes("--test")) {
 	pruefe(text("prompt-zustellung").includes("deliverByHuman"), true, "prompt ruft deliverByHuman");
 	pruefe(text("prompt-zustellung").includes("this[deliverSubagentPrompt]"), true, "der Weg mit lebendem Elternteil bleibt");
 	pruefe(text("mensch-zustellung").includes("UNAUTHORIZED"), true, "deliverByHuman prueft die Elternadresse");
+	pruefe(text("mensch-zustellung").includes("resident.parentSession !== parentSessionId"), true, "deliverByHuman vergleicht die Elternadresse mit der des lebenden Kindes");
+	pruefe(text("prompt-zustellung").includes("parent === void 0 ? await this.requireContinuations().deliverByHuman"), true, "nur ohne lebenden Elternteil geht es an deliverByHuman");
+	pruefe(text("prompt-zustellung").includes(": await this[deliverSubagentPrompt](parent"), true, "mit lebendem Elternteil bleibt der Kernweg");
 	pruefe(text("kalt-wecken").includes("options.humanParentId"), true, "coldResume prueft die Elternadresse des Menschen");
 	pruefe(text("kalt-wecken").includes("else this.activations.authorizeLineage"), true, "mit Elternteil bleibt authorizeLineage");
-	pruefe(text("abschluss-methode").includes('persistence.open(parentId, "write")'), true, "die Abschlussmeldung geht ueber die Schreibsperre des Kerns");
+	pruefe(text("abschluss-methode").includes('persistence.open(parentId, \\"write\\")') || text("abschluss-methode").includes('persistence.open(parentId, "write")'), true, "die Abschlussmeldung geht ueber die Schreibsperre des Kerns");
 	pruefe(text("abschluss-methode").includes('agents.resume'), false, "die Abschlussmeldung laedt den Elternteil nicht");
 	pruefe(text("abschluss-methode").includes("handle.append"), true, "die Abschlussmeldung wird nur angehaengt");
 	pruefe(text("eingabefeld").includes("parentOffline = false"), true, "das Eingabefeld ist frei");
