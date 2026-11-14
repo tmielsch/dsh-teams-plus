@@ -142,8 +142,20 @@ test('echte Installation (nur gelesen): alle Stellen sind gesperrt oder freigege
 			mkdirSync(dirname(ziel2), { recursive: true })
 			copyFileSync(kernPfad(wurzel, ziel), ziel2)
 		}
-		const vorher = new Map(ZIELE.map((ziel) => [kernPfad(kopie, ziel), sha(readFileSync(kernPfad(kopie, ziel), 'utf8'))]))
 		const env = { DSH_KIND_EIGNER_LOG: join(kopie, 'l.log') }
+		// Der Test darf nicht vom Zustand dieser Maschine abhaengen: Ist der Patch in der Installation schon eingespielt
+		// (Stand 2026-11-14), ist die Kopie freigegeben und --revert liefert das ORIGINAL, nicht die Kopie. Dann wird die
+		// Kopie zuerst zurueckgenommen, und der Kreislauf apply -> revert wird vom Original aus gemessen.
+		const staende = ZIELE.flatMap((ziel) => {
+			const quelle = readFileSync(kernPfad(kopie, ziel), 'utf8')
+			return ERSETZUNGEN.filter((x) => x.paket === ziel.paket && x.datei === ziel.datei).map((e) => statusOf(quelle, e.id))
+		})
+		if (staende.some((x) => x === 'freigegeben') && staende.some((x) => x !== 'freigegeben')) { t.skip('Die Installation ist nur zum Teil gepatcht; erst vollstaendig zurueckstellen oder einspielen'); return }
+		if (staende.every((x) => x === 'freigegeben')) {
+			const grundzustand = lauf(BEDIENUNG, ['--revert', `--root=${kopie}`], env)
+			assert.equal(grundzustand.status, 0, `${grundzustand.stdout}${grundzustand.stderr}`)
+		}
+		const vorher = new Map(ZIELE.map((ziel) => [kernPfad(kopie, ziel), sha(readFileSync(kernPfad(kopie, ziel), 'utf8'))]))
 		const an = lauf(BEDIENUNG, [`--root=${kopie}`, `--sicherung=${join(kopie, 's')}`], env)
 		assert.equal(an.status, 0, `${an.stdout}${an.stderr}`)
 		for (const pfad of vorher.keys()) {
