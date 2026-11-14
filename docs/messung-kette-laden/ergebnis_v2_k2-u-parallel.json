@@ -1,0 +1,171 @@
+{
+ "szenario": "k2-u-parallel",
+ "typ": "u",
+ "variante": "parallel",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03998897",
+  "mitte": "ababc38f",
+  "enkel": "6ea6c759"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 63,
+  "r": "03998897"
+ },
+ "parallel": [
+  "ok",
+  "session \"d8b3d743-6e98-48dc-a5e6-1647ababc38f\" is already owned by an active write handle"
+ ],
+ "fehlercodes": [
+  null,
+  {
+   "name": "SessionAlreadyOwnedError"
+  }
+ ],
+ "nach500ms": {
+  "ms": 1795,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach3500ms": {
+  "ms": 4797,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -12473,
+   "sitzung": "ababc38f",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11933,
+   "sitzung": "6ea6c759",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9437,
+   "sitzung": "ababc38f",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6373,
+   "sitzung": "03998897",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1263,
+   "id": "03998897",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1267,
+   "id": "03998897",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1293,
+   "id": "ababc38f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1294,
+   "id": "ababc38f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1297,
+   "id": "ababc38f",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [],
+ "erzeugt": [
+  {
+   "ms": 1267,
+   "id": "03998897",
+   "source": "resume"
+  },
+  {
+   "ms": 1294,
+   "id": "ababc38f",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1297,
+   "id": "ababc38f"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1268,
+   "art": "lead-laden",
+   "ok": true
+  }
+ ]
+}

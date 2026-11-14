@@ -1,0 +1,287 @@
+{
+ "szenario": "k2-u-luege",
+ "typ": "u",
+ "variante": "luege",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03926422",
+  "mitte": "9c3a9595",
+  "enkel": "8019163a"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "listeMitLuege": {
+  "8019163a": false,
+  "9c3a9595": true,
+  "03926422": true
+ },
+ "ohneHakenA": {
+  "ok": false,
+  "dauerMs": 2,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"f89c8a12-8c7a-4f46-8526-b2b29c3a9595\" is not live"
+ },
+ "nachOhneHakenA": {
+  "ms": 1242,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "hakenAKette": {
+  "schritte": [
+   "wurzel-geladen 03926422",
+   "angelegt 9c3a9595"
+  ],
+  "fehler": [],
+  "dauerMs": 62
+ },
+ "mitHakenA": {
+  "ok": true,
+  "dauerMs": 90,
+  "r": "{\"messageId\":\"3b1d3e57-4ccc-4a94-bd43-a6149ae6b862\"}"
+ },
+ "direktNachMitHakenA": {
+  "ms": 1332,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 1,
+   "zuege": 1
+  }
+ },
+ "nach400ms": {
+  "ms": 1733,
+  "llmGesamt": 5,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nach5s": {
+  "ms": 6335,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -12424,
+   "sitzung": "9c3a9595",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11897,
+   "sitzung": "8019163a",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9392,
+   "sitzung": "9c3a9595",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6332,
+   "sitzung": "03926422",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1369,
+   "sitzung": "8019163a",
+   "text": "Mensch an Enkel, mit Haken A [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1839,
+   "sitzung": "9c3a9595",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1285,
+   "id": "03926422",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1288,
+   "id": "03926422",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1303,
+   "id": "9c3a9595",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1304,
+   "id": "9c3a9595",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1324,
+   "id": "8019163a",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1325,
+   "id": "8019163a",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1796,
+   "id": "8019163a",
+   "agentAvailable": false
+  },
+  {
+   "ms": 4861,
+   "id": "9c3a9595",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1327,
+   "id": "8019163a",
+   "status": "running"
+  },
+  {
+   "ms": 1781,
+   "id": "8019163a",
+   "status": "idle"
+  },
+  {
+   "ms": 1799,
+   "id": "9c3a9595",
+   "status": "running"
+  },
+  {
+   "ms": 4848,
+   "id": "9c3a9595",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1288,
+   "id": "03926422",
+   "source": "resume"
+  },
+  {
+   "ms": 1304,
+   "id": "9c3a9595",
+   "source": "resume"
+  },
+  {
+   "ms": 1325,
+   "id": "8019163a",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1796,
+   "id": "8019163a"
+  },
+  {
+   "ms": 4861,
+   "id": "9c3a9595"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1242,
+   "art": "tor-ohne-haken-a",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 1332,
+   "art": "tor-mit-haken-a",
+   "ok": true
+  }
+ ]
+}

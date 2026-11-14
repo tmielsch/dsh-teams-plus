@@ -1,0 +1,492 @@
+{
+ "szenario": "k2-d3-tiefe3",
+ "typ": "d3",
+ "variante": "tiefe3",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03842832",
+  "mitte": "525133eb",
+  "mitte2": "7cb9e9ee",
+  "enkel": "98a60d07"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "mitte2": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 53,
+  "r": "03842832"
+ },
+ "kette": {
+  "pfad": [
+   {
+    "id": "525133eb",
+    "wurzel": false
+   },
+   {
+    "id": "7cb9e9ee",
+    "wurzel": false
+   }
+  ],
+  "schritte": [
+   "angelegt 525133eb gehalten",
+   "angelegt 7cb9e9ee gehalten"
+  ],
+  "fehler": [],
+  "dauerMs": 33
+ },
+ "lebensdauer": [
+  {
+   "s": 0,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  },
+  {
+   "s": 1,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  },
+  {
+   "s": 2,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  },
+  {
+   "s": 3,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  },
+  {
+   "s": 4,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  },
+  {
+   "s": 5,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  },
+  {
+   "s": 6,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "mitte2": true,
+    "enkel": false
+   },
+   "llm": 6,
+   "liste": {
+    "98a60d07": false,
+    "7cb9e9ee": true,
+    "525133eb": true,
+    "03842832": true
+   }
+  }
+ ],
+ "nach6s": {
+  "ms": 7379,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "mitte2": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": true,
+  "dauerMs": 32,
+  "r": "{\"messageId\":\"a9cf3dd8-17cc-4c84-a16c-04e4fce6c1ca\"}"
+ },
+ "nachPrompt400ms": {
+  "ms": 7813,
+  "llmGesamt": 7,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "mitte2": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachPrompt5s": {
+  "ms": 12415,
+  "llmGesamt": 8,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "mitte2": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "listeVorFreigabe": {
+  "98a60d07": false,
+  "7cb9e9ee": false,
+  "525133eb": false,
+  "03842832": true
+ },
+ "nachFreigabe1500ms": {
+  "ms": 13929,
+  "llmGesamt": 8,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "mitte2": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "listeNachFreigabe": {
+  "98a60d07": false,
+  "7cb9e9ee": false,
+  "525133eb": false,
+  "03842832": true
+ },
+ "plattenM": {
+  "dateien": 1,
+  "ereignisse": 28,
+  "userOhneRpcId": 1,
+  "userMitRpcId": 0,
+  "teamNachricht": 0,
+  "turnEndFehler": [],
+  "turnEnd": 2
+ },
+ "llmLog": [
+  {
+   "zeit": -12773,
+   "sitzung": "525133eb",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -12241,
+   "sitzung": "7cb9e9ee",
+   "text": "Mitte2 [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11907,
+   "sitzung": "98a60d07",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9211,
+   "sitzung": "7cb9e9ee",
+   "text": "Mitte2 [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6162,
+   "sitzung": "525133eb",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -3094,
+   "sitzung": "03842832",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7464,
+   "sitzung": "98a60d07",
+   "text": "Mensch an Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7929,
+   "sitzung": "7cb9e9ee",
+   "text": "Mitte2 [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1253,
+   "id": "03842832",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1256,
+   "id": "03842832",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1276,
+   "id": "525133eb",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1277,
+   "id": "525133eb",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1289,
+   "id": "7cb9e9ee",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1290,
+   "id": "7cb9e9ee",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7403,
+   "id": "98a60d07",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7404,
+   "id": "98a60d07",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7892,
+   "id": "98a60d07",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10954,
+   "id": "7cb9e9ee",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10961,
+   "id": "525133eb",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 7408,
+   "id": "98a60d07",
+   "status": "running"
+  },
+  {
+   "ms": 7876,
+   "id": "98a60d07",
+   "status": "idle"
+  },
+  {
+   "ms": 7895,
+   "id": "7cb9e9ee",
+   "status": "running"
+  },
+  {
+   "ms": 10939,
+   "id": "7cb9e9ee",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1256,
+   "id": "03842832",
+   "source": "resume"
+  },
+  {
+   "ms": 1277,
+   "id": "525133eb",
+   "source": "resume"
+  },
+  {
+   "ms": 1290,
+   "id": "7cb9e9ee",
+   "source": "resume"
+  },
+  {
+   "ms": 7404,
+   "id": "98a60d07",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 7892,
+   "id": "98a60d07"
+  },
+  {
+   "ms": 10954,
+   "id": "7cb9e9ee"
+  },
+  {
+   "ms": 10961,
+   "id": "525133eb"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1257,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 7412,
+   "art": "prompt-an-enkel-nach-6s",
+   "ok": true
+  }
+ ]
+}

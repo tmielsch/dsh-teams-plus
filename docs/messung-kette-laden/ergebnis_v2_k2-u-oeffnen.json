@@ -1,0 +1,348 @@
+{
+ "szenario": "k2-u-oeffnen",
+ "typ": "u",
+ "variante": "oeffnen",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03899184",
+  "mitte": "3c23a9cc",
+  "enkel": "24f9a940"
+ },
+ "beimStart": {
+  "ms": 1201,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "oeffnen": {
+  "ok": true,
+  "dauerMs": 40,
+  "r": "{\"records\":[],\"hasMore\":false}"
+ },
+ "direktNachOeffnen": {
+  "ms": 1243,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "kette": {
+  "pfad": [
+   {
+    "id": "03899184",
+    "wurzel": true
+   },
+   {
+    "id": "3c23a9cc",
+    "wurzel": false
+   }
+  ],
+  "schritte": [
+   "wurzel-geladen 03899184",
+   "angelegt 3c23a9cc gehalten"
+  ],
+  "fehler": [],
+  "dauerMs": 83
+ },
+ "nach1500ms": {
+  "ms": 2795,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "listeNachOeffnen": {
+  "24f9a940": false,
+  "3c23a9cc": true,
+  "03899184": true
+ },
+ "nach4500ms": {
+  "ms": 5814,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkelNachOeffnen": {
+  "ok": true,
+  "dauerMs": 44,
+  "r": "{\"messageId\":\"7ab78a05-12eb-420b-858b-873e57606c21\"}"
+ },
+ "nachPrompt400ms": {
+  "ms": 6260,
+  "llmGesamt": 5,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachPrompt5s": {
+  "ms": 10863,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachFreigabe1500ms": {
+  "ms": 12365,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "plattenM": {
+  "dateien": 1,
+  "ereignisse": 35,
+  "userOhneRpcId": 1,
+  "userMitRpcId": 0,
+  "teamNachricht": 0,
+  "turnEndFehler": [],
+  "turnEnd": 2
+ },
+ "llmLog": [
+  {
+   "zeit": -12488,
+   "sitzung": "3c23a9cc",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11959,
+   "sitzung": "24f9a940",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9454,
+   "sitzung": "3c23a9cc",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6382,
+   "sitzung": "03899184",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5905,
+   "sitzung": "24f9a940",
+   "text": "Mensch an Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6371,
+   "sitzung": "3c23a9cc",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1271,
+   "id": "03899184",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1276,
+   "id": "03899184",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1291,
+   "id": "3c23a9cc",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1292,
+   "id": "3c23a9cc",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5844,
+   "id": "24f9a940",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5847,
+   "id": "24f9a940",
+   "agentAvailable": true
+  },
+  {
+   "ms": 6332,
+   "id": "24f9a940",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9402,
+   "id": "3c23a9cc",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 5852,
+   "id": "24f9a940",
+   "status": "running"
+  },
+  {
+   "ms": 6319,
+   "id": "24f9a940",
+   "status": "idle"
+  },
+  {
+   "ms": 6335,
+   "id": "3c23a9cc",
+   "status": "running"
+  },
+  {
+   "ms": 9386,
+   "id": "3c23a9cc",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1276,
+   "id": "03899184",
+   "source": "resume"
+  },
+  {
+   "ms": 1292,
+   "id": "3c23a9cc",
+   "source": "resume"
+  },
+  {
+   "ms": 5847,
+   "id": "24f9a940",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 6332,
+   "id": "24f9a940"
+  },
+  {
+   "ms": 9402,
+   "id": "3c23a9cc"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1243,
+   "art": "oeffnen-page",
+   "ok": true
+  },
+  {
+   "ms": 5859,
+   "art": "prompt-ohne-haken-a-nach-oeffnen",
+   "ok": true
+  }
+ ]
+}

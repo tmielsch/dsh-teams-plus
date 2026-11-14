@@ -1,0 +1,278 @@
+{
+ "szenario": "k2-u-kosten-leer",
+ "typ": "u",
+ "variante": "kosten-leer",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03725789",
+  "mitte": "0eb73814",
+  "enkel": "bf739c5c"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 59,
+  "r": "03725789"
+ },
+ "kette": {
+  "pfad": [
+   {
+    "id": "0eb73814",
+    "wurzel": false
+   }
+  ],
+  "schritte": [
+   "angelegt 0eb73814"
+  ],
+  "freigeber": [],
+  "fehler": [],
+  "dauerMs": 22
+ },
+ "promptEnkel": {
+  "ok": true,
+  "dauerMs": 24,
+  "r": "{\"messageId\":\"022f2e5f-1b3c-4912-9124-f60e9e29ccfd\"}"
+ },
+ "direktNachPromptEnkel": {
+  "ms": 1311,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 1,
+   "zuege": 1
+  }
+ },
+ "nach400ms": {
+  "ms": 1712,
+  "llmGesamt": 5,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nach5s": {
+  "ms": 6314,
+  "llmGesamt": 5,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "plattenM": {
+  "dateien": 1,
+  "ereignisse": 32,
+  "userOhneRpcId": 1,
+  "userMitRpcId": 0,
+  "teamNachricht": 0,
+  "turnEndFehler": [
+   "{\"kind\":\"error\",\"error\":{\"message\":\"prompt variable \\\"{{model}}\\\" has no value for this assembly (section \\\"deployment:persona-prefix\\\")\",\"code\":\"UNKNOWN\"}}"
+  ],
+  "turnEnd": 2
+ },
+ "plattenG": {
+  "dateien": 1,
+  "ereignisse": 28,
+  "userOhneRpcId": 1,
+  "userMitRpcId": 1,
+  "teamNachricht": 0,
+  "turnEndFehler": [],
+  "turnEnd": 2
+ },
+ "llmLog": [
+  {
+   "zeit": -12429,
+   "sitzung": "0eb73814",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11893,
+   "sitzung": "bf739c5c",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9398,
+   "sitzung": "0eb73814",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6333,
+   "sitzung": "03725789",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1348,
+   "sitzung": "bf739c5c",
+   "text": "Mensch an Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1260,
+   "id": "03725789",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1264,
+   "id": "03725789",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1285,
+   "id": "0eb73814",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1286,
+   "id": "0eb73814",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1303,
+   "id": "bf739c5c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1305,
+   "id": "bf739c5c",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1774,
+   "id": "bf739c5c",
+   "agentAvailable": false
+  },
+  {
+   "ms": 1811,
+   "id": "0eb73814",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1307,
+   "id": "bf739c5c",
+   "status": "running"
+  },
+  {
+   "ms": 1758,
+   "id": "bf739c5c",
+   "status": "idle"
+  },
+  {
+   "ms": 1777,
+   "id": "0eb73814",
+   "status": "running"
+  },
+  {
+   "ms": 1803,
+   "id": "0eb73814",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1264,
+   "id": "03725789",
+   "source": "resume"
+  },
+  {
+   "ms": 1286,
+   "id": "0eb73814",
+   "source": "resume"
+  },
+  {
+   "ms": 1305,
+   "id": "bf739c5c",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1774,
+   "id": "bf739c5c"
+  },
+  {
+   "ms": 1811,
+   "id": "0eb73814"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1265,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 1311,
+   "art": "prompt-mitte-an-enkel",
+   "ok": true
+  }
+ ]
+}
