@@ -1,0 +1,270 @@
+{
+ "szenario": "b",
+ "modus": "nachher",
+ "lebendVorTest": {
+  "gp": false,
+  "mitte": false,
+  "enkel": false,
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "mitte": 1,
+   "enkel": 1
+  },
+  "lebend": []
+ },
+ "listeKalt": [
+  {
+   "id": "4b5db07e",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "67ab0e40",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "34795849",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "prompt": {
+  "ok": true,
+  "r": "{\"messageId\":\"4f377bc6-907a-4cd3-8840-9e31042f7d99\"}",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 2
+   },
+   "lebend": [
+    "4b5db07e"
+   ]
+  }
+ },
+ "listeLaufend": [
+  {
+   "id": "4b5db07e",
+   "agentAvailable": true,
+   "running": true
+  },
+  {
+   "id": "67ab0e40",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "34795849",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "nachAbschluss": {
+  "llm": 5,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 2
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "mitte": 1,
+   "enkel": 2
+  },
+  "lebend": [],
+  "gpLebt": false,
+  "mitteLebt": false,
+  "enkelLebt": false
+ },
+ "listeNachAbschluss": [
+  {
+   "id": "4b5db07e",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "67ab0e40",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "34795849",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "neuErzeugt": [
+  {
+   "ms": 10665,
+   "id": "4b5db07e",
+   "source": "resume"
+  }
+ ],
+ "ende": {
+  "llm": 5,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 2
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "mitte": 1,
+   "enkel": 2
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1310,
+   "sitzung": "67ab0e40",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1830,
+   "sitzung": "4b5db07e",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 4341,
+   "sitzung": "67ab0e40",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7398,
+   "sitzung": "34795849",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 10694,
+   "sitzung": "4b5db07e",
+   "text": "Mensch an Enkel [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "warnungen": [],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1213,
+   "id": "34795849",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1217,
+   "id": "34795849",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1253,
+   "id": "67ab0e40",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1255,
+   "id": "67ab0e40",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1794,
+   "id": "4b5db07e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1797,
+   "id": "4b5db07e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 2257,
+   "id": "4b5db07e",
+   "agentAvailable": false
+  },
+  {
+   "ms": 7359,
+   "id": "67ab0e40",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9813,
+   "id": "34795849",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10664,
+   "id": "4b5db07e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 10665,
+   "id": "4b5db07e",
+   "agentAvailable": true
+  },
+  {
+   "ms": 13714,
+   "id": "4b5db07e",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1217,
+   "art": "agent/created",
+   "id": "34795849",
+   "source": "startup"
+  },
+  {
+   "ms": 1255,
+   "art": "agent/created",
+   "id": "67ab0e40",
+   "source": "startup"
+  },
+  {
+   "ms": 1797,
+   "art": "agent/created",
+   "id": "4b5db07e",
+   "source": "startup"
+  },
+  {
+   "ms": 10665,
+   "art": "agent/created",
+   "id": "4b5db07e",
+   "source": "resume"
+  },
+  {
+   "ms": 10669,
+   "art": "mensch-an-enkel",
+   "ok": true
+  }
+ ]
+}
