@@ -1,0 +1,349 @@
+{
+ "szenario": "a",
+ "modus": "nachher",
+ "settledVorAbbau": 1,
+ "vorAbbau": {
+  "listeKindRuhe": [
+   {
+    "id": "e66f11d6",
+    "agentAvailable": false,
+    "running": false
+   },
+   {
+    "id": "34319994",
+    "agentAvailable": true,
+    "running": false
+   }
+  ],
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "34319994"
+  ]
+ },
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false,
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "listeKalt": [
+  {
+   "id": "e66f11d6",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "34319994",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "dateienElternVor": [
+  {
+   "datei": "94/session.v4.jsonl.zstd",
+   "bytes": 11613,
+   "mtimeMs": 1794634320542
+  }
+ ],
+ "dateienKindVor": [
+  {
+   "datei": "d6/session.v4.jsonl.zstd",
+   "bytes": 9542,
+   "mtimeMs": 1794634320505
+  }
+ ],
+ "prompt": {
+  "ok": true,
+  "r": "{\"messageId\":\"3bfd4b3c-09cd-418c-b845-42109c450bb9\"}",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 2
+   },
+   "lebend": [
+    "e66f11d6"
+   ]
+  }
+ },
+ "listeLaufend": [
+  {
+   "id": "e66f11d6",
+   "agentAvailable": true,
+   "running": true
+  },
+  {
+   "id": "34319994",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "lebendLaufend": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 2
+  },
+  "lebend": [
+   "e66f11d6"
+  ]
+ },
+ "listeNachAbschluss": [
+  {
+   "id": "e66f11d6",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "34319994",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "nachAbschluss": {
+  "llm": 3,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 2
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 2
+  },
+  "lebend": [],
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "neuErzeugt": [
+  {
+   "ms": 5806,
+   "id": "e66f11d6",
+   "source": "resume"
+  }
+ ],
+ "dateienElternNach": [
+  {
+   "datei": "94/session.v4.jsonl.zstd",
+   "bytes": 11963,
+   "mtimeMs": 1794634327638
+  }
+ ],
+ "dateienKindNach": [
+  {
+   "datei": "d6/session.v4.jsonl.zstd",
+   "bytes": 15715,
+   "mtimeMs": 1794634327625
+  }
+ ],
+ "elternVerlaufNachLaden": [
+  "turn/start",
+  "agent/inbox/spliced",
+  "step/start",
+  "system/message",
+  "user/message:subagent-settled",
+  "user/message:runtime-context",
+  "user/message:skill-catalog",
+  "request/header",
+  "request/context",
+  "assistant/message",
+  "step/end",
+  "turn/end",
+  "agent/inbox/spliced",
+  "session/end-seed"
+ ],
+ "settledNachLaden": 1,
+ "elternHatNeueAbschlussmeldung": false,
+ "posteingangNachLaden": {
+  "naechsteRunde": [
+   "subagent-settled"
+  ],
+  "naechsterSchritt": []
+ },
+ "statusNachLaden": "idle",
+ "llmElternNachLaden": 0,
+ "posteingangNach2s": {
+  "naechsteRunde": [
+   "subagent-settled"
+  ],
+  "naechsterSchritt": []
+ },
+ "llmElternNachNachricht": 2,
+ "posteingangNachNachricht": {
+  "naechsteRunde": [],
+  "naechsterSchritt": []
+ },
+ "settledNachNachricht": 2,
+ "ende": {
+  "llm": 5,
+  "llmJe": {
+   "eltern": 3,
+   "kind": 2
+  },
+  "zuegeJe": {
+   "eltern": 2,
+   "kind": 2
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1308,
+   "sitzung": "e66f11d6",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1746,
+   "sitzung": "34319994",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5827,
+   "sitzung": "e66f11d6",
+   "text": "Mensch an Kind [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 13853,
+   "sitzung": "34319994",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 13884,
+   "sitzung": "34319994",
+   "text": "Mensch an Elternteil [[SLOW]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1211,
+   "id": "34319994",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1214,
+   "id": "34319994",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1254,
+   "id": "e66f11d6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1255,
+   "id": "e66f11d6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1720,
+   "id": "e66f11d6",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5277,
+   "id": "34319994",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5806,
+   "id": "e66f11d6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5806,
+   "id": "e66f11d6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 8839,
+   "id": "e66f11d6",
+   "agentAvailable": false
+  },
+  {
+   "ms": 11328,
+   "id": "34319994",
+   "agentAvailable": true
+  },
+  {
+   "ms": 11331,
+   "id": "34319994",
+   "agentAvailable": true
+  },
+  {
+   "ms": 16838,
+   "id": "34319994",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1215,
+   "art": "agent/created",
+   "id": "34319994",
+   "source": "startup"
+  },
+  {
+   "ms": 1255,
+   "art": "agent/created",
+   "id": "e66f11d6",
+   "source": "startup"
+  },
+  {
+   "ms": 5806,
+   "art": "agent/created",
+   "id": "e66f11d6",
+   "source": "resume"
+  },
+  {
+   "ms": 5809,
+   "art": "mensch-an-kind",
+   "ok": true
+  },
+  {
+   "ms": 11331,
+   "art": "agent/created",
+   "id": "34319994",
+   "source": "resume"
+  }
+ ]
+}
