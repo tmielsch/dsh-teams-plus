@@ -62,6 +62,7 @@ export function apply(ctx) {
 			if (SZENARIO === "a" || SZENARIO === "e") {
 				const kindId = await kindStarten(handle.agent, "Start [[SLOW]]"); ids.kind = kindId;
 				await warte(4000);
+				ergebnis.settledVorAbbau = ereignisse(handle.agent).filter((x) => x.includes("subagent-settled")).length;
 				ergebnis.vorAbbau = { listeKindRuhe: await sessionListe(ids), ...zustand(ids) };
 				await handle.dispose(); await warte(500);
 				ergebnis.nachAbbau = { elternLebt: ctx.agents.get(elternId) !== undefined, kindLebt: ctx.agents.get(kindId) !== undefined, ...zustand(ids) };
@@ -83,7 +84,8 @@ export function apply(ctx) {
 				try {
 					const h2 = await ctx.agents.resume({ resumeSessionId: elternId, agentOptions: modell });
 					ergebnis.elternVerlaufNachLaden = ereignisse(h2.agent).slice(-14);
-					ergebnis.elternHatSettlement = ereignisse(h2.agent).some((t) => t.includes("subagent-settled"));
+					ergebnis.settledNachLaden = ereignisse(h2.agent).filter((x) => x.includes("subagent-settled")).length;
+					ergebnis.elternHatNeueAbschlussmeldung = ergebnis.settledNachLaden > ergebnis.settledVorAbbau;
 					await warte(2500);
 					ergebnis.llmElternNachLaden = zaehlerLlm(elternId) - llmVor;
 					await h2.dispose();

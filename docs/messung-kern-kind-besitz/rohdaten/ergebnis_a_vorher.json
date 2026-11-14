@@ -1,0 +1,283 @@
+{
+ "szenario": "a",
+ "modus": "vorher",
+ "settledVorAbbau": 1,
+ "vorAbbau": {
+  "listeKindRuhe": [
+   {
+    "id": "2a09b067",
+    "agentAvailable": false,
+    "running": false
+   },
+   {
+    "id": "33124907",
+    "agentAvailable": true,
+    "running": false
+   }
+  ],
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [
+   "33124907"
+  ]
+ },
+ "nachAbbau": {
+  "elternLebt": false,
+  "kindLebt": false,
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "listeKalt": [
+  {
+   "id": "2a09b067",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "33124907",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "dateienElternVor": [
+  {
+   "datei": "07/session.v4.jsonl.zstd",
+   "bytes": 11627,
+   "mtimeMs": 1794633125484
+  }
+ ],
+ "dateienKindVor": [
+  {
+   "datei": "67/session.v4.jsonl.zstd",
+   "bytes": 9547,
+   "mtimeMs": 1794633125443
+  }
+ ],
+ "prompt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"eltern-1794633124907\" is not live",
+  "vor": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 2,
+   "llmJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "kind": 1
+   },
+   "lebend": []
+  }
+ },
+ "listeLaufend": [
+  {
+   "id": "2a09b067",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "33124907",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "lebendLaufend": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "listeNachAbschluss": [
+  {
+   "id": "2a09b067",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "33124907",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "nachAbschluss": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": [],
+  "elternLebt": false,
+  "kindLebt": false
+ },
+ "neuErzeugt": [],
+ "dateienElternNach": [
+  {
+   "datei": "07/session.v4.jsonl.zstd",
+   "bytes": 11627,
+   "mtimeMs": 1794633125484
+  }
+ ],
+ "dateienKindNach": [
+  {
+   "datei": "67/session.v4.jsonl.zstd",
+   "bytes": 9547,
+   "mtimeMs": 1794633125443
+  }
+ ],
+ "elternVerlaufNachLaden": [
+  "agent/inbox/spliced",
+  "turn/start",
+  "agent/inbox/spliced",
+  "step/start",
+  "system/message",
+  "user/message:subagent-settled",
+  "user/message:runtime-context",
+  "user/message:skill-catalog",
+  "request/header",
+  "request/context",
+  "assistant/message",
+  "step/end",
+  "turn/end",
+  "session/end-seed"
+ ],
+ "settledNachLaden": 1,
+ "elternHatNeueAbschlussmeldung": false,
+ "llmElternNachLaden": 0,
+ "ende": {
+  "llm": 2,
+  "llmJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "kind": 1
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1322,
+   "sitzung": "2a09b067",
+   "text": "Start [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1774,
+   "sitzung": "33124907",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1219,
+   "id": "33124907",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1223,
+   "id": "33124907",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1264,
+   "id": "2a09b067",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1265,
+   "id": "2a09b067",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1744,
+   "id": "2a09b067",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5287,
+   "id": "33124907",
+   "agentAvailable": false
+  },
+  {
+   "ms": 11334,
+   "id": "33124907",
+   "agentAvailable": true
+  },
+  {
+   "ms": 11337,
+   "id": "33124907",
+   "agentAvailable": true
+  },
+  {
+   "ms": 13845,
+   "id": "33124907",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1223,
+   "art": "agent/created",
+   "id": "33124907",
+   "source": "startup"
+  },
+  {
+   "ms": 1265,
+   "art": "agent/created",
+   "id": "2a09b067",
+   "source": "startup"
+  },
+  {
+   "ms": 5801,
+   "art": "mensch-an-kind",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 11337,
+   "art": "agent/created",
+   "id": "33124907",
+   "source": "resume"
+  }
+ ]
+}

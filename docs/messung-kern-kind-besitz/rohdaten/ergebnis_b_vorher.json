@@ -1,0 +1,236 @@
+{
+ "szenario": "b",
+ "modus": "vorher",
+ "lebendVorTest": {
+  "gp": false,
+  "mitte": false,
+  "enkel": false,
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "mitte": 1,
+   "enkel": 1
+  },
+  "lebend": []
+ },
+ "listeKalt": [
+  {
+   "id": "aff340a6",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "cacfbf3a",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "33139694",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "prompt": {
+  "ok": false,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"1d96a33e-4aee-4791-9df2-644dcacfbf3a\" is not live",
+  "vor": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": []
+  },
+  "nach": {
+   "llm": 4,
+   "llmJe": {
+    "eltern": 1,
+    "mitte": 2,
+    "enkel": 1
+   },
+   "zuegeJe": {
+    "eltern": 1,
+    "mitte": 1,
+    "enkel": 1
+   },
+   "lebend": []
+  }
+ },
+ "listeLaufend": [
+  {
+   "id": "aff340a6",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "cacfbf3a",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "33139694",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "nachAbschluss": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "mitte": 1,
+   "enkel": 1
+  },
+  "lebend": [],
+  "gpLebt": false,
+  "mitteLebt": false,
+  "enkelLebt": false
+ },
+ "listeNachAbschluss": [
+  {
+   "id": "aff340a6",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "cacfbf3a",
+   "agentAvailable": false,
+   "running": false
+  },
+  {
+   "id": "33139694",
+   "agentAvailable": false,
+   "running": false
+  }
+ ],
+ "neuErzeugt": [],
+ "ende": {
+  "llm": 4,
+  "llmJe": {
+   "eltern": 1,
+   "mitte": 2,
+   "enkel": 1
+  },
+  "zuegeJe": {
+   "eltern": 1,
+   "mitte": 1,
+   "enkel": 1
+  },
+  "lebend": []
+ },
+ "llmLog": [
+  {
+   "zeit": 1319,
+   "sitzung": "cacfbf3a",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1828,
+   "sitzung": "aff340a6",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 4345,
+   "sitzung": "cacfbf3a",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7399,
+   "sitzung": "33139694",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbarEreignisse": [
+  {
+   "ms": 1219,
+   "id": "33139694",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1223,
+   "id": "33139694",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1254,
+   "id": "cacfbf3a",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1255,
+   "id": "cacfbf3a",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1796,
+   "id": "aff340a6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1797,
+   "id": "aff340a6",
+   "agentAvailable": true
+  },
+  {
+   "ms": 2251,
+   "id": "aff340a6",
+   "agentAvailable": false
+  },
+  {
+   "ms": 7362,
+   "id": "cacfbf3a",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9808,
+   "id": "33139694",
+   "agentAvailable": false
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1223,
+   "art": "agent/created",
+   "id": "33139694",
+   "source": "startup"
+  },
+  {
+   "ms": 1255,
+   "art": "agent/created",
+   "id": "cacfbf3a",
+   "source": "startup"
+  },
+  {
+   "ms": 1797,
+   "art": "agent/created",
+   "id": "aff340a6",
+   "source": "startup"
+  },
+  {
+   "ms": 10630,
+   "art": "mensch-an-enkel",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}
