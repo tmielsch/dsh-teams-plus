@@ -1,0 +1,21 @@
+# Erwartung vor der Messung: Kette laden (Lead → Kind → Enkel, alle kalt), 2026-11-13
+
+Vor dem ersten Lauf geschrieben. Alle Zahlen und Aussagen hier sind `SCHÄTZUNG` (aus dem Quelltext abgeleitet, nicht gemessen). Quellen (Pfad `/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/`, Zeilen aus dem Rumpf gelesen, nicht aus Kopfkommentaren):
+- `dsh-subagent/lib/index.js` Zeile 3015 bis 3016 (`subagents.prompt` wirft `subagent/parent-unavailable`, wenn `agents.get(parentSessionId)` leer ist), 1820 bis 1824 (`deliverFollowup`: ohne Activation des Kindes `coldResume`), 1898 bis 1940 (`coldResume`: `authorizeLineage` verlangt den lebenden Elternteil als exakten Agenten, danach `activations.materialize` und `submitMaterialized`, also eine Nachricht an das Kind), 1969 bis 1975 (`submitAdmitted` legt eine Nutzernachricht in den Posteingang des Kindes).
+- `dsh-api-session-controller/lib/index.js` Zeile 222 bis 236 (`resolve`), 412 bis 414 (`resumeObserved` wirft `ApiSessionSubagentOwnership`, sobald `observation.header.origin === "subagent"`), Zeile 126 bis 139 (`hasApiSessionSubagentOwner`, `apiSessionSubagentOwnershipError` = `session/agent-busy`).
+
+Aufbau: Lead L (Wurzel, `agents.create`), Mitte M (Unteragent von L, `startContinuable`), Enkel G (Unteragent von M). Alle drei beendet bzw. hart beendet, Neustart: alle kalt. Zähler „Modellaufrufe“ = Zeilen in `llm-aufrufe.log` je Sitzung.
+
+| Nr. | Frage | Erwartung (vor der Messung) | Warum |
+|---|---|---|---|
+| K1 | G direkt über das Gateway anschreiben (`subagents/prompt`, Elternteil M), alles kalt, ohne Patch | `subagent/parent-unavailable`, 0 Aufrufe | `agents.get(M)` leer, Zeile 3016 |
+| K2 | Dasselbe mit dem Patch `eltern-laden` | Patch versucht M über den Lookup `agent` zu laden → `session/agent-busy`, Protokollzeile `eltern-ist-kind`, danach `parent-unavailable` mit angehängtem Hinweis, 0 Aufrufe | Zeile 414 → 236 |
+| K3 | Lead über den Lookup `agent` laden (einfacher Lead ohne Team) | Lead lebt, 0 neue Aufrufe | Messung M2 des Vorberichts |
+| K4 | Danach `subagents.prompt(L → M)` (Weg von `coldResume`) | M wird kalt geladen (Eigentümer L), eine Nachricht an M, **1 Aufruf von M** binnen 400 ms; wenn M fertig antwortet, **1 Aufruf von L** (Antwort des Kindes weckt den Elternteil) | Zeile 1969 ff.; Messung M3/M9 des Vorberichts |
+| K5 | Sofort danach `subagents.prompt(M → G)` | geht (M lebt, hat G schon als Besitz-Hold), **1 Aufruf von G**; wenn G antwortet, **1 weiterer Aufruf von M**; wenn M das beantwortet, **1 weiterer Aufruf von L**. Summe bis zum Ende der Kette: L 2, M 2, G 1 = 5 Aufrufe | M bleibt, solange G Kind ist (`ownedChildren`, Zeile 1204) |
+| K6 | Wie K4/K5, aber 6 s Pause zwischen M-Wecken und G-Anschreiben | M ist zwischenzeitlich fertig und wieder abgebaut (`settlementState` „ready“); G-Anschreiben scheitert mit `parent-unavailable`; L 1, M 1, G 0 | Zeile 1204 |
+| K7 | Direktes Laden von M mit `agents.resume({parentAgent: L})` statt `coldResume`, danach `subagents.prompt(M → G)` | M-Laden 0 Aufrufe; G-Anschreiben geht, G 1, M 1 (Antwort von G); L 0, weil für M keine Activation existiert, die an L zurückmeldet | Messung M12 des Vorberichts (Anschreiben des Enkels ging) |
+| K8 | In K7: danach `subagents.prompt(L → M)` | `subagent/not-resumable` („already owned by an active write handle“), solange das direkt geladene M lebt; nach `handle.dispose()` von M geht es wieder | Messung M12 |
+| K9 | Team-Lead mit Team-Mitglied M und wartender Team-Nachricht an M: nur L über den Lookup laden | Laden von L allein weckt M kalt (Kernweg, Issue 181 Lage B): M 1 Aufruf, ohne dass der Mensch M angesprochen hat | Messung Issue 181 |
+
+Unsicherheit, die ich vor der Messung benenne: (1) Ob die Antwort von M an L eine eigene Runde von L auslöst oder zu einer vorhandenen Runde zusammengefasst wird (K4/K5: ich schätze eine Runde je Antwort). (2) Ob M nach seinem ersten Zug wirklich schon abgebaut wird, bevor ich G anschreibe (K5 gegen K6, Zeitfenster hängt von der Attrappen-Dauer). (3) Ob `agents.resume({parentAgent})` das Kind mit seinem eigenen Modell und Werkzeugfilter lädt (es lädt ohne die `setup`-Funktion von `coldResume`; K7 sagt darüber nichts, weil die Attrappe ein Modell hat).

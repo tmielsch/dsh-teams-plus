@@ -1,0 +1,404 @@
+{
+ "szenario": "k2-u-halten",
+ "typ": "u",
+ "variante": "halten",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03814148",
+  "mitte": "438500ca",
+  "enkel": "ef4e3ca8"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 60,
+  "r": "03814148"
+ },
+ "kette": {
+  "pfad": [
+   {
+    "id": "438500ca",
+    "wurzel": false
+   }
+  ],
+  "schritte": [
+   "angelegt 438500ca gehalten"
+  ],
+  "fehler": [],
+  "dauerMs": 22
+ },
+ "lebensdauer": [
+  {
+   "s": 0,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  },
+  {
+   "s": 1,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  },
+  {
+   "s": 2,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  },
+  {
+   "s": 3,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  },
+  {
+   "s": 4,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  },
+  {
+   "s": 5,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  },
+  {
+   "s": 6,
+   "lebt": {
+    "lead": true,
+    "mitte": true,
+    "enkel": false
+   },
+   "llm": 4,
+   "liste": {
+    "ef4e3ca8": false,
+    "438500ca": true,
+    "03814148": true
+   }
+  }
+ ],
+ "nach6s": {
+  "ms": 7369,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": true,
+  "dauerMs": 33,
+  "r": "{\"messageId\":\"9d5eac22-1b36-4660-b343-4b27bc7b8e26\"}"
+ },
+ "nachPrompt400ms": {
+  "ms": 7803,
+  "llmGesamt": 5,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachPrompt5s": {
+  "ms": 12405,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "listeVorFreigabe": {
+  "ef4e3ca8": false,
+  "438500ca": false,
+  "03814148": true
+ },
+ "nachFreigabe1500ms": {
+  "ms": 13919,
+  "llmGesamt": 6,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "listeNachFreigabe": {
+  "ef4e3ca8": false,
+  "438500ca": false,
+  "03814148": true
+ },
+ "plattenM": {
+  "dateien": 1,
+  "ereignisse": 35,
+  "userOhneRpcId": 1,
+  "userMitRpcId": 0,
+  "teamNachricht": 0,
+  "turnEndFehler": [],
+  "turnEnd": 2
+ },
+ "llmLog": [
+  {
+   "zeit": -12423,
+   "sitzung": "438500ca",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11882,
+   "sitzung": "ef4e3ca8",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9390,
+   "sitzung": "438500ca",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6329,
+   "sitzung": "03814148",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7445,
+   "sitzung": "ef4e3ca8",
+   "text": "Mensch an Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 7907,
+   "sitzung": "438500ca",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1260,
+   "id": "03814148",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1263,
+   "id": "03814148",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1285,
+   "id": "438500ca",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1285,
+   "id": "438500ca",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7393,
+   "id": "ef4e3ca8",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7394,
+   "id": "ef4e3ca8",
+   "agentAvailable": true
+  },
+  {
+   "ms": 7867,
+   "id": "ef4e3ca8",
+   "agentAvailable": false
+  },
+  {
+   "ms": 10931,
+   "id": "438500ca",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 7398,
+   "id": "ef4e3ca8",
+   "status": "running"
+  },
+  {
+   "ms": 7856,
+   "id": "ef4e3ca8",
+   "status": "idle"
+  },
+  {
+   "ms": 7871,
+   "id": "438500ca",
+   "status": "running"
+  },
+  {
+   "ms": 10917,
+   "id": "438500ca",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1263,
+   "id": "03814148",
+   "source": "resume"
+  },
+  {
+   "ms": 1285,
+   "id": "438500ca",
+   "source": "resume"
+  },
+  {
+   "ms": 7394,
+   "id": "ef4e3ca8",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 7867,
+   "id": "ef4e3ca8"
+  },
+  {
+   "ms": 10931,
+   "id": "438500ca"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 1264,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 7402,
+   "art": "prompt-an-enkel-nach-6s",
+   "ok": true
+  }
+ ]
+}

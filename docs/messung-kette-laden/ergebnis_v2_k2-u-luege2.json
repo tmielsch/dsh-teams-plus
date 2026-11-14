@@ -1,0 +1,126 @@
+{
+ "szenario": "k2-u-luege2",
+ "typ": "u",
+ "variante": "luege2",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "03980935",
+  "mitte": "72f121f7",
+  "enkel": "3862414b"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "listeMitLuege": {
+  "3862414b": false,
+  "72f121f7": true,
+  "03980935": true
+ },
+ "listeGehalten": {
+  "3862414b": false,
+  "72f121f7": true,
+  "03980935": true
+ },
+ "listeNachFreigabe": {
+  "3862414b": false,
+  "72f121f7": true,
+  "03980935": true
+ },
+ "lebtNachFreigabe": {
+  "lead": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "llmLog": [
+  {
+   "zeit": -12475,
+   "sitzung": "72f121f7",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11952,
+   "sitzung": "3862414b",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9441,
+   "sitzung": "72f121f7",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6374,
+   "sitzung": "03980935",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1279,
+   "id": "03980935",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1283,
+   "id": "03980935",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1296,
+   "id": "72f121f7",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1297,
+   "id": "72f121f7",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1816,
+   "id": "72f121f7",
+   "agentAvailable": true
+  }
+ ],
+ "statusVerlauf": [],
+ "erzeugt": [
+  {
+   "ms": 1283,
+   "id": "03980935",
+   "source": "resume"
+  },
+  {
+   "ms": 1297,
+   "id": "72f121f7",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1816,
+   "id": "72f121f7"
+  }
+ ],
+ "protokoll": []
+}

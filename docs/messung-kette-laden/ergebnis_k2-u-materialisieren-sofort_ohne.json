@@ -1,0 +1,393 @@
+{
+ "szenario": "k2-u-materialisieren-sofort",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "materialisieren-sofort",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1202,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 69,
+  "r": "97661377"
+ },
+ "direktNachLeadLaden": {
+  "ms": 1272,
+  "llmGesamt": 4,
+  "lebend": [
+   "97661377"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "zugang": {
+  "continuations": "object",
+  "activations": "object",
+  "materialize": "function"
+ },
+ "descriptor": "{\"version\":3,\"mode\":\"continuable\",\"provider\":\"spawn\",\"label\":\"Mitte\",\"agentProvider\":\"probe\",\"agentModel\":\"m\"}",
+ "materialisiereMitte": {
+  "ok": true,
+  "dauerMs": 21,
+  "r": "a6672e81"
+ },
+ "direktNachMaterialisieren": {
+  "ms": 1293,
+  "llmGesamt": 4,
+  "lebend": [
+   "97661377",
+   "a6672e81"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "promptEnkel": {
+  "ok": true,
+  "dauerMs": 24,
+  "r": "{\"messageId\":\"0b99be91-2748-494f-98d0-e54c5e1d8d66\"}"
+ },
+ "direktNachPromptEnkel": {
+  "ms": 1318,
+  "llmGesamt": 4,
+  "lebend": [
+   "97661377",
+   "a6672e81",
+   "4cfea2c7"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 1,
+   "zuege": 1,
+   "eigentuemerLead": false
+  }
+ },
+ "nach400ms": {
+  "ms": 1720,
+  "llmGesamt": 5,
+  "lebend": [
+   "97661377",
+   "a6672e81",
+   "4cfea2c7"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": true,
+   "status": "running",
+   "llm": 2,
+   "zuege": 1,
+   "eigentuemerLead": false
+  }
+ },
+ "nach5s": {
+  "ms": 6321,
+  "llmGesamt": 5,
+  "lebend": [
+   "97661377"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "leadSchreibtMitte": {
+  "ok": true,
+  "dauerMs": 28,
+  "r": "{\"messageId\":\"977829e5-b792-4b9d-becf-ac6ca71b109a\"}"
+ },
+ "nachLeadAnMitte400ms": {
+  "ms": 6751,
+  "llmGesamt": 6,
+  "lebend": [
+   "97661377",
+   "a6672e81"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "running",
+   "llm": 3,
+   "zuege": 2,
+   "eigentuemerLead": true
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "nachLeadAnMitte5s": {
+  "ms": 11355,
+  "llmGesamt": 7,
+  "lebend": [
+   "97661377"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 3,
+   "zuege": 2
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10355,
+   "sitzung": "a6672e81",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9805,
+   "sitzung": "4cfea2c7",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7321,
+   "sitzung": "a6672e81",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4254,
+   "sitzung": "97661377",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1354,
+   "sitzung": "4cfea2c7",
+   "text": "Mensch an Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6380,
+   "sitzung": "a6672e81",
+   "text": "Mensch an Mitte [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 6842,
+   "sitzung": "97661377",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97661377",
+  "mitte": "a6672e81",
+  "enkel": "4cfea2c7"
+ },
+ "statusVerlauf": [
+  {
+   "ms": 1314,
+   "id": "4cfea2c7",
+   "status": "running"
+  },
+  {
+   "ms": 1764,
+   "id": "4cfea2c7",
+   "status": "idle"
+  },
+  {
+   "ms": 1780,
+   "id": "a6672e81",
+   "status": "running"
+  },
+  {
+   "ms": 1818,
+   "id": "a6672e81",
+   "status": "idle"
+  },
+  {
+   "ms": 6347,
+   "id": "a6672e81",
+   "status": "running"
+  },
+  {
+   "ms": 6785,
+   "id": "a6672e81",
+   "status": "idle"
+  },
+  {
+   "ms": 6801,
+   "id": "97661377",
+   "status": "running"
+  },
+  {
+   "ms": 6846,
+   "id": "97661377",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1270,
+   "id": "97661377",
+   "source": "resume"
+  },
+  {
+   "ms": 1292,
+   "id": "a6672e81",
+   "source": "resume"
+  },
+  {
+   "ms": 1312,
+   "id": "4cfea2c7",
+   "source": "resume"
+  },
+  {
+   "ms": 6344,
+   "id": "a6672e81",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1776,
+   "id": "4cfea2c7"
+  },
+  {
+   "ms": 1826,
+   "id": "a6672e81"
+  },
+  {
+   "ms": 6797,
+   "id": "a6672e81"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1272,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 1293,
+   "art": "mitte-materialisieren-ohne-nachricht",
+   "ok": true
+  },
+  {
+   "ms": 1318,
+   "art": "prompt-mitte-an-enkel",
+   "ok": true
+  },
+  {
+   "ms": 6350,
+   "art": "prompt-lead-an-mitte",
+   "ok": true
+  }
+ ]
+}

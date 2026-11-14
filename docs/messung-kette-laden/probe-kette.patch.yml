@@ -1,0 +1,24 @@
+# Overlay der Bau-Probe "Eltern-Sitzung laden" (Abnahme Plan Abschnitt 7): wie probe.patch.yml, aber der GEBAUTE Patch
+# patches/eltern-laden.mjs ersetzt die Haken im Treiber. Zeilen mit "#MIT# " werden von probe-bau.sh nur bei "mit"
+# eingeschaltet; bei "ohne" (Gegenprobe) fehlen sie. Platzhalter @@B@@ und @@REPO@@ ersetzt probe-bau.sh.
+- id: headless-runner
+  disabled: true
+- id: headless-startup
+  disabled: true
+- id: agent-default-model
+  config:
+    provider: probe
+    model: m
+- insert:
+    - id: workspace
+      name: '@deepseek-ai/dsh-workspace'
+    - id: probe-stub-dienste
+      name: '@@B@@/stub-dienste.mjs'
+    - id: session-controller
+      name: '@deepseek-ai/dsh-api-session-controller'
+    - id: probe-fake-llm
+      name: '@@B@@/fake-llm.mjs'
+#MIT#     - id: eltern-laden
+#MIT#       name: '@@REPO@@/patches/eltern-laden.mjs'
+    - id: probe-treiber
+      name: '@@B@@/@@TREIBER@@'

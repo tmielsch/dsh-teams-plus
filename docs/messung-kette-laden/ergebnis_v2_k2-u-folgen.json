@@ -1,0 +1,236 @@
+{
+ "szenario": "k2-u-folgen",
+ "typ": "u",
+ "variante": "folgen",
+ "phase": 2,
+ "kuerzel": {
+  "lead": "04191967",
+  "mitte": "cddaa919",
+  "enkel": "4b7a39c3"
+ },
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "kette": {
+  "pfad": [
+   {
+    "id": "04191967",
+    "wurzel": true
+   },
+   {
+    "id": "cddaa919",
+    "wurzel": false
+   }
+  ],
+  "schritte": [
+   "wurzel-geladen 04191967",
+   "angelegt cddaa919 gehalten"
+  ],
+  "fehler": [],
+  "dauerMs": 82
+ },
+ "lebensdauer": [
+  {
+   "s": 0,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 1,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 2,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 3,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 4,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 5,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 6,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 7,
+   "mitteLebt": true,
+   "llm": 4
+  },
+  {
+   "s": 8,
+   "mitteLebt": true,
+   "llm": 4
+  }
+ ],
+ "vorAbbruch": {
+  "ms": 9522,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "listeVorAbbruch": {
+  "4b7a39c3": false,
+  "cddaa919": true,
+  "04191967": true
+ },
+ "nachAbbruch1500ms": {
+  "ms": 11041,
+  "llmGesamt": 4,
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "listeNachAbbruch": {
+  "4b7a39c3": false,
+  "cddaa919": false,
+  "04191967": true
+ },
+ "rahmen": [
+  {
+   "ms": 1246,
+   "typ": "snapshot"
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": -12386,
+   "sitzung": "cddaa919",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -11872,
+   "sitzung": "4b7a39c3",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9356,
+   "sitzung": "cddaa919",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -6295,
+   "sitzung": "04191967",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "verfuegbar": [
+  {
+   "ms": 1269,
+   "id": "04191967",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1273,
+   "id": "04191967",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1286,
+   "id": "cddaa919",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1287,
+   "id": "cddaa919",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9545,
+   "id": "cddaa919",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [],
+ "erzeugt": [
+  {
+   "ms": 1273,
+   "id": "04191967",
+   "source": "resume"
+  },
+  {
+   "ms": 1287,
+   "id": "cddaa919",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 9546,
+   "id": "cddaa919"
+  }
+ ],
+ "protokoll": [
+  {
+   "ms": 9540,
+   "art": "freigabe-bei-abort"
+  }
+ ]
+}

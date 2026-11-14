@@ -1,0 +1,77 @@
+{
+ "szenario": "k1-u",
+ "modus": "ohne",
+ "typ": "u",
+ "phase": 1,
+ "lebendNachAbschluss": {
+  "lead": true,
+  "mitte": false,
+  "enkel": false
+ },
+ "vorEnde": {
+  "ms": 10836,
+  "llmGesamt": 4,
+  "lebend": [
+   "97661377"
+  ],
+  "lead": {
+   "lebt": true,
+   "status": "idle",
+   "llm": 1,
+   "zuege": 1
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 1
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 1
+  }
+ },
+ "protokoll": [
+  {
+   "ms": 1834,
+   "art": "kette-angelegt",
+   "lead": "97661377",
+   "mitte": "a6672e81",
+   "enkel": "4cfea2c7"
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1273,
+   "id": "a6672e81",
+   "status": "running"
+  },
+  {
+   "ms": 1829,
+   "id": "4cfea2c7",
+   "status": "running"
+  },
+  {
+   "ms": 2287,
+   "id": "4cfea2c7",
+   "status": "idle"
+  },
+  {
+   "ms": 7367,
+   "id": "a6672e81",
+   "status": "idle"
+  },
+  {
+   "ms": 7384,
+   "id": "97661377",
+   "status": "running"
+  },
+  {
+   "ms": 7428,
+   "id": "97661377",
+   "status": "idle"
+  }
+ ]
+}

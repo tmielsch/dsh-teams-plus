@@ -1,0 +1,483 @@
+{
+ "szenario": "k2-u-materialisieren-wdh",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "materialisieren-wdh",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1202,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "ladeLead": {
+  "ok": true,
+  "dauerMs": 63,
+  "r": "97819462"
+ },
+ "wiederholungen": [
+  {
+   "lauf": 1,
+   "pauseMsZwischenAnlegenUndAnschreiben": 0,
+   "materialisiert": true,
+   "mitteLebtVorAnschreiben": true,
+   "anschreibenOk": true,
+   "dauerMs": 42,
+   "aufrufeNachher": {
+    "l": 0,
+    "m": 0,
+    "g": 1
+   },
+   "lebendNachher": {
+    "m": false,
+    "g": false
+   }
+  },
+  {
+   "lauf": 2,
+   "pauseMsZwischenAnlegenUndAnschreiben": 0,
+   "materialisiert": true,
+   "mitteLebtVorAnschreiben": true,
+   "anschreibenOk": true,
+   "dauerMs": 39,
+   "aufrufeNachher": {
+    "l": 0,
+    "m": 0,
+    "g": 1
+   },
+   "lebendNachher": {
+    "m": false,
+    "g": false
+   }
+  },
+  {
+   "lauf": 3,
+   "pauseMsZwischenAnlegenUndAnschreiben": 0,
+   "materialisiert": true,
+   "mitteLebtVorAnschreiben": true,
+   "anschreibenOk": true,
+   "dauerMs": 43,
+   "aufrufeNachher": {
+    "l": 0,
+    "m": 0,
+    "g": 1
+   },
+   "lebendNachher": {
+    "m": false,
+    "g": false
+   }
+  },
+  {
+   "lauf": 4,
+   "pauseMsZwischenAnlegenUndAnschreiben": 5,
+   "materialisiert": true,
+   "mitteLebtVorAnschreiben": false,
+   "anschreibenOk": false,
+   "anschreibenCode": "subagent/parent-unavailable",
+   "dauerMs": 21,
+   "aufrufeNachher": {
+    "l": 0,
+    "m": 0,
+    "g": 0
+   },
+   "lebendNachher": {
+    "m": false,
+    "g": false
+   }
+  },
+  {
+   "lauf": 5,
+   "pauseMsZwischenAnlegenUndAnschreiben": 20,
+   "materialisiert": true,
+   "mitteLebtVorAnschreiben": false,
+   "anschreibenOk": false,
+   "anschreibenCode": "subagent/parent-unavailable",
+   "dauerMs": 30,
+   "aufrufeNachher": {
+    "l": 0,
+    "m": 0,
+    "g": 0
+   },
+   "lebendNachher": {
+    "m": false,
+    "g": false
+   }
+  }
+ ],
+ "llmLog": [
+  {
+   "zeit": -10392,
+   "sitzung": "3218d8df",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9849,
+   "sitzung": "4db88e3f",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7359,
+   "sitzung": "3218d8df",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4301,
+   "sitzung": "97819462",
+   "text": "",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 1357,
+   "sitzung": "4db88e3f",
+   "text": "Wdh 1 [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 5392,
+   "sitzung": "4db88e3f",
+   "text": "Wdh 2 [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": 9453,
+   "sitzung": "4db88e3f",
+   "text": "Wdh 3 [[SLOW]]",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97819462",
+  "mitte": "3218d8df",
+  "enkel": "4db88e3f"
+ },
+ "verfuegbar": [
+  {
+   "ms": 1262,
+   "id": "97819462",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1266,
+   "id": "97819462",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1289,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1291,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1309,
+   "id": "4db88e3f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1311,
+   "id": "4db88e3f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 1781,
+   "id": "4db88e3f",
+   "agentAvailable": false
+  },
+  {
+   "ms": 1825,
+   "id": "3218d8df",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5344,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5347,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5366,
+   "id": "4db88e3f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5367,
+   "id": "4db88e3f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 5813,
+   "id": "4db88e3f",
+   "agentAvailable": false
+  },
+  {
+   "ms": 5857,
+   "id": "3218d8df",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9399,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9401,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9422,
+   "id": "4db88e3f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9423,
+   "id": "4db88e3f",
+   "agentAvailable": true
+  },
+  {
+   "ms": 9876,
+   "id": "4db88e3f",
+   "agentAvailable": false
+  },
+  {
+   "ms": 9909,
+   "id": "3218d8df",
+   "agentAvailable": false
+  },
+  {
+   "ms": 13454,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 13457,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 13460,
+   "id": "3218d8df",
+   "agentAvailable": false
+  },
+  {
+   "ms": 17485,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 17487,
+   "id": "3218d8df",
+   "agentAvailable": true
+  },
+  {
+   "ms": 17489,
+   "id": "3218d8df",
+   "agentAvailable": false
+  }
+ ],
+ "statusVerlauf": [
+  {
+   "ms": 1313,
+   "id": "4db88e3f",
+   "status": "running"
+  },
+  {
+   "ms": 1765,
+   "id": "4db88e3f",
+   "status": "idle"
+  },
+  {
+   "ms": 1783,
+   "id": "3218d8df",
+   "status": "running"
+  },
+  {
+   "ms": 1814,
+   "id": "3218d8df",
+   "status": "idle"
+  },
+  {
+   "ms": 5368,
+   "id": "4db88e3f",
+   "status": "running"
+  },
+  {
+   "ms": 5802,
+   "id": "4db88e3f",
+   "status": "idle"
+  },
+  {
+   "ms": 5816,
+   "id": "3218d8df",
+   "status": "running"
+  },
+  {
+   "ms": 5845,
+   "id": "3218d8df",
+   "status": "idle"
+  },
+  {
+   "ms": 9426,
+   "id": "4db88e3f",
+   "status": "running"
+  },
+  {
+   "ms": 9865,
+   "id": "4db88e3f",
+   "status": "idle"
+  },
+  {
+   "ms": 9878,
+   "id": "3218d8df",
+   "status": "running"
+  },
+  {
+   "ms": 9898,
+   "id": "3218d8df",
+   "status": "idle"
+  }
+ ],
+ "erzeugt": [
+  {
+   "ms": 1265,
+   "id": "97819462",
+   "source": "resume"
+  },
+  {
+   "ms": 1290,
+   "id": "3218d8df",
+   "source": "resume"
+  },
+  {
+   "ms": 1310,
+   "id": "4db88e3f",
+   "source": "resume"
+  },
+  {
+   "ms": 5346,
+   "id": "3218d8df",
+   "source": "resume"
+  },
+  {
+   "ms": 5367,
+   "id": "4db88e3f",
+   "source": "resume"
+  },
+  {
+   "ms": 9401,
+   "id": "3218d8df",
+   "source": "resume"
+  },
+  {
+   "ms": 9423,
+   "id": "4db88e3f",
+   "source": "resume"
+  },
+  {
+   "ms": 13456,
+   "id": "3218d8df",
+   "source": "resume"
+  },
+  {
+   "ms": 17486,
+   "id": "3218d8df",
+   "source": "resume"
+  }
+ ],
+ "abgebaut": [
+  {
+   "ms": 1780,
+   "id": "4db88e3f"
+  },
+  {
+   "ms": 1825,
+   "id": "3218d8df"
+  },
+  {
+   "ms": 5812,
+   "id": "4db88e3f"
+  },
+  {
+   "ms": 5857,
+   "id": "3218d8df"
+  },
+  {
+   "ms": 9875,
+   "id": "4db88e3f"
+  },
+  {
+   "ms": 9909,
+   "id": "3218d8df"
+  },
+  {
+   "ms": 13460,
+   "id": "3218d8df"
+  },
+  {
+   "ms": 17489,
+   "id": "3218d8df"
+  }
+ ],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1266,
+   "art": "lead-laden",
+   "ok": true
+  },
+  {
+   "ms": 1317,
+   "art": "prompt-mitte-an-enkel",
+   "ok": true
+  },
+  {
+   "ms": 5370,
+   "art": "prompt-mitte-an-enkel",
+   "ok": true
+  },
+  {
+   "ms": 9429,
+   "art": "prompt-mitte-an-enkel",
+   "ok": true
+  },
+  {
+   "ms": 13463,
+   "art": "prompt-mitte-an-enkel",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 17508,
+   "art": "prompt-mitte-an-enkel",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}

@@ -1,0 +1,160 @@
+{
+ "szenario": "k2-u-tor",
+ "modus": "ohne",
+ "typ": "u",
+ "variante": "tor",
+ "phase": 2,
+ "beimStart": {
+  "ms": 1203,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "torEnkel": {
+  "ok": false,
+  "dauerMs": 6,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"35665674-8730-4ec2-87ec-82bca9984071\" is not live"
+ },
+ "nachTorEnkel": {
+  "ms": 1210,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "torMitte": {
+  "ok": false,
+  "dauerMs": 0,
+  "code": "subagent/parent-unavailable",
+  "fehler": "parent session \"kette-lead-u-1794597330488\" is not live"
+ },
+ "nach400ms": {
+  "ms": 1614,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "nach5s": {
+  "ms": 6217,
+  "llmGesamt": 4,
+  "lebend": [],
+  "lead": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  },
+  "mitte": {
+   "lebt": false,
+   "status": null,
+   "llm": 2,
+   "zuege": 0
+  },
+  "enkel": {
+   "lebt": false,
+   "status": null,
+   "llm": 1,
+   "zuege": 0
+  }
+ },
+ "llmLog": [
+  {
+   "zeit": -10381,
+   "sitzung": "a9984071",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -9845,
+   "sitzung": "3c610c9a",
+   "text": "Enkel [[SLOW]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -7356,
+   "sitzung": "a9984071",
+   "text": "Mitte [[LONG]]",
+   "letzteRolle": "user"
+  },
+  {
+   "zeit": -4295,
+   "sitzung": "97330488",
+   "text": "",
+   "letzteRolle": "user"
+  }
+ ],
+ "kuerzel": {
+  "lead": "97330488",
+  "mitte": "a9984071",
+  "enkel": "3c610c9a"
+ },
+ "statusVerlauf": [],
+ "erzeugt": [],
+ "abgebaut": [],
+ "patchProtokoll": [],
+ "protokoll": [
+  {
+   "ms": 1210,
+   "art": "tor-enkel-alles-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  },
+  {
+   "ms": 1211,
+   "art": "tor-mitte-alles-kalt",
+   "ok": false,
+   "code": "subagent/parent-unavailable"
+  }
+ ]
+}
