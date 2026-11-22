@@ -44,14 +44,19 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 
 // Hermetisch machen, BEVOR das Modul geladen wird: `protokoll()` benutzt
 // `os.homedir()`, und das folgt auf POSIX dem $HOME zur Aufrufzeit.
 const HEIM = mkdtempSync(join(tmpdir(), 'goal-await-home-'))
 process.env.HOME = HEIM
+// NEU 2026-11-22 (Issue #4): Die neuen Pfad-Haelfer lesen mit Vorrang $DSH_HOME —
+// geerbt aus einer dsh-Sitzung wuerde sonst ALLES in den echten Datenordner auf der
+// Box geschrieben. HEIM hier herueberreichen, bevor irgendein Schreibzugriff laeuft;
+// die Gegenprobe-Subprozesse erben diese Umgebung ebenso.
+process.env.DSH_HOME = join(HEIM, '.dsh')
 process.env.USERPROFILE = HEIM
 
 const MODUL = new URL('../patches/goal-await.mjs', import.meta.url).pathname
@@ -69,7 +74,11 @@ const {
 	bedingungText,
 	fristMs,
 	istAufgabenWecker,
-	istZutat
+	istZutat,
+	wachenPfad,
+	uebernahmenPfad,
+	schreibeWachen,
+	leseWachen
 } = await import(MODUL_DATEI)
 
 /** Der Wartende und die Zutat — die Namen sind Absicht: bob liefert, carol grüßt. */
@@ -104,6 +113,13 @@ const aufgabenEreignis = (teamId, status) => ({
 
 const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms))
 
+/* Helfer fuer die Uebernahme-Tuer und die Platte — genau die Dateien, die goal-await
+ * liest. Der Pfad kommt aus dem Modul, damit der Test nicht nachbaut. */
+const schreibeUebernahmen = (liste) => {
+	mkdirSync(dirname(uebernahmenPfad()), { recursive: true })
+	writeFileSync(uebernahmenPfad(), JSON.stringify(liste))
+}
+
 /**
  * Wartet den Durchlauf ab, in den das Weiterschalten verschoben ist.
  *
@@ -134,6 +150,7 @@ function baueSzene(optionen = {}) {
 	const dienste = new Map()
 	const aufrufe = { disarm: 0, resume: 0 }
 
+	const agenten = new Map()
 	const ctx = {
 		goals: {
 			get: (agent) => ziele.get(agent),
@@ -161,7 +178,10 @@ function baueSzene(optionen = {}) {
 				return ziel
 			}
 		},
-		agents: { list: () => [], get: () => undefined },
+		agents: {
+			list: () => [...agenten.values()],
+			get: (id) => agenten.get(typeof id === 'string' ? id : id?.id)
+		},
 		tools: { register: (definition) => { werkzeuge.push(definition); return () => {} } },
 		systemPrompt: { section: () => () => {}, getSectionOrder: () => 5 },
 		// `goal-await` meldet hier seinen Diagnose-Dienst an; die Szene hebt ihn
@@ -192,6 +212,7 @@ function baueSzene(optionen = {}) {
 	/** Ein Agent mit aktivem, scharfem Ziel. */
 	const mitZiel = (id, objective = 'Ziel von ' + id) => {
 		const agent = { id, session: {} }
+		agenten.set(id, agent)
 		ziele.set(agent, {
 			id: 'goal-' + id,
 			revision: 1,
@@ -581,6 +602,94 @@ test('die Absenderangabe wird normalisiert, aber nicht in einen Satz verwandelt'
 	assert.equal(fristMs(undefined), 900000)
 })
 
+test('pausierte Ziel nach Freigabe: die Uebernahme-Tuer haelt, die Nachricht danach weckt', async () => {
+	// Issue #4 (3): Solange der Mensch mit dem Agenten selbst spricht (team-modus
+	// schreibt uebernahmen.json), ist das Rearm SEINE Entscheidung — niemals unsere.
+	const szene = baueSzene()
+	const anna = szene.mitZiel('sess-anna')
+	await (await szene.werkzeug()).execute({ waiting_for: 'Messung' }, { agent: anna })
+
+	// Menschliche Uebernahme: Ziel pausiert, Eintrag steht auf der Platte.
+	szene.ziel(anna).phase = 'paused'
+	schreibeUebernahmen([{ id: 'sess-anna', name: 'anna', zielId: szene.ziel(anna).id, seit: new Date().toISOString(), pauseOffen: false }])
+
+	szene.sende('agent/inbox/inserted', { agent: anna, message: menschenNachricht })
+	await naechsterDurchlauf()
+	await warte(5)
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 0, 'waehrend der Uebernahme darf kein anderes Rearm laufen')
+	assert.equal(szene.offene().length, 1, 'der Wartende muss die Uebernahme ueberstehen — sonst ist alles verloren')
+
+	// Freigabe: Eintrag weg, naechste Nachricht weckt normal.
+	schreibeUebernahmen([])
+	szene.sende('agent/inbox/inserted', { agent: anna, message: menschenNachricht })
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 1, 'nach der Freigabe muss das pausierte Ziel wieder scharf geschaltet werden')
+	assert.equal(szene.ziel(anna).activation, 'armed', 'das rearmte pausierte Ziel muss scharf sein')
+	assert.equal(szene.offene().length, 0, 'ein gelungener Weck loescht den Wartezustand')
+})
+
+test('ein eigenes Kind fertig: subagent/end weckt nur bei Absenderangabe', async () => {
+	// Issue #4 (2): „your own subagent finishing“ — der Kern feuert die Kante unab-
+	// haengig vom Posteingang, hoeren wir direkt. Nur bei `von` und mit Passung.
+	const szene = baueSzene()
+	const anna = szene.mitZiel('sess-anna')
+	await (await szene.werkzeug()).execute({ waiting_for: 'Kind fertig', von: 'kind-x' }, { agent: anna })
+
+	szene.sende('subagent/end', { runId: 'r1', provider: 'in-process', id: 'kind-x', local: true, stopReason: 'completed' })
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 1, 'das erwartete Kind muss den Senior wecken')
+
+	szene.sende('subagent/end', { runId: 'r2', provider: 'in-process', id: 'irgendein-kind', local: true, stopReason: 'completed' })
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 1, 'fremdes Kind duerfte niemanden wecken')
+
+	// Ein zweiter Agent wartet OHNE `von`; sein Kind weckt ihn nicht (alter Bug).
+	const bert = szene.mitZiel('sess-bert', 'Ziel von bert')
+	await (await szene.werkzeug()).execute({ waiting_for: 'irgendwas' }, { agent: bert })
+	szene.sende('subagent/end', { runId: 'r3', provider: 'in-process', id: 'irgendein-kind', local: true, stopReason: 'completed' })
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 1, 'ohne `von` darf das Kind-Eignis nicht wecken — der alte Bug vom 2026-11-02')
+})
+
+test('Neuaufladen nach Uebernahme: Plattenzeile mit abgelaufener Frist weckt', async () => {
+	// Issue #4 (1): die erste Fassung verlor alles; der Senior blieb active+disarmed.
+	const jetzt = Date.now()
+	schreibeWachen([{ agentId: 'sess-anna', zielId: 'goal-sess-anna', revision: 1, bedingung: 'Messung vom Qwen', von: 'qwen', seit: jetzt - 60_000, bis: jetzt - 1000 }])
+
+	// Der Agent existiert erst nach dem Neuaufbau des Moduls (Fixture-Reihenfolge):
+	// genau das Kalte-Start-Szenario, in dem `agent/created` die Plattenzeile holt.
+	// Das Ziel steht dann active+disarmed da — so wie der Kern-Rundentreiber es beim
+	// Neustall liegen laesst (dsh-goal-round-driver/lib/index.js :341). Nur dieses
+	// disarmed Ziel darf das Rearm brauchen; ein armedes Ziel wuerde nichts tun.
+	const szene = baueSzene()
+	const anna = szene.mitZiel('sess-anna')
+	szene.ziel(anna).activation = 'disarmed'
+	szene.sende('agent/created', { agent: anna })
+	await naechsterDurchlauf()
+	await warte(5)
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 1, 'der Plattenfund mit abgelaufener Frist muss das Ziel wieder scharf schalten')
+	assert.equal(szene.offene().length, 0, 'nach dem Weck ist der Wartezustand weg')
+})
+
+test('kalte Sitzung bleibt auf der Platte; Altbestand faellt weg', async () => {
+	// Kalte Sitzungen: kein Agent da — nichts anfassen; Eintrag bleibt. Altbestand
+	// (Frist abgelaufen und 25 h alt) faellt der Platte.
+	const jetzt = Date.now()
+	schreibeWachen([
+		{ agentId: 'sess-gamma', zielId: 'goal-sess-gamma', revision: 1, bedingung: 'lebt noch nicht', von: '', seit: jetzt - 10_000, bis: jetzt + 600_000 },
+		{ agentId: 'sess-alt', zielId: 'goal-sess-alt', revision: 1, bedingung: 'vergraben', von: '', seit: jetzt - 25 * 3600 * 1000, bis: jetzt - 24 * 3600 * 1000 }
+	])
+	const szene = baueSzene()
+	await naechsterDurchlauf()
+	assert.equal(szene.aufrufe.resume, 0, 'kalte Sitzungen duerfen nichts wecken')
+	assert.equal(szene.offene().length, 0, 'ein kalter Eintrag wird nicht in den Speicher geholt')
+	const aufPlatte = leseWachen()
+	assert.equal(aufPlatte.length, 1, 'der lebende kalte Eintrag bleibt, der Altbestand faellt')
+	assert.equal(aufPlatte[0].agentId, 'sess-gamma', 'nur der wartungsffaehige Fund bleibt stehen')
+})
+
 // ---------------------------------------------------------------------------
 // 5. Gegenproben am Code — eine Kopie unter /tmp, genau ein Filter ausgebaut
 // ---------------------------------------------------------------------------
@@ -696,4 +805,57 @@ test('Gegenprobe am Code: ohne die Verschiebung wird der Kerntest rot', async ()
 	const kaputt = await laufeTests(muster, direkt)
 	assert.notEqual(kaputt.code, 0, 'der Kerntest blieb ohne die Verschiebung grün — er prüft den Aufrufkontext nicht:\n' + kaputt.ausgabe)
 	assert.match(kaputt.ausgabe, /# fail 1/u, 'ohne die Verschiebung wurde nicht GENAU der Kerntest rot:\n' + kaputt.ausgabe)
+})
+
+test('Gegenprobe am Code: ohne Uebernahme-Tuer waere das Schutz-Test rot', async () => {
+	const muster = '^pausierte Ziel nach Freigabe'
+
+	const echt = await laufeTests(muster, MODUL)
+	assert.equal(echt.code, 0, 'der Uebernahme-Test ist auf dem echten Modul rot:\n' + echt.ausgabe)
+	assert.match(echt.ausgabe, /# pass 1/u, 'es lief nicht genau der Uebernahme-Test:\n' + echt.ausgabe)
+
+	const ohne = kopieOhne(
+		['\t\t\t} else if (istUebernommen(leseUebernahmen(), agent.id)) {', '\t\t\t} else if (false) {'],
+		'ohne-uebernahme-tuer'
+	)
+	const kaputt = await laufeTests(muster, ohne)
+	assert.notEqual(kaputt.code, 0, 'der Uebernahme-Test blieb ohne die Tuer grün — er prüft die Freigabe nicht:\n' + kaputt.ausgabe)
+	assert.match(kaputt.ausgabe, /# fail 1/u, 'ohne Tuer wurde nicht genau dieser Test rot:\n' + kaputt.ausgabe)
+})
+
+test('Gegenprobe am Code: ohne Kind-Wecker bleibt das Kind-Test rot', async () => {
+	const muster = '^ein eigenes Kind fertig'
+
+	const echt = await laufeTests(muster, MODUL)
+	assert.equal(echt.code, 0, 'der Kind-Test ist auf dem echten Modul rot:\n' + echt.ausgabe)
+	assert.match(echt.ausgabe, /# pass 1/u, 'es lief nicht genau der Kind-Test:\n' + echt.ausgabe)
+
+	const ohne = kopieOhne(
+		['\t\t\t\tif (!istKindWecker(info, zustand.von)) continue;', '\t\t\t\t// Gegenprobe: jedes Kind weckt.'],
+		'ohne-kind-wecker'
+	)
+	const kaputt = await laufeTests(muster, ohne)
+	assert.notEqual(kaputt.code, 0, 'der Kind-Test blieb ohne den Filter grün — er prüft das Eignis nicht:\n' + kaputt.ausgabe)
+	assert.match(kaputt.ausgabe, /# fail 1/u, 'ohne Filter wurde nicht genau dieser Test rot:\n' + kaputt.ausgabe)
+})
+
+test('Gegenprobe am Code: ohne den Plattenfund bleiben beide Platten-Tests rot', async () => {
+	const muster = '^Neuaufladen nach Uebernahme|^kalte Sitzung'
+
+	const echt = await laufeTests(muster, MODUL)
+	assert.equal(echt.code, 0, 'die beiden Platten-Tests sind auf dem echten Modul rot:\n' + echt.ausgabe)
+	assert.match(echt.ausgabe, /# pass 2/u, 'es liefen nicht genau die beiden Platten-Tests:\n' + echt.ausgabe)
+
+	// Die Kopie: das Lesen der Platte gibt nichts mehr her. Kein Wiederbeleben (der
+	// Neuaufbau-Test fällt), und syncPlatte kann den Altbestand auch nicht bewahren —
+	// derselbe Fund ist weg (Altbestand fällt mit). (Eine blossere Veraxerung der Rest-
+	// zeit war zuerst als Gegenprobe gemessen: Node staucht einen Timer ueber 32-Bon-Grenze
+	// auf 1 ms, der Anlauf kam trotzdem — die Probe war also keine.)
+	const ohne = kopieOhne(
+		['\t\treturn Array.isArray(roh) ? roh.filter(wacheZulaessig) : [];', '\t\treturn [];'],
+		'ohne-plattenfund'
+	)
+	const kaputt = await laufeTests(muster, ohne)
+	assert.notEqual(kaputt.code, 0, 'die Platten-Tests blieben ohne den Fund grün — sie prüfen ihn nicht:\n' + kaputt.ausgabe)
+	assert.match(kaputt.ausgabe, /# fail 2/u, 'mit der Kopie wurden nicht beide Platten-Tests rot (beide hängen am selben Leser):\n' + kaputt.ausgabe)
 })

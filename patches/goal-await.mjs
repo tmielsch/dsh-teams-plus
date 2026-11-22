@@ -169,13 +169,57 @@
  * nicht wartet (kein Agent, kein Ziel, Ziel nicht `active`), bekommt die leere
  * Liste: nichts ist entwaffnet, also weckt auch nichts.
  *
+ * (F) PERSISTIERUNG UND WIEDERHERSTellung — Issue #4 (gemessen 2026-11-22)
+ * Die erste Fassung hielt Wartezustaende NUR im Speicher. Zwei gemessene Luecken:
+ *   1. Plugin-Neustart und Plugin-Reload: die `zustaende`-Map war weg, aber die
+ *   Ziele blieben `active`+`disarmed` (der Rundentreiber disarmiert beim Laden
+ *   JEDES Ziel, `dsh-goal-round-driver/lib/index.js` in der Nähe von Zeile 341:
+ *   `for (const agent of ctx.agents.list()) disarm(stateFor(agent))`). Ohne Uhr,
+ *   ohne Horcher-Eintrag blieb das Ziel hängen, bis Mensch oder `resume`.
+ *   Protokollbeleg (anonymisiert, Issue #4):
+ *     warten agent=<senior> ... von=<worker> frist=7200s
+ *     uebernommen agent=<worker> ziel=<goal-id> laaeuft=false
+ *   Der Senior wartete auf die Schlussmeldung des übernommenen (pausierten) Workers;
+ *   die kam nie an — im Team-Modus verwirft `team-modus.mjs` (:243/:256) den Kern-
+ *   satz „Background subagent … finished“, und der Senior saß schon vorher nur im
+ *   Speicher. Nach einem Reload war nichts mehr da: kein Wartezustand, keine Frist,
+ *   kein Weckpfad; das Ziel blieb `active`+`disarmed` liegen bis Mensch oder `resume`.
+ *
+ * ZWEI FEHLER, BEIDGEGANGEN:
+ *   (F1) der Wartezustand war nicht persistent. Er liegt jetzt auf derselben
+ *   Platte wie der übrige Datenordner von Teams Plus — `~/.dsh/.tm/teams-plus/
+ *   state/goal-warten.json`, `DSH_HOME` respektiert (Muster aus team-modus).
+ *   Beim Laden liest das Modul die Liste zurück und stellt für jeden lebenden
+ *   Agenten die Uhr neu her: Restzeit, wenn die Frist noch läuft; ein sofortiger
+ *   Anlauf mit `grund=wiederhergestellt`, wenn sie abgelaufen ist — der Sinn
+ *   des Wartens ist ja, weiterzumachen. Kalte Sitzungen holt `agent/created`
+ *   später ein. Zeilen, deren Frist abgelaufen ist und die einen Tag lang
+ *   niemand geweckt hat, sind Altbestand und werden von der Platte entfernt.
+ *   (F2) „your own subagent finishing“ aus der Werkzeugbeschreibung ist bisher
+ *   nirgends verbunden. Das Kind fertig zu bekommen heißt im Kern `subagent/end`
+ *   (`dsh-subagent/lib/index.js`, `observeRun` und `createActivationObserver.settle`),
+ *   mit dem Kind als `info.id`. Der Posteingang kann das nicht liefern, wenn der
+ *   Teamfilter den Kernsatz verwirft oder das settled-Eignis gar nicht ins Post-
+ *   fach geschrieben wird. Jetzt hört goal-await direkt auf `subagent/end`, und
+ *   zwar nur für einen Wartenden dessen `von` die Kind-Kennung ist — ohne `von`
+ *   weckt weiter nichts (das war der Bug vom 2026-11-02).
+ *
+ *   Grenze, offen gesagt: Eine Nachricht, die VOR dem Modul-Laden zugestellt wurde,
+ *   können wir nicht sehen. Dafür gibt es die Frist — sie ist nie kürzer als 5 s.
+ *   Die Team-Übernahme (`team-modus` 1117–1125) blockiert das Rearm NUR für den
+ *   übernommenen Agenten selbst, nie für einen Senior; der Mensch gibt die Freigabe
+ *   durch resume, und die daraus folgende Meldung an den Vorgesetzten (Relay mit
+ *   senderSessionId des Kinds, `baueQuelle`) ist eine Nachricht von `von` — ein
+ *   Senior wartet also schon nach dem Aufweck des Workers richtig auf sie. Es bleibt
+ *   in team-modus nichts zu ändern.
+ *
  * SELBSTPRÜFUNG
  *   node --test test/goal-await.test.mjs
- *   (17 Faelle, davon vier Gegenproben am Code: Absenderfilter, Teamfilter,
- *   Statusfilter und die Verschiebung des Weiterschaltens. Die frueher hier
- *   genannte Zeile `node ~/.dsh/patches/goal-await.mjs --test` war falsch: ein
- *   Selbsttest in dieser Datei hat nie existiert — der Verweis zeigte auf
- *   nichts.)
+ *   (24 Fälle, davon sieben Gegenproben am Code: Absenderfilter, Teamfilter, Status-
+ *   filter, die Verschiebung des Weiterschaltens, Übernahme-Tür, Kind-Wecker und
+ *   Plattenfund. Die früher hier genannte Zeile `node ~/.dsh/
+ *   patches/goal-await.mjs --test` war falsch: ein Selbsttest in dieser Datei hat
+ *   nie existiert — der Verweis zeigte auf nichts.)
  * NACHSEHEN
  *   ~/.dsh/logs/goal-await.log
  * ZURÜCK
@@ -183,9 +227,9 @@
  *   `dsh web` neu starten.
  */
 
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 /** Die Kernpakete, die dieses Modul zur Laufzeit braucht (nie statisch importieren). */
 const PAKET_WERKZEUGE = "@deepseek-ai/dsh-tools";
@@ -206,6 +250,106 @@ const BEDINGUNG_MAX_ZEICHEN = 400;
 const ABSENDER_MAX_ZEICHEN = 200;
 
 /**
+ * Der Heim-Ordner von `dsh` — wie in `team-modus.mjs`, damit die Zustandsdateien
+ * in demselben Ordner liegen wie der Rest des Pakets. Kopiert, weil goal-await
+ * das Modul nicht importieren kann: ein Profil ohne Team-Modus muss dieses Modul
+ * trotzdem laden können (Pfade werden hier nur gelesen). Die Leerstring-Falle
+ * (`DSH_HOME=""`) ist in team-modus gemessen und hier nachgebaut. */
+function dshHeim() {
+	const gesetzt = process.env.DSH_HOME?.trim();
+	return gesetzt === undefined || gesetzt === "" ? join(homedir(), ".dsh") : gesetzt;
+}
+
+/** Der Datenordner des Pakets (wie team-modus' `datenOrdner`). */
+export function datenOrdner() {
+	return join(dshHeim(), ".tm", "teams-plus");
+}
+
+/**
+ * Die Liste der Wartezustände auf der Platte (Issue #4: sie überlebt
+ * Plugin-Neustart und Profil-Reload).
+ */
+export const wachenPfad = () => join(datenOrdner(), "state", "goal-warten.json");
+
+/** Ein abgelaufener Platten-Eintrag, der seit seinem Beginn keine Frist mehr hat und den niemand holte, ist nach einem Tag Altbestand und fällt der Platte weg. */
+const PLALTENALTER_MS = 24 * 60 * 60 * 1000;
+
+/** Die Übernahmelisten-Datei von team-modus; hier nur gelesen (Türsteher). */
+export const uebernahmenPfad = () => join(datenOrdner(), "state", "uebernahmen.json");
+
+/**
+ * Die Übernahmen von team-modus, so wie sie auf der Platte stehen.
+ *
+ * Eintrag vorhanden heißt: Der Mensch redet selbst mit diesem Agenten und hält
+ * dessen Ziel an oder gleich an. Solange das so ist, darf niemand anders — auch
+ * nicht dieses Modul — sein Ziel wieder scharf schalten; team-modus behandelt ein
+ * `resume` in dieser Lage als „vom Menschen freigegeben", und das soll eine
+ * Entscheidung des Menschen bleiben. Fehlende Datei heißt „keine offenen
+ * Übernahmen" — dieselbe Auslese wie in team-modus' eigenem Leser.
+ */
+export function leseUebernahmen(pfad = uebernahmenPfad()) {
+	try {
+		const roh = JSON.parse(readFileSync(pfad, "utf8"));
+		return Array.isArray(roh) ? roh : [];
+	} catch { return []; }
+}
+
+/** Ob für diesen Agenten eine offene Übernahme steht (Namensgleichkeit, nicht Präfix). */
+export function istUebernommen(eintraege, agentId) {
+	if (!Array.isArray(eintraege)) return false;
+	return eintraege.some((eintrag) => String(eintrag?.id ?? "") === String(agentId));
+}
+
+/**
+ * Ob ein Unteragent-Eignis diesen Wartenden weckt.
+ *
+ * Der Kern feuert `subagent/end` mit dem Kind in `info.id`; die Werkzeug-
+ * beschreibung verspricht darin „your own subagent finishing". Angenommen wird
+ * nur bei Absenderangabe (`von`): ohne `von` würde sonst jedes Kind eines
+ * fremden Agenten wecken (der Horcher läuft im Profil-Kontext und bekommt die
+ * Eignisse ungefragt), und genau das war der verworfene Wecker vom 2026-11-02.
+ *
+ * @param info - das Ereignisobjekt von `subagent/end` (Kernform).
+ * @param von - der erwartete Absender des Wartezustands.
+ * @returns true, wenn dieses Eignis den Wartezustand wecken darf.
+ */
+export function istKindWecker(info, von) {
+	const gesuchte = typeof von === "string" ? von.trim().toLowerCase() : "";
+	if (gesuchte.length === 0) return false;
+	const id = typeof info?.id === "string" ? info.id : "";
+	return id.length > 0 && id.toLowerCase() === gesuchte;
+}
+
+/** Ob ein Platten-Eintrag als Wartezustand wiederhergestellt werden kann. */
+export function wacheZulaessig(eintrag) {
+	if (eintrag === null || typeof eintrag !== "object") return false;
+	return typeof eintrag.agentId === "string" && eintrag.agentId.length > 0
+		&& typeof eintrag.zielId === "string" && eintrag.zielId.length > 0
+		&& typeof eintrag.revision === "number" && Number.isInteger(eintrag.revision)
+		&& typeof eintrag.bis === "number" && Number.isFinite(eintrag.bis);
+}
+
+/** Liest die Liste der Wartezustände; kaputte Einträge werden ausgefiltert. */
+export function leseWachen(pfad = wachenPfad()) {
+	try {
+		const roh = JSON.parse(readFileSync(pfad, "utf8"));
+		return Array.isArray(roh) ? roh.filter(wacheZulaessig) : [];
+	} catch { return []; }
+}
+
+/**
+ * Schreibt die Liste. Der fehlende Zugang verhindert keine Wartemaßnahme und
+ * bricht keinen Agenten ab — dasselbe Beiwerk-Muster wie team-modus' Übernahmen-
+ * schreiber (dort Zeilen 728–735, mit `mkdirSync` + `JSON.stringify(..., 1)`).
+ */
+export function schreibeWachen(liste, pfad = wachenPfad()) {
+	try {
+		mkdirSync(dirname(pfad), { recursive: true });
+		writeFileSync(pfad, `${JSON.stringify(liste, null, 1)}\n`);
+	} catch { /* Beiwerk */ }
+}
+
+/**
  * Die Basis-Ordner der dsh-Installation, in der Reihenfolge der Wahrscheinlichkeit.
  *
  * Der Weg hängt an der Installation, nicht an diesem Verzeichnis: die
@@ -223,6 +367,17 @@ function kernBasis() {
 	};
 	for (const argument of process.argv) fuegen(argument);
 	fuegen(process.execPath);
+	// Gemessen 2026-11-22, Issue #4: Node löst den Kernbaustein ab dem AUFRufen-
+	// Modul auf, nicht nach dem Arbeitsordner. Eine Kopie des Moduls unter /tmp
+	// (Gegenproben!) hat keine Modul-Kette nach oben und das Bare-Specifier
+	// schlaeft. Der Test-Subprozess laeuft mit REPO als Arbeitsordner; von dort
+	// fuehrt ueber den Symlink `node_modules/@deepseek-ai` (gitignored, fuer die
+	// Tests angelegt) genau in dasselbe Installations-Netz. Reine Ladehilfe, kein
+	// Geschaeft: der Host laeuft mit cwd=Profil und faellt wie bisher ab, wenn das
+	// Paket nicht an derselben Stelle liegt.
+	// Arbeitsordner: nur wenn ein Paket-Symlink dorthin zeigt, findet sich der
+	// Kern (sonst weiter mit den folgenden Installations-Seelen).
+	fuegen(join(process.cwd(), "node_modules", "@deepseek-ai"));
 	basis.add("/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai");
 	fuegen(join(homedir(), ".dsh", "lib", "node_modules", "@deepseek-ai"));
 	fuegen("/usr/local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai");
@@ -401,10 +556,11 @@ export function istAufgabenWecker(ereignis) {
 /**
  * Der Wartezustand eines Agenten, wie dieses Modul ihn führt.
  *
- * Bewusst nur im Speicher: ein Wartezustand ist eine Bedingung des Laufs, keine
- * Eigenschaft des Ziels. Nach einem Neustart ist der Agent ohnehin untätig, und
- * ein entwaffnetes Ziel bleibt entwaffnet, bis der Mensch oder eine Nachricht
- * es wieder scharf macht — genau wie der Kern es nach einem Neustart vorsieht.
+ * Felder sind bewusst flach und benannt — dieselben Namen stehen auf der Platte
+ * (Modulkopf (F)); dort liegt eine Teilmenge davon. Bewusst NICHT gespeichert
+ * wird die `uhr`: eine Uhr kann man nicht in einen anderen Prozess hinein
+ * schreiben, was den Ablauf betrifft, ist `seit`/`bis`. Wer hier ein Feld dazu
+ * nimmt, nimmt es mit auf die Plattenzeile (siehe {@link plattenZeile}).
  */
 export function neuerZustand() {
 	return {
@@ -443,6 +599,94 @@ export function apply(ctx, config = {}) {
 		? config.maxWaitSeconds
 		: FRIST_VORGABE;
 
+	/**
+	 * Die Plattenform eines Wartezustands. Feldnamen sind wie in {@link wacheZulaessig}
+	 * geordnet; `uhr` und `versuche` bleiben Prozess-Eigentum (eine Uhr lässt sich nicht
+	 * speichern). Wer hier ein Feld dazu nimmt, muss es nach {@link wiederbelebe}
+	 * zurückführen können — sonst wäre der Neuaufbau blind.
+	 */
+	function plattenZeile(agent, zustand) {
+		return {
+			agentId: agent.id,
+			zielId: zustand.zielId,
+			revision: zustand.revision,
+			bedingung: zustand.bedingung,
+			von: zustand.von,
+			seit: zustand.seit,
+			bis: zustand.bis
+		};
+	}
+
+	/**
+	 * Bringt einen Wartezustand vom Plattenfund zurück in den Speicher (Issue #4 (1)).
+	 * `false`, wenn nichts zu tun war (Agent kalt oder noch nicht bekannt, Eintrag
+	 * gehört einem schon wartenden). Frist läuft weiter: Restzeit; ein abgelaufener
+	 * Anlauf sofort, weil der Wartende ja nur weiterarbeiten will. {@link syncPlatte}
+	 * räumt die Platte bei diesem Versuch.
+	 */
+	function wiederbelebe(eintrag) {
+		if (!wacheZulaessig(eintrag)) return false;
+		const agentId = eintrag.agentId;
+		for (const schon of zustaende.keys()) if (schon.id === agentId) return false;
+		let agent;
+		try {
+			agent = ctx.agents.get(agentId);
+		} catch {
+			agent = undefined;
+		}
+		if (agent === undefined || agent.id !== agentId) return false;
+		const zustand = zustandFuer(agent);
+		zustand.zielId = eintrag.zielId;
+		zustand.revision = eintrag.revision;
+		zustand.bedingung = typeof eintrag.bedingung === "string" ? eintrag.bedingung : "";
+		zustand.von = typeof eintrag.von === "string" ? eintrag.von : "";
+		zustand.seit = Number.isFinite(eintrag.seit) ? eintrag.seit : Date.now();
+		zustand.bis = eintrag.bis;
+		zustand.versuche = 0;
+		const rest = zustand.bis - Date.now();
+		if (rest <= 0) {
+			// Die Frist ist schon abgelaufen, bevor wir hier ankamen: sofortiger
+			// Anlauf — der Sinn eines Wartens ist Weiterarbeiten, nicht Verstecken.
+			// {@link schalteScharf} entscheidet danach (Ziel, Übernahme, Uhr).
+			spaeter(() => schalteScharf(agent, zustand, "wiederhergestellt"));
+		} else {
+			stelleUhr(agent, zustand, rest, "frist");
+		}
+		protokoll(`wiederhergestellt agent=${agent.id} von=${zustand.von || "-"} rest=${Math.max(0, Math.round(rest / 1000))}s bedingung="${zustand.bedingung}"`);
+		return true;
+	}
+
+	/**
+	 * Schreibt die Liste aller Wartezustände auf die Platte (und zurück). Ein Lese- oder
+	 * Schreibfehler bricht niemanden ab (Beiwerk-Muster wie team-modus), und der
+	 * Wartende behält seine Uhr: er läuft ja weiter, nur die Platte könnte veraltet
+	 * sein. Der Inhalt der Map ist maßgeblich; Einträge von noch nicht geladenen
+	 * Sitzungen bleiben stehen (bis ihre Frist abgelaufen ist) — {@link wiederbelebe}
+	 * holt sie ein, wenn die Sitzung anfährt.
+	 */
+	function syncPlatte() {
+		try {
+			const jetzt = Date.now();
+			const offen = new Map();
+			for (const [agent, zustand] of zustaende.entries()) {
+				if (zustand.zielId === undefined) continue;
+				const eintrag = plattenZeile(agent, zustand);
+				offen.set(eintrag.agentId, eintrag);
+			}
+			for (const eintrag of leseWachen()) {
+				if (offen.has(eintrag.agentId)) continue;
+				// Noch nicht da: bleibt stehen und wird geweckt, wenn die Sitzung
+				// wieder anfaehrt. Nur was keine Frist mehr hat und einen Tag lang
+				// niemand holte, ist vergessener Altbestand und faellt der Platte weg.
+				if (jetzt > eintrag.bis && jetzt > eintrag.seit + PLALTENALTER_MS) continue;
+				offen.set(eintrag.agentId, eintrag);
+			}
+			schreibeWachen([...offen.values()]);
+		} catch (fehler) {
+			protokoll(`warn Plattensync: ${String(fehler?.message ?? fehler)}`);
+		}
+	}
+
 	/** Zustand eines Agenten, notfalls frisch. */
 	function zustandFuer(agent) {
 		let zustand = zustaende.get(agent);
@@ -470,6 +714,7 @@ export function apply(ctx, config = {}) {
 			grund
 		};
 		zustaende.delete(agent);
+		syncPlatte();
 		return ergebnis;
 	}
 
@@ -529,12 +774,40 @@ export function apply(ctx, config = {}) {
 		};
 		let scharf = false;
 		let fehler;
+		/** Was nach dem Anlauf geschehen soll: "scharf" (normal), "halten" (Entscheidung
+		 * eines anderen), "abtreten" (Ziel ist weg oder fertig). */
+		let weg = "scharf";
 		try {
 			const ziel = ctx.goals.get(agent);
-			if (ziel !== undefined && ziel.id === ergebnis.zielId && ziel.revision === ergebnis.revision && ziel.phase === "active") {
-				if (ziel.activation !== "armed") {
-					ctx.goals.resume(agent, { id: ziel.id, revision: ziel.revision });
-				}
+			if (ziel === undefined || ziel.id !== ergebnis.zielId || ziel.revision !== ergebnis.revision) {
+				// Das Ziel wurde zwischenzeitlich gelöscht oder durch ein neues ersetzt:
+				// der Wartezustand gehört nicht mehr dazu und ist obsolet. Er geht weg,
+				// ohne dass jemand das Ziel entwaffnet hätte. (Gemessen 2026-11-22, Issue #4.)
+				weg = "abtreten";
+			} else if (ziel.phase === "complete") {
+				// Das Ziel ist fertig: es gibt nichts mehr zu wecken. Legt der Mensch ein
+				// neues an, darf ein alter Wartezustand es nicht stören.
+				weg = "abtreten";
+			} else if (istUebernommen(leseUebernahmen(), agent.id)) {
+				// Issue #4, dritter Punkt: Solange der Mensch das Gespräch selbst führt
+				// (team-modus schreibt dazu seinen Eintrag in `state/uebernahmen.json`),
+				// ist das Rearm seine Entscheidung — niemals unsere. Der Wartezustand bleibt
+				// stehen und die Uhr läuft weiter; nach der Freigabe holt ihn entweder die
+				// Frist ein oder die daraus folgende Nachricht an den Vorgesetzten (Relay-
+				// Quelle mit `senderSessionId` des Kinds, team-modus `stelleZu`) weckt normal.
+				weg = "halten";
+			} else if (ziel.phase !== "active" && ziel.phase !== "paused" && ziel.phase !== "blocked") {
+				// Unbekannte Phase: lieber nichts tun, als das Ziel eines anderen
+				// durcheinanderzubringen. Der Wartende bleibt stehen; die Frist holt ihn ein.
+				weg = "halten";
+			} else if (ziel.activation === "armed") {
+				scharf = true; // schon scharf: nichts zu tun, nur der Wartezustand darf weg.
+			} else {
+				// Der eine Kernweg, der ausdrücklich ALLE drei Phasen erlaubt (dsh-goal
+				// lib/index.js :690: `resumable = ["active", "paused", "blocked"]`). Ein
+				// pausiertes oder blockiertes Ziel nach einer Übernahme kann hier wieder
+				// anlaufen, sobald die Übernahme weg ist — genau das verlangt Issue #4 (3).
+				ctx.goals.resume(agent, { id: ziel.id, revision: ziel.revision });
 				scharf = true;
 			}
 		} catch (error) {
@@ -554,7 +827,23 @@ export function apply(ctx, config = {}) {
 			protokoll(`wecken agent=${agent.id} grund=${grund} gewartet=${ergebnis.gewartetSekunden}s ziel=${ergebnis.zielId} scharf=false fehler=${fehler} zustand=bleibt versuch=${zustand.versuche}${zusatz} bedingung="${ergebnis.bedingung}"`);
 			return { ...ergebnis, scharf: false, fehler };
 		}
+		if (weg === "halten") {
+			// Übernahme offen oder unbekannte Phase: der Wartende bleibt stehen und wird
+			// nach einer Minute noch einmal gefragt. Kein Fehler — nur eine Entscheidung,
+			// die gerade dem Menschen gehört. Die Frist ist davon unberührt.
+			if (zustand.uhr === undefined) stelleUhr(agent, zustand, 60_000, "uebernahme");
+			protokoll(`ueberspringen agent=${agent.id} grund=${grund} gewartet=${ergebnis.gewartetSekunden}s ziel=${ergebnis.zielId} scharf=false uebernahme=offen zustand=bleibt bedingung="${ergebnis.bedingung}"`);
+			return { ...ergebnis, scharf: false };
+		}
+		if (weg === "abtreten") {
+			// Ziel ist weg oder fertig: nichts zu wecken und kein Grund mehr zu warten.
+			beendeWarten(agent, grund);
+			syncPlatte();
+			protokoll(`wecken agent=${agent.id} grund=${grund} gewartet=${ergebnis.gewartetSekunden}s ziel=${ergebnis.zielId} scharf=false zustand=entlassen bedingung="${ergebnis.bedingung}"`);
+			return { ...ergebnis, scharf: false };
+		}
 		beendeWarten(agent, grund);
+		syncPlatte();
 		protokoll(`wecken agent=${agent.id} grund=${grund} gewartet=${ergebnis.gewartetSekunden}s ziel=${ergebnis.zielId} scharf=${scharf} bedingung="${ergebnis.bedingung}"`);
 		return { ...ergebnis, scharf };
 	}
@@ -780,6 +1069,9 @@ export function apply(ctx, config = {}) {
 			zustand.bis = zustand.seit + frist;
 			stelleUhr(agent, zustand, frist, "frist");
 			protokoll(`warten agent=${agent.id} ziel=${ziel.id} frist=${Math.round(frist / 1000)}s bedingung="${bedingung}"${von.length === 0 ? "" : ` von=${von}`}`);
+			// Issue #4 (1): derselbe Stand jetzt auch auf der Platte — nach einem
+			// Plugin-Neustart lebt der Wartende daraus wieder auf.
+			syncPlatte();
 			// Alle Wege, die das Ziel wieder scharf schalten, als Liste: ein
 			// Einzelwert würde über die anderen beiden lügen (Modulkopf (E)).
 			const imTeam = hatTeam(agent);
@@ -866,11 +1158,54 @@ export function apply(ctx, config = {}) {
 			}
 		});
 
+		// 2a. EIN EIGENER KIND-SCHritt ist fertig: `subagent/end` (Issue #4 (2)).
+		//     Das verspricht die Werkzeugbeschreibung („your own subagent finishing“),
+		//     aber der Posteingang liefert es nicht immer — Team-Modus verwirft den
+		//     Kernsatz, und bei kaltem Kind liegt die Meldung nur leise da. Der Kern
+		//     feuert die Kante unabhängig davon, also hören wir hier direkt. Wecken
+		//     NUR wenn `von` gesetzt ist und die Kind-Kennung nennt (Modulkopf (F2)):
+		//     ohne Angabe wäre sonst jedes Kind eines anderen Agenten der Wecker —
+		//     genau das war der verworfene Bug vom 2026-11-02.
+		const abKind = ctx.on("subagent/end", (info) => {
+			// Über eine Kopie: ein Wecken darf während des Laufens Einträge löschen.
+			for (const [agent, zustand] of [...zustaende.entries()]) {
+				if (zustand.zielId === undefined) continue;
+				if (!istKindWecker(info, zustand.von)) continue;
+				wecke(agent, "kind");
+			}
+		});
+
+		// 2b. Issue #4 (1): Wer noch wartet, als dieses Plugin neu geladen wurde, lebt
+		//     aus der Plattenzeile wieder auf — die Ziele des Rundentreibers bleiben
+		//     `active`+`disarmed` liegen (dsh-goal-round-driver/lib/index.js :341),
+		//     ohne Uhr wäre niemand mehr wach. Eine kalte Sitzung lässt sich jetzt
+		//     nicht scharf schalten; die Frist bleibt bis `agent/created` sie holt.
+		try {
+			for (const eintrag of leseWachen()) wiederbelebe(eintrag);
+			syncPlatte();
+		} catch (fehler) {
+			protokoll(`warn Neuaufbau: ${String(fehler?.message ?? fehler)}`);
+		}
+
+		// 2c. Nachholung für kalte Sitzungen: sobald der Agent anfährt, seinen
+		//     Wartezustand von Platte holen (wiederbelebe prüft selbst).
+		const abNeu = ctx.on("agent/created", ({ agent }) => {
+			try {
+				for (const eintrag of leseWachen()) {
+					if (String(eintrag.agentId) !== String(agent?.id)) continue;
+					wiederbelebe(eintrag);
+				}
+			} catch (fehler) {
+				protokoll(`warn created-Wiederherstellung: ${String(fehler?.message ?? fehler)}`);
+			}
+		});
+
 		// 2. Ein Agent wird abgebaut: Uhr anhalten, nichts mehr wecken.
 		const abWeg = ctx.on("agent/disposed", ({ agent }) => {
 			const zustand = zustaende.get(agent);
 			if (zustand?.uhr !== undefined) clearTimeout(zustand.uhr);
 			zustaende.delete(agent);
+			syncPlatte();
 		});
 
 		// 3. Der Hinweis im Systemprompt: warten statt Runden verbrennen.
@@ -889,6 +1224,8 @@ export function apply(ctx, config = {}) {
 			if (typeof abDienst === "function") abDienst();
 			abInbox?.();
 			abAufgabe?.();
+			abKind?.();
+			abNeu?.();
 			abWeg?.();
 			abAbschnitt?.();
 			for (const zustand of zustaende.values()) {
