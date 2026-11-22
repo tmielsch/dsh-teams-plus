@@ -131,9 +131,28 @@ const SHA256_ABWEICHEND = {
 //      `disarm` laeuft jetzt VOR dem Loeschen des alten Wartezustands, nicht
 //      danach. Warf `disarm`, war vorher der Wartezustand weg und das Ziel
 //      entschaerft: kein Ereignis, keine Frist, niemand weckt.
+	//  (8) 2026-11-22, fuer Issue #4 (Ziel-Waechter: Worker-Ziele nach Pause/Nachricht
+	//      nicht zuverlaessig scharf): drei gemeldete Faelle, alle an der gleichen Datei.
+	//      (1) Wartezustaende ueberleben Plugin-Neustart: sie stehen jetzt als Zeile in
+	//      `state/goal-warten.json` (neue Datei, Muster wie team-modus' uebernahmen.json,
+	//      DSH_HOME-Vorrang wie dort). Beim Laden baut das Modul aus der Platte die Uhr neu —
+	//      abgelaufene Frist weckt sofort mit `grund=wiederhergestellt`, kalte Sitzungen holt
+	//      `agent/created` nach; Altbestand (Frist vorbei und 24 h alt) faellt weg.
+	//      (2) Ein eigenes Kind fertig: `subagent/end` ist jetzt verbunden; das Eignis weckt
+	//      nur bei `von`-Passung, ohne von bleibt alles zu (der Gruss-Bus vom 2026-11-02).
+	//      (3) Uebernahme-Tuer: solange team-modus einen Eintrag in `state/uebernahmen.json`
+	//      schreibt (Mensch fuehrt das Gespraech selbst), schaltet goal-await NICHT scharf
+	//      — Wartezustand bleibt stehen, Log `ueberspringen … uebernahme=offen zustand=bleibt`.
+	//      Nach der Freigabe weckt die Relay-Nachricht an den Vorgesetzten (Relay-Quelle mit
+	//      `senderSessionId`=Kind-Kennung) ueber den alten Absenderfilter; an team-modus ist
+	//      nichts geaendert. Ausserdem erlaubt der Resume-Pfad jetzt alle drei Phasen
+	//      (active/pausiert/b blocked: dsh-goal lib/index.js :690 `resumable`), weil ein
+	//      pausiertes Ziel nach einer Freigabe anlaufen soll — der gemessene Kernfall.
+	//      Belege: test/goal-await.test.mjs 24 Faelle, davon 7 Gegenproben am Code; Logschema
+	//      um ueberspringen/wiederhergestellt und grund=kind erweitert.
 	// Der Anker wird mitgezogen, WEIL die Aenderung beabsichtigt und im Commit steht — nicht, weil
 	// die Zahl zufaellig nicht mehr passte. Wer ihn das naechste Mal anfasst, schreibt den Grund dazu.
-	'goal-await.mjs': 'a34dc4d68c8dc3ed4e977bf54b577d0cbaa30c90a481fb35502a187ca3eed758',
+	'goal-await.mjs': 'eb76bf405b667c81bd246ec903f6415c328fa52239c09a833f69e22344bed1cb',
 	'subagent-rolle.mjs': 'b6e1869ac8279ea9b890d1eb78b8c2ae6cd6a91d0287af2ee2250060bf71276a',
 	'rolle-titel.mjs': '5deab0dae9366ea34be545c1b258a1510880300b477a6e9d5ac715664ce1a2d7',
 	// stille-nachrichten.mjs: am 2026-10-31 repariert. Drei gemessene Fehler im Original:
